@@ -1,65 +1,142 @@
 <?php
 
+// simple controller router 
+// assumes use of mod_rewrite to hide index page
+// adapted from Kohana 2.3
+
 class Router {
+
+	// array of routes
+	public static $routes;
 	
-	// assumes use of mod_rewrite to hide index page
-	protected static $index = 'index.php';
+	// routed uri
+	public static $uri;
 
-	// default controller
-	protected static $default_controller = 'index';
+	// controller instance
+	public static $instance;
 
-	// default method
-	protected static $default_method = 'index';
-	
+	// routed controller
+	public static $controller;
 
-	public static function execute($routes) {
-				
-		$uri = ($_SERVER['REQUEST_URI'] == '/') ? '/'.self::$default_controller : $_SERVER['REQUEST_URI'];
-		$params = '';		
-					
-		foreach ($routes as $route => $callback) {
-						
-			if (eregi($route, $uri, $matches) !== FALSE) {
+	// routed method
+	public static $method = 'index';
 
-				// remove the original match from arguments
-				$params = array_slice($matches, 1);
-				break;
+	// uri arguments
+	public static $arguments = array();
+
+	// taken from Kohana 2.3
+	public static function & instance() {
+
+		if (self::$instance === NULL) {
+
+			try {
+
+				// start validation of the controller
+				$class = new ReflectionClass(ucfirst(self::$controller).'_Controller');
+
+			} catch (ReflectionException $e) {
+
+				// controller does not exist
+				return self::_404();
 
 			}
+
+			// create a new controller instance
+			$controller = $class->newInstance();
+
+			try {
+				// load the controller method
+				$method = $class->getMethod(self::$method);
+
+				// method exists
+				if (self::$method[0] === '_') {
+
+					// do not allow access to hidden methods
+					return self::_404();
+				}
+
+				if ($method->isProtected() or $method->isPrivate()) {
+
+					// do not attempt to invoke protected methods
+					return self::_404();
+				}
+
+				// default arguments
+				$arguments = self::$arguments;
+
+			} catch (ReflectionException $e) {
+
+				// use __call instead
+				$method = $class->getMethod('__call');
+
+				// use arguments in __call format
+				$arguments = array(self::$method, self::$arguments);
+			}
+
+			// execute the controller method
+			$method->invokeArgs($controller, $arguments);
+
 		}
 
-		// if nothing matched this will execute the last route defined as the catchall
-	 	//  {
-		// using a capital letter denotes controller
-		if ($callback[0] < 'a') {
+		return self::$instance;
+	}
 
-			// add default method if not specified
-			if (strpos($callback, '/') === FALSE) 
-				$callback .= '/'.self::$default_method;
+	public static function _404() {
+		
+		// simply call _404 route and exit
+		self::execute('_404');
+		exit;
+		
+	}
 
-			// deciper controller/method
-			list($controller, $method) = explode('/', $callback);
+	public static function execute($uri) {
+
+		// use default route if empty uri
+		self::$uri = (empty($uri) OR $uri == '/') ? self::$routes['_default'] : trim($uri, '/');
+
+		// match uri against route
+		foreach (self::$routes as $route => $callback) {
+
+			if ($route === '_default' || $route === '_404') continue;
+
+			// trim slashes
+			$route = trim($route, '/');
+			$callback = trim($callback, '/');
 			
-			// enforce _Controller suffix
-			$controller = $controller.'_Controller';
+			if (preg_match('#^'.$route.'$#u', self::$uri)) {
 
-			// if (class_exists($controller.'_Controller', TRUE) AND method_exists($controller.'_Controller', $method)) {
-			if (class_exists($controller, TRUE) AND is_callable($controller, $method)) {
+				if (strpos($callback, '$') !== FALSE) {
 
-				// instantiate controller
-				$controller = new $controller;
+					// use regex routing
+					self::$uri = preg_replace('#^'.$route.'$#u', $callback, self::$uri);
 
-				// call valid method with URI as $params
-				$controller->$method($params);
+				} else {
+					// standard routing
+					self::$uri = $callback;
+				}
+
+				// valid route has been found
+				$matched = TRUE;
+				break;
+				
 			} 
-			
-		// allow regular function callbacks
-		} elseif (is_callable($callback)) {
-			
-			call_user_func($callback, $params);
-			
-		} 
+		}
+		
+		// deciper controller/method
+		$segments = explode('/', self::$uri);
 
-}
+		// controller is first segment
+		self::$controller = $segments[0];
 
+		// use default method if none specified
+		self::$method = (isset($segments[1])) ? $segments[1] : self::$method;
+
+		// remaining arguments
+		self::$arguments = array_slice($segments, 2);
+
+		// instantiate controller
+		return self::instance();
+
+	}
+	
 }

@@ -1,3 +1,6 @@
 [submodule "source/Router"]
 	path = source/Router
 	url = https://github.com/FlorianH/Router.git
+[submodule "libraries/yaml"]
+	path = libraries/yaml
+	url = https://github.com/fabpot/yaml.git
