@@ -1,6 +1,6 @@
-[submodule "source/Router"]
-	path = source/Router
-	url = https://github.com/FlorianH/Router.git
 [submodule "libraries/yaml"]
 	path = libraries/yaml
 	url = https://github.com/fabpot/yaml.git
+[submodule "source/html5boilerplate"]
+	path = source/html5boilerplate
+	url = https://github.com/paulirish/html5-boilerplate.git

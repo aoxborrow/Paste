@@ -5,7 +5,7 @@ abstract class Template_Controller {
 	public function __construct() {
 		
 		echo '<html><body style="padding: 50px;">';
-		echo '<a href="/">home</a> / '.Router::$uri.'<br/>';
+		echo '<div style="width: 80%; height: 30px;"><a href="/">home</a> / '.str_replace('/', ' / ', Router::$uri).'</div>';
 		
 	}
 

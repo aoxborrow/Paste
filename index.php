@@ -13,6 +13,7 @@ require_once 'libraries/Autoloader.php';
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
+	'convert' => 'work/convert', // temporary	
 	'work/([a-z]+)/([0-9]+)' => 'work/show/$1/$2', // work item with pagination
 	'work/([a-z]+)' => 'work/show/$1', // individual work item
 	'_404' => '_404', // 404 controller

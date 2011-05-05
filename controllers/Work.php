@@ -2,17 +2,87 @@
 
 class Work_Controller extends Template_Controller {
 	
+	public static $yaml_path;
+
 	public function __construct() {
 		
 		parent::__construct();
 		
-		require_once(__DIR__.'/../libraries/yaml/lib/sfYaml.php');		
+		require_once(__DIR__.'/../libraries/yaml/lib/sfYaml.php');
+		
+		self::$yaml_path = APPPATH.'/views/newwork/';
+		
+		$output = '<ul style="margin: 0 10px 0 0; display: block; float: left; height: 400px; padding-top: 20px; width: 180px; border: 1px solid #ccc;">';
+		
+	 	$menu = sfYaml::load(APPPATH.'/views/menu.yaml');
+
+	    foreach ($menu as $category => $works) {
+			$output .= "<li>$category<ul>";
+			
+			foreach ($works as $name => $title)
+				$output .= '<li><a href="/work/'.$name.'">'.$title.'</a></li>';
+				
+			$output .= '</ul></li>';
+	    }
+	
+	    echo $output.'</ul><div style="padding: 20px; border: 1px solid #999; display: block; float: left; width: 500px;">';
 		
 	}
+
 		
 	public function index() {
 		
 		$output = '<h1>All Work</h1>';
+		
+		$works = array();
+	
+		if ($handle = opendir(self::$yaml_path)) {
+			while (false !== ($file = readdir($handle))) {
+				if ($file != '.' AND $file != '..') { 
+					$works[] = $this->_load_work($file);
+				}
+			}
+			closedir($handle);			
+		}
+
+	    foreach ($works as $work) {
+			$output .= $this->_draw_work($work);
+	    }
+
+	    echo $output.'</div>';
+		
+		
+	}
+	
+	public function convert() {
+		
+		/*
+		---
+		work_id: ifloorplan
+		category: 0
+		visible: 1
+		index: 2
+		menuname: iFloorPlan
+		title: iFloorPlan
+		launchtext: VISIT iFLOORPLAN.COM
+		launchurl: http://ifloorplan.com
+		description: |
+		  <p>Interactive floorplans allow new home buyers to customize their home before it is built. iFloorPlan lets buyers visualize and manipulate structural options, electrical wiring and furniture placement. Home builders may then use these personalized floorplans as a starting guide for the construction process.</p>
+		  <p>iFloorPlan has evolved through years of development into quite a sophisticated and flexible application, and is currently in use by dozens of the nation's top builders. The latest version (4.0) introduces a completely new administration and production backend.</p>
+
+		  <p class="launch"><a title="View Demo" href="http://ifloorplan.com/ifp/plan.php?plan=1:2400OH" rel="external">VIEW DEMO</a></p>
+		numpics: 3
+		subtitle: Flash/PHP/SQL Development
+		extension: .gif
+		color: 004D90
+		*/
+		
+		
+		// launchtext: VISIT iFLOORPLAN.COM
+		// launchurl: http://ifloorplan.com
+		// <p class="launch"><a title="View Demo" href="http://ifloorplan.com/ifp/plan.php?plan=1:2400OH" rel="external">VIEW DEMO</a></p>
+	  
+		$output = '<h1>Converting</h1>';
 		
 		$works = array();
 	
@@ -24,57 +94,62 @@ class Work_Controller extends Template_Controller {
 			}
 			closedir($handle);			
 		}
+		
+		echo '<br/><pre>';
+		
+		$menu = array("Applications" => array(), "Websites" => array(), "Design" => array());
+		$categories = array("Applications", "Websites", "Design");	  	
 
 	    foreach ($works as $work) {
-			$output .= $this->_draw($work);
-	    }
 
-	    echo $output;
+			$cat = $categories[$work['category']];
+			
+			$menu[$cat][$work['work_id']] = $work['menuname'];
+						
+	    }
+	
+		print_r($menu);
 		
+		$yaml = sfYaml::dump($menu, 2);
+		file_put_contents(APPPATH.'views/newwork/menu.yaml', $yaml);	
+
+	    echo '</pre>';
+
 		
 	}
 	
-	public function show($work_id, $pg = 1) {
+	public function show($name, $pg = 1) {
 		
 		if ($pg > 1)
-			echo "<b>Page $pg</b>";
+			echo "<br/><b>Page $pg</b><br/>";
+		
+		if (! file_exists(self::$yaml_path.$name.'.yaml'))
+		 	exit('Invalid work specified.');
 				
-		$work = sfYaml::load(APPPATH.'views/work/'.$work_id.'.yaml');	
-		echo $this->_draw($work);
+		$work = $this->_load_work($name.'.yaml');	
+		echo $this->_draw_work($work);
 	}
 	
-	private function _draw($work) {
+	private function _load_work($file) {
+		
+		// Spyc::YAMLLoad(self::$yaml_path.$file);
+	 	$work = sfYaml::load(self::$yaml_path.$file);
+		$work['name'] = basename($file, '.yaml');
+		return $work;
+	}
+	
+	private function _draw_work($work) {
 
-        $output = '<a href="/work/'.$work['work_id'].'"><h3>'.$work['title'].'</h3></a>';
+        $output = '<a href="/work/'.$work['name'].'"><h3>'.$work['title'].'</h3></a>';
         $output .= '<p>'.$work['description'].'</p><br/>';
 		return $output;
 		
 	}
 	
 	
-	protected function _load_work_yaml() {
-
-		$works = array();
-		
-		if ($handle = opendir(APPPATH.'/views/work')) {
-			while (false !== ($file = readdir($handle))) {
-				if ($file != '.' AND $file != '..') { 
-				 	$works[] = Spyc::YAMLLoad(APPPATH.'/views/work/'.$file);
-				}
-			}
-			closedir($handle);			
-		}
-		
-		//die(var_dump($works));
-		return $works;
-		
-	}
-
 	public function _action_index($work_id = 'cover')
 	{
 		
-		// $this->curr_id = Arr::get($this->request->query(), 'id', 'cover');
-
 		$this->curr_id = $work_id;
 
 		$this->categories = array("Applications", "Websites", "Design");
