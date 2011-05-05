@@ -42,7 +42,7 @@ class Router {
 			}
 
 			// create a new controller instance
-			$controller = $class->newInstance();
+			self::$instance = $class->newInstance();
 
 			try {
 				// load the controller method
@@ -74,7 +74,7 @@ class Router {
 			}
 
 			// execute the controller method
-			$method->invokeArgs($controller, $arguments);
+			$method->invokeArgs(self::$instance, $arguments);
 
 		}
 

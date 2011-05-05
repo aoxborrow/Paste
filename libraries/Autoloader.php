@@ -23,9 +23,15 @@ function autoloader($class) {
 		
 		require_once(APPPATH.'libraries/'.$class.'.php');
 		return TRUE;
-				
+	
+	// try the models folder			
+	} elseif (file_exists(APPPATH.'models/'.$class.'.php')) {
+		
+		require_once(APPPATH.'models/'.$class.'.php');
+		return TRUE;
+	
 	}
-
+	
 	// couldn't find the file
 	return FALSE;
 }

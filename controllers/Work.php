@@ -2,19 +2,15 @@
 
 class Work_Controller extends Template_Controller {
 	
-	public static $yaml_path;
-
 	public function __construct() {
 		
 		parent::__construct();
 		
-		require_once(__DIR__.'/../libraries/yaml/lib/sfYaml.php');
+		require_once(APPPATH.'libraries/yaml/lib/sfYaml.php');
+				
+		$output = '';
 		
-		self::$yaml_path = APPPATH.'/views/newwork/';
-		
-		$output = '<ul style="margin: 0 10px 0 0; display: block; float: left; height: 400px; padding-top: 20px; width: 180px; border: 1px solid #ccc;">';
-		
-	 	$menu = sfYaml::load(APPPATH.'/views/menu.yaml');
+	 	$menu = sfYaml::load(APPPATH.'views/menu.yaml');
 
 	    foreach ($menu as $category => $works) {
 			$output .= "<li>$category<ul>";
@@ -25,7 +21,7 @@ class Work_Controller extends Template_Controller {
 			$output .= '</ul></li>';
 	    }
 	
-	    echo $output.'</ul><div style="padding: 20px; border: 1px solid #999; display: block; float: left; width: 500px;">';
+	    $this->template->menu = $output;
 		
 	}
 
@@ -36,24 +32,27 @@ class Work_Controller extends Template_Controller {
 		
 		$works = array();
 	
-		if ($handle = opendir(self::$yaml_path)) {
+		if ($handle = opendir(APPPATH.Project::$yaml_path)) {
 			while (false !== ($file = readdir($handle))) {
 				if ($file != '.' AND $file != '..') { 
-					$works[] = $this->_load_work($file);
+					$name = basename($file, '.yaml');
+					$output .= Project::factory($name)->render();						
 				}
 			}
 			closedir($handle);			
 		}
 
-	    foreach ($works as $work) {
-			$output .= $this->_draw_work($work);
-	    }
-
-	    echo $output.'</div>';
+	    $this->template->content = $output;
 		
 		
 	}
 	
+	public function show($name, $pg = 1) {
+		
+		$this->template->content = Project::factory($name)->render();	
+
+	}
+		
 	public function convert() {
 		
 		/*
@@ -117,35 +116,6 @@ class Work_Controller extends Template_Controller {
 
 		
 	}
-	
-	public function show($name, $pg = 1) {
-		
-		if ($pg > 1)
-			echo "<br/><b>Page $pg</b><br/>";
-		
-		if (! file_exists(self::$yaml_path.$name.'.yaml'))
-		 	exit('Invalid work specified.');
-				
-		$work = $this->_load_work($name.'.yaml');	
-		echo $this->_draw_work($work);
-	}
-	
-	private function _load_work($file) {
-		
-		// Spyc::YAMLLoad(self::$yaml_path.$file);
-	 	$work = sfYaml::load(self::$yaml_path.$file);
-		$work['name'] = basename($file, '.yaml');
-		return $work;
-	}
-	
-	private function _draw_work($work) {
-
-        $output = '<a href="/work/'.$work['name'].'"><h3>'.$work['title'].'</h3></a>';
-        $output .= '<p>'.$work['description'].'</p><br/>';
-		return $output;
-		
-	}
-	
 	
 	public function _action_index($work_id = 'cover')
 	{

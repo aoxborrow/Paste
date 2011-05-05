@@ -1,13 +1,24 @@
 <?php 
 
+/* Site Design Goals:
+- barebones micro MVC pattern
+- simple routing
+- only load classes i'll be using
+- no html in controllers, super thin controllers
+- view models act as both data model and mustache model
+- mustache for ultra dumb templates
+- yaml for simple data, content management
+*/
+
+
 // setup error reporting
-error_reporting(E_ALL & ~E_STRICT & ~E_DEPRECATED);
+error_reporting(E_ALL & ~E_STRICT);
 ini_set('display_errors', TRUE);
 
 // APPPATH constant with trailing slash for convenience
 define('APPPATH', __DIR__.'/');
 
-// register autoloader for libraries and controllers
+// register autoloader for libraries, controllers, models
 require_once 'libraries/Autoloader.php'; 
 
 // map routes to controllers, define longest first
@@ -21,4 +32,7 @@ Router::$routes = array(
 );
 
 // match uri to route and instantiate controller
-Router::execute($_SERVER['REQUEST_URI']);
+$controller = Router::execute($_SERVER['REQUEST_URI']);
+
+// auto render template
+$controller->_render();
