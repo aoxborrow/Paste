@@ -65,7 +65,7 @@ a:link { -webkit-tap-highlight-color: #444; }
 
 ul, li { margin: 0; list-style:none; list-style-image: none; }
 
-strong, th { font-weight: bold; }
+b, strong, th { font-weight: bold; }
 
 pre {
 /* www.pathf.com/blogs/2008/05/formatting-quoted-code-in-blog-posts-css21-white-space-pre-wrap/ */
@@ -99,7 +99,7 @@ body, select, input, textarea {
 /* paste styles */
 
 body {
-	margin: 30px;
+	margin: 20px;
 	background-color: #eee;
 }
 p {
@@ -126,9 +126,14 @@ div.content {
 	padding: 20px;
 	display: block;
 	float: left;
-	width: 500px;
+	width: 406px;
 	background-color: #fff;
 }
+div.content img {
+	border: 3px solid #ccc;
+	margin-bottom: 10px;
+}
+
 ul.menu {
 	margin: 0;
 	float: left;
@@ -138,7 +143,9 @@ ul.menu {
 }
 
 ul.menu li {
-	line-height: 21px;
+}
+
+ul.menu li.hello {
 }
 
 ul.menu li a {
@@ -147,13 +154,15 @@ ul.menu li a {
 
 /* regular pages at the top of menu */
 ul.menu li ul.pages {
-	margin-bottom: 20px;
+	line-height: 21px;
+	margin: 20px 0;
 }
 
 /*  project categories */
 ul.menu li.category {
 	color: #888;
 	margin-top: 10px;
+	line-height: 21px;
 }
 
 

@@ -1,6 +1,6 @@
 <?php
 
-// abstracted storage of data
+// simple data storage abstraction
 class Storage {
 	
 	// data file extension
