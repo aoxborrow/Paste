@@ -2,55 +2,35 @@
 
 class Work_Controller extends Template_Controller {
 	
-	public function __construct() {
-		
-		parent::__construct();
-		
-		require_once(APPPATH.'libraries/yaml/lib/sfYaml.php');
-				
-		$output = '';
-		
-	 	$menu = sfYaml::load(APPPATH.'views/menu.yaml');
-
-	    foreach ($menu as $category => $works) {
-			$output .= "<li>$category<ul>";
-			
-			foreach ($works as $name => $title)
-				$output .= '<li><a href="/work/'.$name.'">'.$title.'</a></li>';
-				
-			$output .= '</ul></li>';
-	    }
-	
-	    $this->template->menu = $output;
-		
-	}
-
-		
 	public function index() {
 		
-		$output = '<h1>All Work</h1>';
+		// get first project name
+		$first = Menu::first_project();
 		
-		$works = array();
+		// redirect to first project
+		self::redirect('/work/'.$first);
 	
-		if ($handle = opendir(APPPATH.Project::$yaml_path)) {
-			while (false !== ($file = readdir($handle))) {
-				if ($file != '.' AND $file != '..') { 
-					$name = basename($file, '.yaml');
-					$output .= Project::factory($name)->render();						
-				}
-			}
-			closedir($handle);			
-		}
-
-	    $this->template->content = $output;
-		
-		
 	}
+
 	
 	public function show($name, $pg = 1) {
 		
-		$this->template->content = Project::factory($name)->render();	
+		$this->template->current_page = $name;
+				
+		$this->template->content = Project::factory($name)->load()->render();	
 
+	}
+	
+	public function _all_index() {
+		
+		$output = '<h1>All Work</h1>';
+			
+		foreach (Project::all_projects() as $project) {
+			$output .= $project->render();
+		}
+
+	    $this->template->content = $output;		
+	    
 	}
 		
 	public function convert() {

@@ -1,8 +1,17 @@
+# don't list directories
+Options -Indexes
+
 # Turn on URL rewriting
 RewriteEngine On
 
 # Installation directory
 RewriteBase /
+
+# Rewrite "domain.com/foo -> domain.com/foo/"
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_URI} !(\.[a-zA-Z0-9]{1,5}|/|#(.*))$
+# RewriteRule ^(.*)$ /$1/ [R=301,L]
+
 
 # Protect hidden files from being viewed
 <Files .*>
@@ -19,3 +28,42 @@ RewriteCond %{REQUEST_FILENAME} !-d
 
 # Rewrite all other URLs to index.php/URL
 RewriteRule .* index.php/$0 [PT]
+
+
+# use utf-8 encoding for anything served text/plain or text/html
+AddDefaultCharset utf-8
+
+# force utf-8 for a number of file formats
+AddCharset utf-8 .html .css .js .xml .json .rss
+
+# HTML5 boilerplate stuff
+<IfModule mod_setenvif.c>
+  <IfModule mod_headers.c>
+    BrowserMatch MSIE ie
+    Header set X-UA-Compatible "IE=Edge,chrome=1" env=ie
+  </IfModule>
+</IfModule>
+
+<IfModule mod_headers.c>
+# Because X-UA-Compatible isn't sent to non-IE (to save header bytes),
+# We need to inform proxies that content changes based on UA
+  Header append Vary User-Agent
+# Cache control is set only if mod_headers is enabled, so that's unncessary to declare
+</IfModule>
+
+<IfModule mod_setenvif.c>
+  <IfModule mod_headers.c>
+    SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s,?\s(gzip|deflate)?|X{4,13}|~{4,13}|-{4,13})$ HAVE_Accept-Encoding
+    RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+  </IfModule>
+</IfModule>
+
+# html, txt, css, js, json, xml, htc:
+<IfModule filter_module>
+  FilterDeclare   COMPRESS
+  FilterProvider  COMPRESS  DEFLATE resp=Content-Type /text/(html|css|javascript|plain|x(ml|-component))/
+  FilterProvider  COMPRESS  DEFLATE resp=Content-Type /application/(javascript|json|xml|x-javascript)/
+  FilterChain     COMPRESS
+  FilterProtocol  COMPRESS  change=yes;byteranges=no
+</IfModule>
+

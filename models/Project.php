@@ -1,37 +1,60 @@
 <?php
 
+// project view model
 class Project extends Mustache {
 	
 	// project name and link id
 	public $name;
 	
 	// define mustache template	
-	public $_template = 'project.mustache';
+	protected $_template = 'project.mustache';
 	
-	// path to project .yaml files
-	public static $yaml_path = 'views/projects/';	
+	// path to project data files
+	protected static $_project_path = 'views/projects/';	
 	
+	// constructor sets name
 	public function __construct($name) {
 				
 		// set project name
 		$this->name = $name;
+						
+	}
+	
+	// factory for chaining methods
+	public static function factory($name = NULL) {
+
+		return new Project($name);
+
+	}	
+	
+	// load single project data
+	public function load() {
 		
-		// load project yaml
-		$values = sfYaml::load(APPPATH.self::$yaml_path.$this->name.'.yaml');
+		// load project data
+		$values = Storage::load(self::$_project_path.$this->name);
 		
 		// assign to values of this view model
 		foreach ($values as $key => $value) {
 			$this->$key = $value;
 		}
 		
+		return $this;
+		
 	}
 	
-	public static function factory($name = NULL) {
-
-		return new Project($name);
-
+	// returns array of all projects
+	public static function all_projects() {
+		
+		$projects = array();
+		
+		foreach (Storage::list_dir(self::$_project_path) as $name) {
+			$projects[] = Project::factory($name)->load();
+		}
+		
+		return $projects;
 	}
-	
+		
+		
 	public function render() {
 		
 		return parent::render(file_get_contents(APPPATH.'views/'.$this->_template));

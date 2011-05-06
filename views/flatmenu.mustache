@@ -1,0 +1,9 @@
+	<ul class="menu">
+		<li><a {{#index_page}}class="selected"{{/index_page}}href="/">Home</a></li>
+		<li><a {{#notes_page}}class="selected"{{/notes_page}}href="/notes">Lab Notes</a></li>
+		<li><a {{#info_page}}class="selected"{{/info_page}} href="/info">Info / Contact</a></li>
+		<br />
+		{{#flat_menu}}
+		<li><a {{#current}}class="selected"{{/current}} href="/work/{{name}}">{{title}}</a></b></li>
+		{{/flat_menu}}
+	</ul>

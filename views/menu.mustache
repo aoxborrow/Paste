@@ -1,0 +1,19 @@
+<ul class="menu">
+	<li>
+	<ul class="pages">
+{{#main_menu}}
+	<li><a {{#current}}class="selected"{{/current}} href="/{{name}}">{{title}}</a></b></li>
+{{/main_menu}}
+	</ul></li>
+
+{{#project_menu}}
+{{#category}}
+	<li class="category">{{category}}
+	<ul class="projects">
+{{#pages}}
+		<li><a{{#current}} class="selected"{{/current}} href="/work/{{name}}">{{title}}</a></b></li>
+{{/pages}}
+	</ul></li>
+{{/category}}
+{{/project_menu}}
+</ul>

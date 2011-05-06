@@ -8,8 +8,18 @@
 - view models act as both data model and mustache model
 - mustache for ultra dumb templates
 - yaml for simple data, content management
-*/
+- experiment with various new techs
 
+TODO: make menu utilize categories, move menu array somewhere
+TODO: start on basic CSS structure
+TODO: add images and non-js image navigation (prev / next)
+TODO: add method for optional image captions
+TODO: add Jquery elements from boilerplate
+TODO: add #hash routing for projects and pages
+TODO: add lab notes with title, date, summary?
+
+
+*/
 
 // setup error reporting
 error_reporting(E_ALL & ~E_STRICT);
@@ -21,18 +31,24 @@ define('APPPATH', __DIR__.'/');
 // register autoloader for libraries, controllers, models
 require_once 'libraries/Autoloader.php'; 
 
+// using Mustache for templating
+require_once 'libraries/mustache/Mustache.php';
+
+// using YAML for data storage
+require_once 'libraries/yaml/lib/sfYaml.php';
+
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
 	'convert' => 'work/convert', // temporary	
 	'work/([a-z]+)/([0-9]+)' => 'work/show/$1/$2', // work item with pagination
 	'work/([a-z]+)' => 'work/show/$1', // individual work item
-	'_404' => '_404', // 404 controller
+	'_404' => 'template/_404', // 404 controller
 	'_default' => 'index', // default controller
 );
 
 // match uri to route and instantiate controller
 $controller = Router::execute($_SERVER['REQUEST_URI']);
 
-// auto render template
+// auto render template of controller
 $controller->_render();

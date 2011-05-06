@@ -81,15 +81,14 @@ class Router {
 		return self::$instance;
 	}
 
-	public static function _404() {
+	public static function & _404() {
 		
 		// simply call _404 route and exit
-		self::execute('_404');
-		exit;
+		return self::execute('_404');
 		
 	}
 
-	public static function execute($uri) {
+	public static function & execute($uri) {
 
 		// use default route if empty uri
 		self::$uri = (empty($uri) OR $uri == '/') ? self::$routes['_default'] : trim($uri, '/');

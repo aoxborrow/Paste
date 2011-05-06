@@ -3,20 +3,31 @@
 <head>
 	<meta charset="utf-8">
 	<title>{{title}}</title>
+	<meta name="description" content="Portfolio of Aaron Oxborrow, a freelance web developer based in Salt Lake City, Utah.">
+	<meta name="author" content="Aaron Oxborrow">
+	<link rel="shortcut icon" href="/favicon.ico">
+	<link rel="stylesheet" href="/assets/css/base.css">	
+	<script src="/assets/js/modernizr-1.7.min.js"></script>
 </head>
-<body style="margin: 30px; background-color: #eee;">
-<div style="width: 100%; height: 30px; border: 1px solid #ccc;"><a href="/">home</a> / {{breadcrumb}}</div>
-{{#menu}}
-<ul style="margin: 0 10px 0 0; display: block; float: left; height: 400px; padding-top: 20px; width: 180px; border: 1px solid #ccc;">
+<body>
+
+<div class="container clearfix">
 {{{menu}}}
-</ul>
-<div style="padding: 20px; border: 1px solid #ccc; display: block; float: left; width: 500px;">
-{{/menu}}
-
+<div class="content">
 {{{content}}}
-
-{{#menu}}
 </div>
-{{/menu}}
+</div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.js"></script>
+<script>window.jQuery || document.write("<script src='/assets/js/jquery-1.6.min.js'>\x3C/script>")</script>
+<script src="/js/paste.js"></script>
+
+<script>
+  var _gaq=[["_setAccount","UA-17597147-1"],["_trackPageview"],["_trackPageLoadTime"]];
+  (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.async=1;
+  g.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js";
+  s.parentNode.insertBefore(g,s)}(document,"script"));
+</script>
+
 </body>
 </html>

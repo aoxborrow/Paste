@@ -1,36 +1,55 @@
 <?php
 
-abstract class Template_Controller {
+class Template_Controller {
 	
 	// template view model
 	public $template;
-
-	// default to auto-rendering
-	public $auto_render = TRUE;
 	
 	public function __construct() {
 		
-		require_once(APPPATH.'libraries/mustache/Mustache.php');
-		
+		// template view model
 		$this->template = new Template;
-		$this->template->breadcrumb = str_replace('/', ' / ', Router::$uri);
-				
+		
+		// default title
+		$this->template->title = 'pastetwo';
+
+		// set breadcrumb
+		// $this->template->breadcrumb = str_replace('/', ' / ', Router::$uri);
+		// <div class="breadcrumb"><a href="/">home</a> / {{breadcrumb}}</div>		
+		
+		// menu view model
+		$this->template->menu = new Menu;
+		
+	
+		// bind current_page in menu view to template var
+		$this->template->menu->current_page =& $this->template->current_page;
+
 	}
 
 	public function __call($method, $args) {
 		
 		// print_r(func_get_args());		
-		echo 'Page not found: '.$method;
+		$this->template->content = 'Page not found: '.$method;
 		
 	}
 	
 	public function _render() {
 		
-		if ($this->auto_render == TRUE) {
-			// Render the template when the class is destroyed
-			echo $this->template->render();
+		if ($this->template->current_page === NULL) {
+			// set current page to controller if none set
+			$this->template->current_page = Router::$controller;
 		}
 		
+		// Render the template when the class is destroyed
+		echo $this->template->render();
+		
+	}
+	
+	// for simple redirect
+	public static function redirect($url = '/') {
+
+		header('Location: '.$url);
+
 	}
 	
 }
