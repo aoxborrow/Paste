@@ -11,10 +11,9 @@
 - experiment with various new techs
 - use history API for loading project content: http://html5demos.com/history/
 
-TODO: make menu utilize categories, move menu array somewhere
-TODO: start on basic CSS structure
-TODO: add images and non-js image navigation (prev / next)
-TODO: add method for optional image captions
+TODO: move menu array somewhere
+TODO: add ability for optional image captions
+TODO: allow images to be of different extensions
 TODO: add Jquery elements from boilerplate
 TODO: add #hash routing for projects and pages
 TODO: add lab notes with title, date, summary?
@@ -42,6 +41,7 @@ require_once 'libraries/yaml/lib/sfYaml.php';
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
 	'convert' => 'work/convert', // temporary	
+	'work/all' => 'work/all', // temporary	
 	'work/([a-z]+)/([0-9]+)' => 'work/show/$1/$2', // work item with pagination
 	'work/([a-z]+)' => 'work/show/$1', // individual work item
 	'_404' => 'template/_404', // 404 controller

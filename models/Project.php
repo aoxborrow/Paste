@@ -6,33 +6,33 @@ class Project extends Mustache {
 	// project name and link id
 	public $name;
 	
-	// current project page
-	public $page = 1;
+	// current project image
+	public $current_image = 1;
 	
 	// number of project pages
-	public $num_pages = 1;
+	public $num_images = 1;
+		
+	// base url for projects
+	public static $_project_url = '/work/';
 	
 	// define mustache template	
 	protected $_template = 'project.mustache';
-	
-	// path to project data files
-	protected static $_project_path = 'views/projects/';
-	
-	// base url for projects
-	public static $_project_url = '/work/';
-		
+			
 	// constructor sets name
-	public function __construct($name) {
+	public function __construct($name, $current_image) {
 				
 		// set project name
 		$this->name = $name;
+		
+		// set current image to display
+		$this->current_image = $current_image;
 
 	}
 	
 	// factory for chaining methods
-	public static function factory($name = NULL) {
+	public static function factory($name = NULL, $current_image = 1) {
 
-		$project = new Project($name);
+		$project = new Project($name, $current_image);
 		
 		return $project->load();
 
@@ -42,7 +42,7 @@ class Project extends Mustache {
 	public function load() {
 		
 		// load project data
-		$values = Storage::load(self::$_project_path.$this->name);
+		$values = Storage::load($this->name);
 		
 		// assign to values of this view model
 		foreach ($values as $key => $value) {
@@ -50,7 +50,7 @@ class Project extends Mustache {
 		}
 		
 		// set project pages (based on #images for now)
-		$this->num_pages = $this->numpics;		
+		$this->num_images = $this->numpics;		
 		
 		return $this;
 		
@@ -60,7 +60,7 @@ class Project extends Mustache {
 	public function prev_url() {
 		
 		// if we're at the first page
-		if ($this->page <= 1) {
+		if ($this->current_image <= 1) {
 			
 			// try to get previous project
 			$prev = Menu::relative_project($this->name, -1);
@@ -73,7 +73,7 @@ class Project extends Mustache {
 		} else {
 			
 			// otherwise return the previous page
-			return self::$_project_url.$this->name.'/'.($this->page - 1);
+			return self::$_project_url.$this->name.'/'.($this->current_image - 1);
 			
 		}
 	}	
@@ -82,7 +82,7 @@ class Project extends Mustache {
 	public function next_url() {
 		
 		// if we're at the last page
-		if ($this->page >= $this->num_pages) {
+		if ($this->current_image >= $this->num_images) {
 						
 			// try to get next project
 			$next = Menu::relative_project($this->name, 1);
@@ -96,24 +96,10 @@ class Project extends Mustache {
 		} else {
 			
 			// otherwise return the next page
-			return self::$_project_url.$this->name.'/'.($this->page + 1);
+			return self::$_project_url.$this->name.'/'.($this->current_image + 1);
 		
 		}
 	}	
-	
-	
-	// returns array of all projects
-	public static function all_projects() {
-		
-		$projects = array();
-		
-		foreach (Storage::list_dir(self::$_project_path) as $name) {
-			$projects[] = Project::factory($name)->load();
-		}
-		
-		return $projects;
-	}
-		
 		
 	public function render() {
 		

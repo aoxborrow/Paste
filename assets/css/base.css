@@ -114,6 +114,14 @@ h1 {
 	clear: both;
 }
 
+h2 {
+	font-size: 14px;
+	line-height: 20px;
+	color: #888;
+	margin-top: -10px;
+	margin-bottom: 15px;
+}
+
 div.container {
 	width: 1000px;
 }
@@ -131,16 +139,26 @@ div.content {
 	background-color: #fff;
 }
 div.content img {
-	/*border: 3px solid #ccc;*/
+	border: 3px solid #ccc;
+	width: 400px;
+	height: 400px;
+}
+
+p.caption {
+	text-align: center;
+	margin: 0 0 15px 0;
+	font-weight: bold;
+	font-size: 11px;
+	color: #888;
+	float: left;
+	width: 300px;
 }
 
 a.prev {
 	float: left;
-	margin: 0 0 10px 0;
 }
 a.next {
 	float: right;
-	margin: 0 0 10px 0;
 }
 	
 
