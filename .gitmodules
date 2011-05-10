@@ -7,3 +7,6 @@
 [submodule "libraries/mustache"]
 	path = libraries/mustache
 	url = https://github.com/bobthecow/mustache.php.git
+[submodule "source/history"]
+	path = source/history
+	url = https://github.com/balupton/history.js.git

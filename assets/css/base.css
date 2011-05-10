@@ -111,6 +111,7 @@ h1 {
 	font-size: 25px;
 	line-height: 30px;
 	margin-bottom: 10px;
+	clear: both;
 }
 
 div.container {
@@ -130,9 +131,18 @@ div.content {
 	background-color: #fff;
 }
 div.content img {
-	border: 3px solid #ccc;
-	margin-bottom: 10px;
+	/*border: 3px solid #ccc;*/
 }
+
+a.prev {
+	float: left;
+	margin: 0 0 10px 0;
+}
+a.next {
+	float: right;
+	margin: 0 0 10px 0;
+}
+	
 
 ul.menu {
 	margin: 0;

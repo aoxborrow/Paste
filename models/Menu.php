@@ -94,12 +94,20 @@ class Menu extends Mustache {
 	
 	public static function first_project() {
 		
-		return array_shift(array_keys(self::$_project_menu['Applications']));
+		// get first item of flat project menu
+		return array_shift(array_keys(self::flat_project_menu()));
 		
 	}
-
+	
+	public static function last_project() {
+		
+		// get last item of flat project menu
+		return array_pop(array_keys(self::flat_project_menu()));
+		
+	}
+	
 	// returns project menu array without categories
-	public function flat_menu() {
+	public static function flat_project_menu() {
 
 		$flat_menu = array();
 
@@ -108,17 +116,34 @@ class Menu extends Mustache {
 
 			foreach ($cat_pages as $name => $title) {
 
-				$flat_menu[] = array(
-					'name' => $name,
-					'title' => $title,
-					'current' => ($name == $this->current_page),
-				);
+				$flat_menu[$name] = $title;
+				
 			}
 		}
 
 		return $flat_menu;
 
 	}
+	
+	
+	// adapted from php.net function by Jamon Holmgren (www.jamonholmgren.com)
+	public static function relative_project($current_key, $offset = 1) {
+
+		// create key map from flat menu
+		$keys = array_keys(self::flat_project_menu());
+
+		// find current key
+		$current_key_index = array_search($current_key, $keys);
+		
+		// return desired offset, if in array
+		if (isset($keys[$current_key_index + $offset])) {
+			return $keys[$current_key_index + $offset];
+		}
+		
+		// otherwise return false
+		return FALSE;
+	}
+	
 
 	public function render() {
 

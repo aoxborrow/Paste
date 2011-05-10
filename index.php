@@ -9,6 +9,7 @@
 - mustache for ultra dumb templates
 - yaml for simple data, content management
 - experiment with various new techs
+- use history API for loading project content: http://html5demos.com/history/
 
 TODO: make menu utilize categories, move menu array somewhere
 TODO: start on basic CSS structure

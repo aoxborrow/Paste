@@ -12,7 +12,6 @@ RewriteBase /
 # RewriteCond %{REQUEST_URI} !(\.[a-zA-Z0-9]{1,5}|/|#(.*))$
 # RewriteRule ^(.*)$ /$1/ [R=301,L]
 
-
 # Protect hidden files from being viewed
 <Files .*>
 	Order Deny,Allow
@@ -20,7 +19,7 @@ RewriteBase /
 </Files>
 
 # Protect application and system files from being viewed
-RewriteRule ^(?:source|controllers|views|models|libraries)\b.* index.php/$0 [L]
+RewriteRule ^(?:controllers|views|models|libraries)\b.* index.php/$0 [L]
 
 # Allow any files or directories that exist to be displayed directly
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -28,7 +27,6 @@ RewriteCond %{REQUEST_FILENAME} !-d
 
 # Rewrite all other URLs to index.php/URL
 RewriteRule .* index.php/$0 [PT]
-
 
 # use utf-8 encoding for anything served text/plain or text/html
 AddDefaultCharset utf-8
