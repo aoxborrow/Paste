@@ -25,6 +25,8 @@ class template_controller {
 		// define project menu
 		Menu::$menu = array(
 			'about' => array('About'),
+			'notes' => array('Lab Notes', array(
+			)),			
 			'projects' => array('Projects', array(
 				'sorenson' => 'Sorenson',
 				'globallr' => 'Global Leasing',
@@ -42,9 +44,6 @@ class template_controller {
 				'modified' => 'Modified Arts',
 				'blufish' => 'Blufish Design',
 				'logos' => 'Logos',
-			)),
-			'notes' => array('Lab Notes', array(
-				'archive' => 'Archive',
 			)),
 			
 		);

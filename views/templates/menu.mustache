@@ -2,11 +2,9 @@
 {{#menu}}
 {{#section}}
 	<li class="section"><a{{#current}} class="selected"{{/current}} href="/{{section}}">{{title}}</a></b></li>
-	{{#current}}
 		{{#pages}}
 				<li><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
 		{{/pages}}	
-	{{/current}}
 {{/section}}
 {{/menu}}
 </ul>
