@@ -3,63 +3,56 @@
 // menu view model
 class Menu extends Mustache {
 
-	// pages menu
-	public static $pages = array();
-
 	// projects menu
-	public static $projects = array();
+	public static $menu = array();
 
-	// used for selected menu item, reference to template var
-	public $current_page = NULL;
+	// used for selected section, reference to template var
+	public $current_section;
+
+	// used for selected sub-menu item, reference to template var
+	public $current_page;
 
 	// define mustache template
 	protected $_template = 'templates/menu.mustache';
+	
 
-	// builds main menu array for mustache
-	public function pages_menu() {
+	// builds project menu array for mustache
+	public function menu() {
 
 		$menu = array();
 
 		// convert menu definition into key values for mustache
-		foreach (self::$pages as $name => $title) {
+		foreach (self::$menu as $section => $definition) {
 
-			$menu[] = array(
-				'name' => $name,
-				'title' => $title,
-				'current' => ($name == $this->current_page),
+			$section = array(
+				'section' => $section,
+				'title' => $definition[0],
+				'current' => ($section == $this->current_section),
+				'pages' => array(),
 			);
+
+			if (isset($definition[1]) and is_array($definition[1])) {
+				foreach ($definition[1] as $name => $title) {
+
+					$section['pages'][] = array(
+						'name' => $name,
+						'title' => $title,
+						'current' => ($name == $this->current_page),
+					);
+				}
+			}
+
+			$menu[] = $section;
 		}
 
 		return $menu;
 
 	}
+	
+	// returns project menu array without categories
+	public static function flat_project_menu() {
 
-	// builds project menu array for mustache
-	public function projects_menu() {
-
-		$menu = array();
-
-		// convert menu definition into key values for mustache
-		foreach (self::$projects as $category => $projects) {
-
-			$category = array(
-				'category' => $category,
-				'projects' => array(),
-			);
-
-			foreach ($projects as $name => $title) {
-
-				$category['projects'][] = array(
-					'name' => $name,
-					'title' => $title,
-					'current' => ($name == $this->current_page),
-				);
-			}
-
-			$menu[] = $category;
-		}
-
-		return $menu;
+		return self::$menu['projects'][1];
 
 	}
 	
@@ -75,25 +68,6 @@ class Menu extends Mustache {
 		// get last item of flat project menu
 		return array_pop(array_keys(self::flat_project_menu()));
 		
-	}
-	
-	// returns project menu array without categories
-	public static function flat_project_menu() {
-
-		$flat_menu = array();
-
-		// convert menu definition to key values, ignoring categories
-		foreach (self::$projects as $category => $cat_pages) {
-
-			foreach ($cat_pages as $name => $title) {
-
-				$flat_menu[$name] = $title;
-				
-			}
-		}
-
-		return $flat_menu;
-
 	}
 	
 	// returns project name relative to specified project

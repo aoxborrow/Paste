@@ -16,19 +16,16 @@ class template_controller {
 		// content area
 		$this->template->content = '';
 
-		// set current page to controller name
-		$this->template->current_page = Router::$controller;
+		// set current section to controller name
+		$this->template->current_section = Router::$controller;
 
-		// define pages menu
-		Menu::$pages = array(
-			'notes' => 'Lab Notes',
-			'about' => 'About',
-		);
+		// set current section to controller name
+		$this->template->current_page = Router::$method;
 
 		// define project menu
-		Menu::$projects = array(
-
-			'Projects' => array(
+		Menu::$menu = array(
+			'about' => array('About'),
+			'projects' => array('Projects', array(
 				'sorenson' => 'Sorenson',
 				'globallr' => 'Global Leasing',
 				'ifloorplan' => 'iFloorPlan',
@@ -39,17 +36,25 @@ class template_controller {
 				'contact' => 'Contact Design',
 				'silverplatter' => 'Silver Platter',
 				'tropical' => 'Tropical Salvage',
-				'rockwell' => 'Rockwell Partners',
-				'viridian' => 'Viridian Group',
-				'trade' => 'Design Trade',
+				//'rockwell' => 'Rockwell Partners',
+				//'viridian' => 'Viridian Group',
+				//'trade' => 'Design Trade',
 				'modified' => 'Modified Arts',
 				'blufish' => 'Blufish Design',
 				'logos' => 'Logos',
-			),
+			)),
+			'notes' => array('Lab Notes', array(
+				'archive' => 'Archive',
+			)),
+			
 		);
+		
 
 		// init menu view model
 		$this->template->menu = new Menu;		
+
+		// bind current_section in menu view to template var
+		$this->template->menu->current_section =& $this->template->current_section;
 
 		// bind current_page in menu view to template var
 		$this->template->menu->current_page =& $this->template->current_page;

@@ -71,17 +71,21 @@ a.logo {
 /* Left Column Navigation */
 
 .nav {
-	position: absolute;
+	position: fixed;
+	left: 0;
+	top: 0;
+	bottom: 0;
 	width: 180px;
-	height: 100%;
 	/* TODO: figure out scroll bars when menu is too long */
-	min-height: 700px;
-	overflow: hidden;
+	/*height: 100%;
+	min-height: 700px;*/
+	overflow-y: auto;
+	overflow-x: hidden;
 	border-right: 1px solid #777;
 	background: #1a1a1a url('/assets/images/dark_bg.png');
-	padding: 0 0 0 40px;
-	font-size: 14px;
-	line-height: 22px;
+	padding: 0 0 30px 40px;
+	/*font-size: 14px;
+	line-height: 22px;*/
 }
 .nav p {
 	color: #999;
@@ -96,34 +100,33 @@ ul.menu {
 	margin-top: 25px;
 }
 
-ul.menu li {
-	line-height: 23px;
-	font-size: 13px;
-}
-
 ul.menu li a {
 	text-decoration: none;
 	color: #999;
+	line-height: 23px;
+	font-size: 13px;
+	margin-left: 13px;
 }
 
-/*  regular site pages */
-ul.menu li.page a {
-	color: #ddd;
+ul.menu li.section a {
+	color: #bbb;
+	/*margin: 23px 0 3px 0;*/
 	font-size: 14px;
 	line-height: 28px;
-}
-
-/*  project categories */
-ul.menu li.category {
-	color: #ddd;
-	margin: 23px 0 3px 0;
-	font-size: 14px;
+	margin-left: 0;
 
 }
 
+/* selected sub page */
 ul.menu li a.selected, ul.menu li a:hover.selected {
 	color: #f6182c;
 }
+
+/* selected section */
+ul.menu li.section a.selected, ul.menu li.section a:hover.selected, ul.menu li.section a:hover {
+	color: #fff;
+}
+
 
 ul.menu li a:hover {
 	color: #fff;
@@ -134,7 +137,7 @@ ul.menu li a:hover {
 
 img.cover {
 	border: 5px solid #fff;
-	margin-top: 90px;
+	margin-top: 10px;
 }
 
 div.content {

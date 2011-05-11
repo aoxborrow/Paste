@@ -1,15 +1,12 @@
 <ul class="menu">
-{{#pages_menu}}
-	<li class="page"><a {{#current}}class="selected"{{/current}} href="/{{name}}">{{title}}</a></b></li>
-{{/pages_menu}}
-
-{{#projects_menu}}
-{{#category}}
-	<li class="category">{{category}}</li>
-{{/category}}
-{{#projects}}
-		<li><a{{#current}} class="selected"{{/current}} href="/projects/{{name}}">{{title}}</a></b></li>
-{{/projects}}
-	</ul></li>
-{{/projects_menu}}
+{{#menu}}
+{{#section}}
+	<li class="section"><a{{#current}} class="selected"{{/current}} href="/{{section}}">{{title}}</a></b></li>
+	{{#current}}
+		{{#pages}}
+				<li><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
+		{{/pages}}	
+	{{/current}}
+{{/section}}
+{{/menu}}
 </ul>
