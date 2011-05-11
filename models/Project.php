@@ -18,16 +18,14 @@ class Project extends Mustache {
 	// define mustache template	
 	protected $_template = 'templates/project.mustache';
 		
-	public $extension = 'jpg';
-	
 	public $content = '';
 	
 	public $images = array();
 	
 	public $pagination;
 	
-	public static $default_width = 650;
-	public static $default_height = 450;
+	public static $default_width = 400;
+	public static $default_height = 400;
 
 	
 	// factory for chaining methods
@@ -71,16 +69,14 @@ class Project extends Mustache {
 			$i++;
 		}
 
-		$this->extension = pathinfo($this->images[$this->current_image]['src'], PATHINFO_EXTENSION);		
+		$this->src = $this->images[$this->current_image]['src'];		
 		$this->caption = $this->images[$this->current_image]['alt'];		
 
 		$this->width = $this->images[$this->current_image]['width'];
 		$this->height = $this->images[$this->current_image]['height'];
 
 		$this->width = empty($this->width) ? self::$default_width : $this->width;
-		$this->height = empty($this->height) ? self::$default_height : $this->height;
-		
-		
+		$this->height = empty($this->height) ? self::$default_height : $this->height;		
 		
 		$this->content = self::strip_only_tags($html, 'img');
 		

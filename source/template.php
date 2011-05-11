@@ -140,7 +140,7 @@ p#currentpage {
 		<h2><? echo $curr_work['title']; ?></h2>
 		<p class="subtitle"><? echo $curr_work['subtitle']; ?></p>
 		<? echo $curr_work['description']; ?>
-		<? if (strlen($curr_work['launchurl']) > 1) { ?><p class="launch"><a title="View Project" href="<? echo $curr_work['launchurl']; ?>" rel="external"><? echo $curr_work['launchtext']; ?></a></p><? } ?>
+		<? if (strlen($curr_work['launchurl']) > 1) { ?><p class="launch"><a title="View Project" href="<? echo $curr_work['launchurl']; ?>" target="_blank"><? echo $curr_work['launchtext']; ?></a></p><? } ?>
 	</div>
 </body>
 </html>

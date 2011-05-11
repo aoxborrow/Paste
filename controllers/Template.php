@@ -25,9 +25,31 @@ class template_controller {
 			'about' => 'About',
 		);
 
-		// menu view model		
-		$this->template->menu = new Menu;
-		
+		// define project menu
+		Menu::$projects = array(
+
+			'Projects' => array(
+				'sorenson' => 'Sorenson',
+				'globallr' => 'Global Leasing',
+				'ifloorplan' => 'iFloorPlan',
+				'twl' => 'T.W. Lewis',
+				'killington' => 'Killington',
+				'kb' => 'KB Home',
+				'mvr' => 'Monte Vista',
+				'contact' => 'Contact Design',
+				'silverplatter' => 'Silver Platter',
+				'tropical' => 'Tropical Salvage',
+				'rockwell' => 'Rockwell Partners',
+				'viridian' => 'Viridian Group',
+				'trade' => 'Design Trade',
+				'modified' => 'Modified Arts',
+				'blufish' => 'Blufish Design',
+				'logos' => 'Logos',
+			),
+		);
+
+		// init menu view model
+		$this->template->menu = new Menu;		
 
 		// bind current_page in menu view to template var
 		$this->template->menu->current_page =& $this->template->current_page;

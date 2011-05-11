@@ -3,61 +3,14 @@
 // menu view model
 class Menu extends Mustache {
 
-	// define project menu
-	private static $_project_menu = array(
+	// pages menu
+	public static $pages = array();
 
-		'Projects' => array(
-			'ifloorplan' => 'iFloorPlan',
-			'twl' => 'T.W. Lewis',
-			'killington' => 'Killington',
-			'kb' => 'KB Home',
-			'mvr' => 'Monte Vista',
-			'contact' => 'Contact Design',
-			'silverplatter' => 'Silver Platter',
-			'tropical' => 'Tropical Salvage',
-			'rockwell' => 'Rockwell Partners',
-			'viridian' => 'Viridian Group',
-			'trade' => 'Design Trade',
-			'modified' => 'Modified Arts',
-			'blufish' => 'Blufish Design',
-			'logos' => 'Logos',
-		),
-
-	);
-	
-	// define project menu
-	private static $__project_menu = array(
-
-		'Applications' => array(
-			'ifloorplan' => 'iFloorPlan',
-			'twl' => 'T.W. Lewis',
-			'killington' => 'Killington',
-			'kb' => 'KB Home',
-			'mvr' => 'Monte Vista',
-		),
-
-		'Websites' => array(
-			'contact' => 'Contact Design',
-			'silverplatter' => 'Silver Platter',
-			'tropical' => 'Tropical Salvage',
-			'rockwell' => 'Rockwell Partners',
-			'viridian' => 'Viridian Group',
-			'trade' => 'Design Trade',
-			'modified' => 'Modified Arts',
-			'blufish' => 'Blufish Design',
-		),
-
-		'Design' => array(
-			'logos' => 'Logos',
-		),
-
-	);	
+	// projects menu
+	public static $projects = array();
 
 	// used for selected menu item, reference to template var
 	public $current_page = NULL;
-	
-	// pages menu
-	public static $pages = array();
 
 	// define mustache template
 	protected $_template = 'templates/menu.mustache';
@@ -87,7 +40,7 @@ class Menu extends Mustache {
 		$menu = array();
 
 		// convert menu definition into key values for mustache
-		foreach (self::$_project_menu as $category => $projects) {
+		foreach (self::$projects as $category => $projects) {
 
 			$category = array(
 				'category' => $category,
@@ -130,7 +83,7 @@ class Menu extends Mustache {
 		$flat_menu = array();
 
 		// convert menu definition to key values, ignoring categories
-		foreach (self::$_project_menu as $category => $cat_pages) {
+		foreach (self::$projects as $category => $cat_pages) {
 
 			foreach ($cat_pages as $name => $title) {
 
