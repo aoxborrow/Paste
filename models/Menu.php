@@ -3,15 +3,30 @@
 // menu view model
 class Menu extends Mustache {
 
-	// define main menu
-	private static $_main_menu = array(
-		'index' => 'Home',
-		'notes' => 'Lab Notes',
-		'info' => 'Information',
-	);
-
 	// define project menu
 	private static $_project_menu = array(
+
+		'Projects' => array(
+			'ifloorplan' => 'iFloorPlan',
+			'twl' => 'T.W. Lewis',
+			'killington' => 'Killington',
+			'kb' => 'KB Home',
+			'mvr' => 'Monte Vista',
+			'contact' => 'Contact Design',
+			'silverplatter' => 'Silver Platter',
+			'tropical' => 'Tropical Salvage',
+			'rockwell' => 'Rockwell Partners',
+			'viridian' => 'Viridian Group',
+			'trade' => 'Design Trade',
+			'modified' => 'Modified Arts',
+			'blufish' => 'Blufish Design',
+			'logos' => 'Logos',
+		),
+
+	);
+	
+	// define project menu
+	private static $__project_menu = array(
 
 		'Applications' => array(
 			'ifloorplan' => 'iFloorPlan',
@@ -36,21 +51,24 @@ class Menu extends Mustache {
 			'logos' => 'Logos',
 		),
 
-	);
+	);	
 
 	// used for selected menu item, reference to template var
 	public $current_page = NULL;
+	
+	// pages menu
+	public static $pages = array();
 
 	// define mustache template
 	protected $_template = 'templates/menu.mustache';
 
 	// builds main menu array for mustache
-	public function main_menu() {
+	public function pages_menu() {
 
 		$menu = array();
 
 		// convert menu definition into key values for mustache
-		foreach (self::$_main_menu as $name => $title) {
+		foreach (self::$pages as $name => $title) {
 
 			$menu[] = array(
 				'name' => $name,
@@ -64,21 +82,21 @@ class Menu extends Mustache {
 	}
 
 	// builds project menu array for mustache
-	public function project_menu() {
+	public function projects_menu() {
 
 		$menu = array();
 
 		// convert menu definition into key values for mustache
-		foreach (self::$_project_menu as $category => $pages) {
+		foreach (self::$_project_menu as $category => $projects) {
 
 			$category = array(
 				'category' => $category,
-				'pages' => array(),
+				'projects' => array(),
 			);
 
-			foreach ($pages as $name => $title) {
+			foreach ($projects as $name => $title) {
 
-				$category['pages'][] = array(
+				$category['projects'][] = array(
 					'name' => $name,
 					'title' => $title,
 					'current' => ($name == $this->current_page),

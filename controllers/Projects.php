@@ -1,6 +1,6 @@
 <?php
 
-class Projects_Controller extends Template_Controller {
+class projects_controller extends template_controller {
 	
 	public function __call($name, $args) {
 				

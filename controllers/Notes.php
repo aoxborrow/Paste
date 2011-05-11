@@ -1,6 +1,6 @@
 <?php
 
-class Notes_Controller extends Template_Controller {
+class notes_controller extends template_controller {
 
 	public function index() {
 

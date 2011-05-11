@@ -2,7 +2,7 @@
 
 // simple controller router
 // assumes use of mod_rewrite to hide index page
-// adapted from Kohana 2.3
+// adapted from Kohana
 
 class Router {
 
@@ -24,7 +24,7 @@ class Router {
 	// uri arguments
 	public static $arguments = array();
 
-	// taken from Kohana 2.3
+	// adapted from Kohana
 	public static function & instance() {
 
 		if (self::$instance === NULL) {
@@ -32,7 +32,7 @@ class Router {
 			try {
 
 				// start validation of the controller
-				$class = new ReflectionClass(ucfirst(self::$controller).'_Controller');
+				$class = new ReflectionClass(self::$controller.'_controller');
 
 			} catch (ReflectionException $e) {
 

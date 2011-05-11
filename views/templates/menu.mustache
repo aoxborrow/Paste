@@ -1,22 +1,15 @@
 <ul class="menu">
+{{#pages_menu}}
+	<li class="page"><a {{#current}}class="selected"{{/current}} href="/{{name}}">{{title}}</a></b></li>
+{{/pages_menu}}
 
-	<li class="hello"><b>Hello, </b>this is <br/>the portfolio of <br/>Aaron Oxborrow.</li>
-
-	<li>
-	<ul class="pages">
-{{#main_menu}}
-	<li><a {{#current}}class="selected"{{/current}} href="/{{name}}">{{title}}</a></b></li>
-{{/main_menu}}
-	</ul></li>
-
-{{#project_menu}}
+{{#projects_menu}}
 {{#category}}
-	<li class="category">{{category}}
-	<ul class="projects">
-{{#pages}}
-		<li><a{{#current}} class="selected"{{/current}} href="/projects/{{name}}">{{title}}</a></b></li>
-{{/pages}}
-	</ul></li>
+	<li class="category">{{category}}</li>
 {{/category}}
-{{/project_menu}}
+{{#projects}}
+		<li><a{{#current}} class="selected"{{/current}} href="/projects/{{name}}">{{title}}</a></b></li>
+{{/projects}}
+	</ul></li>
+{{/projects_menu}}
 </ul>

@@ -1,6 +1,6 @@
 <?php
 
-class Index_Controller extends Template_Controller {
+class index_controller extends template_controller {
 
 	public function index() {
 

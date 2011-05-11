@@ -1,6 +1,6 @@
 <?php
 
-class Template_Controller {
+class template_controller {
 
 	// template view model
 	public $template;
@@ -19,12 +19,15 @@ class Template_Controller {
 		// set current page to controller name
 		$this->template->current_page = Router::$controller;
 
-		// set breadcrumb
-		// $this->template->breadcrumb = str_replace('/', ' / ', Router::$uri);
-		// <div class="breadcrumb"><a href="/">home</a> / {{breadcrumb}}</div>
+		// define pages menu
+		Menu::$pages = array(
+			'notes' => 'Lab Notes',
+			'about' => 'About',
+		);
 
-		// menu view model
+		// menu view model		
 		$this->template->menu = new Menu;
+		
 
 		// bind current_page in menu view to template var
 		$this->template->menu->current_page =& $this->template->current_page;

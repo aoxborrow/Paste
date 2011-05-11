@@ -1,5 +1,9 @@
-<a href="{{next_url}}"><img src="/assets/images/projects/{{name}}{{current_image}}.{{extension}}" alt="{{caption}}"></a>
-<a class="prev" href="{{prev_url}}">&larr; Prev</a>
-<p class="caption">&nbsp;{{caption}}</p>
-<a class="next" href="{{next_url}}">Next &rarr;</a>
 {{{content}}}
+
+<div class="project">
+	<div class="pagination">{{pagination}}
+		<a class="arrow next" href="{{next_url}}">Next &rarr;</a>
+		<a class="arrow prev" href="{{prev_url}}">&larr; Prev</a>
+	</div>
+	<a href="{{next_url}}"><img src="/assets/images/projects/{{name}}{{current_image}}.{{extension}}" width="{{width}}" height="{{height}}" alt="{{caption}}"></a>
+</div>

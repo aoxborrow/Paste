@@ -11,11 +11,10 @@
 - experiment with various new techs
 - use history API for loading project content: http://html5demos.com/history/
 
-TODO: move menu array somewhere
-TODO: add ability for optional image captions
-TODO: allow images to be of different extensions
-TODO: add Jquery elements from boilerplate
-TODO: add #hash routing for projects and pages
+TODO: consider removing categories, adding auto menu ability?
+TODO: allow images to be of different extensions, sizes
+TODO: simplify HTML project loading, load image data, full tags, clear existing, verify current page is viable
+TODO: move menu data somewhere, HTML UL? read into array? use names as link ids?
 TODO: add lab notes with title, date, summary?
 
 

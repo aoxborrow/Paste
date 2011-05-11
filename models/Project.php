@@ -24,6 +24,12 @@ class Project extends Mustache {
 	
 	public $images = array();
 	
+	public $pagination;
+	
+	public static $default_width = 650;
+	public static $default_height = 450;
+
+	
 	// factory for chaining methods
 	public static function factory($name, $current_image = 1) {
 
@@ -67,10 +73,20 @@ class Project extends Mustache {
 
 		$this->extension = pathinfo($this->images[$this->current_image]['src'], PATHINFO_EXTENSION);		
 		$this->caption = $this->images[$this->current_image]['alt'];		
+
+		$this->width = $this->images[$this->current_image]['width'];
+		$this->height = $this->images[$this->current_image]['height'];
+
+		$this->width = empty($this->width) ? self::$default_width : $this->width;
+		$this->height = empty($this->height) ? self::$default_height : $this->height;
+		
+		
 		
 		$this->content = self::strip_only_tags($html, 'img');
 		
 		$this->num_images = count($this->images);
+		
+		$this->pagination = $this->current_image.' of '.$this->num_images;
 		
 		return $this;
 		
