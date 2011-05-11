@@ -3,7 +3,7 @@
 // project view model
 class HTMLProject extends Project {
 	
-	public $extension = 'gif';
+	public $extension = 'jpg';
 	
 	public $content = '';
 	
@@ -21,7 +21,9 @@ class HTMLProject extends Project {
 	// load single project data
 	public function load() {
 		
-		$html = file_get_contents(APPPATH.'views/projects_html/'.$this->name.'.html');
+		if (FALSE === $html = @file_get_contents(APPPATH.'views/projects/'.$this->name.'.html')) {
+			return FALSE;
+		}
 		
 		$dom = DOMDocument::loadHTML($html);
 		

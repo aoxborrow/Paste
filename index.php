@@ -40,11 +40,9 @@ require_once 'libraries/yaml/lib/sfYaml.php';
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
-	'convert' => 'work/convert', // temporary	
-	'work/all' => 'work/all', // temporary	
-	'work/([a-z]+)/([0-9]+)' => 'work/show/$1/$2', // work item with pagination
-	'work/([a-z]+)' => 'work/show/$1', // individual work item
-	'_404' => 'template/_404', // 404 controller
+	'projects/([A-Za-z0-9]+)' => 'projects/$1', // view project
+	'projects/([A-Za-z0-9]+)/([0-9]+)' => 'projects/$1/$2', // project with pagination	
+	'_404' => 'template/error_404', // define 404 method
 	'_default' => 'index', // default controller
 );
 

@@ -4,7 +4,7 @@
 class Storage {
 	
 	// data file extension
-	public static $ext = '.yaml';
+	public static $ext = '.html';
 	
 	// path to data files
 	public static $storage_path = 'views/projects/';

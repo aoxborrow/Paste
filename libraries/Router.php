@@ -1,6 +1,6 @@
 <?php
 
-// simple controller router 
+// simple controller router
 // assumes use of mod_rewrite to hide index page
 // adapted from Kohana 2.3
 
@@ -8,7 +8,7 @@ class Router {
 
 	// array of routes
 	public static $routes;
-	
+
 	// routed uri
 	public static $uri;
 
@@ -37,7 +37,7 @@ class Router {
 			} catch (ReflectionException $e) {
 
 				// controller does not exist
-				return self::_404();
+				return self::execute('_404');
 
 			}
 
@@ -51,14 +51,14 @@ class Router {
 				// method exists
 				if (self::$method[0] === '_') {
 
-					// do not allow access to hidden methods
-					return self::_404();
+					// do not allow access to hidden methods, unless 404
+					return self::execute('_404');
 				}
 
 				if ($method->isProtected() or $method->isPrivate()) {
 
 					// do not attempt to invoke protected methods
-					return self::_404();
+					return self::execute('_404');
 				}
 
 				// default arguments
@@ -81,13 +81,7 @@ class Router {
 		return self::$instance;
 	}
 
-	public static function & _404() {
-		
-		// simply call _404 route and exit
-		return self::execute('_404');
-		
-	}
-
+	// take uri and map controller, method and arguments
 	public static function & execute($uri) {
 
 		// use default route if empty uri
@@ -96,12 +90,10 @@ class Router {
 		// match uri against route
 		foreach (self::$routes as $route => $callback) {
 
-			if ($route === '_default' || $route === '_404') continue;
-
 			// trim slashes
 			$route = trim($route, '/');
 			$callback = trim($callback, '/');
-			
+
 			if (preg_match('#^'.$route.'$#u', self::$uri)) {
 
 				if (strpos($callback, '$') !== FALSE) {
@@ -117,10 +109,10 @@ class Router {
 				// valid route has been found
 				$matched = TRUE;
 				break;
-				
-			} 
+
+			}
 		}
-		
+
 		// deciper controller/method
 		$segments = explode('/', self::$uri);
 
@@ -138,4 +130,12 @@ class Router {
 
 	}
 	
+	// for simple redirect
+	public static function redirect($url = '/') {
+
+		header('Location: '.$url);
+		exit;
+
+	}	
+
 }

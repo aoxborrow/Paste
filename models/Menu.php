@@ -42,7 +42,7 @@ class Menu extends Mustache {
 	public $current_page = NULL;
 
 	// define mustache template
-	protected $_template = 'menu.mustache';
+	protected $_template = 'templates/menu.mustache';
 
 	// builds main menu array for mustache
 	public function main_menu() {
@@ -125,8 +125,7 @@ class Menu extends Mustache {
 
 	}
 	
-	
-	// adapted from php.net function by Jamon Holmgren (www.jamonholmgren.com)
+	// returns project name relative to specified project
 	public static function relative_project($current_key, $offset = 1) {
 
 		// create key map from flat menu
