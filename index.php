@@ -23,7 +23,7 @@ TODO: rounded & matted image styles
 error_reporting(E_ALL & ~E_STRICT);
 ini_set('display_errors', TRUE);
 
-// APPPATH constant with trailing slash for convenience
+// define APPPATH constant with trailing slash for convenience
 define('APPPATH', __DIR__.'/');
 
 // register autoloader for libraries, controllers, models
@@ -33,17 +33,18 @@ require_once 'libraries/Autoloader.php';
 require_once 'libraries/mustache/Mustache.php';
 
 // using YAML for data storage
-require_once 'libraries/yaml/lib/sfYaml.php';
+// require_once 'libraries/yaml/lib/sfYaml.php';
 
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 
+// automatically add routes for sections
 foreach (Storage::list_sections() as $section) {
 	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'sections/'.$section.'/$1';
 }
 
 Router::$routes += array(
-	// 'projects/([A-Za-z0-9]+)' => 'projects/$1', // view project
+	// 'projects/([A-Za-z0-9]+)' => 'projects/$1', // view projects
 	'_404' => 'template/error_404', // define 404 method
 	'_default' => 'index', // default controller
 );
