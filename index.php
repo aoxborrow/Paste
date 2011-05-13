@@ -26,6 +26,9 @@ ini_set('display_errors', TRUE);
 // define APPPATH constant with trailing slash for convenience
 define('APPPATH', __DIR__.'/');
 
+// define directory where content files are stored
+define('CONTENTPATH', __DIR__.'/content/');
+
 // register autoloader for libraries, controllers, models
 require_once 'libraries/Autoloader.php';
 
@@ -37,22 +40,22 @@ require_once 'libraries/mustache/Mustache.php';
 
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
-
-// automatically add routes for sections
-foreach (Storage::list_sections() as $section) {
-	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'sections/'.$section.'/$1';
-}
-
-Router::$routes += array(
+Router::$routes = array(
 	// 'projects/([A-Za-z0-9]+)' => 'projects/$1', // view projects
 	'_404' => 'template/error_404', // define 404 method
 	'_default' => 'index', // default controller
 );
 
-//die(print_r(Router::$routes));
+// automatically add routes for content sections
+foreach (Content::sections() as $section) {
+	Router::$routes[$section] = 'pages/'.$section; // using the pages controller
+	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'pages/'.$section.'/$1'; 
+}
 
 // match uri to route and instantiate controller
 $controller = Router::execute($_SERVER['REQUEST_URI']);
 
-// auto render template of controller
-$controller->_render();
+// auto render controller if available
+if (method_exists($controller, '_render')) {
+	$controller->_render();
+}

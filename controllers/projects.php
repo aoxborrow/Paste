@@ -39,7 +39,7 @@ class projects_controller extends template_controller {
 
 		$output = '<h1>All Work</h1>';
 
-		foreach (Storage::list_dir() as $name) {
+		foreach (Content::list_dir() as $name) {
 			$output .= Project::factory($name)->render();
 		}
 
@@ -49,8 +49,8 @@ class projects_controller extends template_controller {
 
 	public function convert() {
 
-		foreach (Storage::list_dir() as $name) {
-			$project = Storage::load($name);
+		foreach (Content::list_dir() as $name) {
+			$project = Content::load($name);
 			$project->name = $name;
 			//$project['description'] = stripslashes($project['description']);
 			//$json = self::json_readable_encode($project);

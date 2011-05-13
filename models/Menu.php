@@ -3,9 +3,9 @@
 // menu view model
 class Menu extends Mustache {
 
-	// menu sections
-	public static $menu = array();
-
+	// menu built from content structure
+	public static $menu;
+	
 	// used for selected section, reference to template var
 	public $current_section;
 
@@ -15,37 +15,49 @@ class Menu extends Mustache {
 	// define mustache template
 	protected $_template = 'templates/menu.mustache';
 
-
 	// builds project menu array for mustache
 	public function menu() {
+		
+		if (self::$menu === NULL) {
 
-		$menu = array();
+			self::$menu = array();
 
-		// convert menu definition into key values for mustache
-		foreach (self::$menu as $section_name => $section_title) {
+			// convert content structure into key values for mustache
+			foreach (Content::sections() as $section) {
 
-			$section = array(
-				'section' => $section_name,
-				'title' => $section_title,
-				'current' => ($section_name == $this->current_section),
-				'pages' => array(),
-			);
-
-			$pages = Storage::load_section($section_name);
-
-			foreach ($pages as $name => $title) {
-
-				$section['pages'][] = array(
-					'name' => $name,
-					'title' => $title,
-					'current' => ($name == $this->current_page),
+				$pages = Content::load_section($section);
+				
+				$section = array(
+					'section' => $section,
+					'title' => $pages['index']->title,
+					'current' => ($section == $this->current_section),
+					'pages' => array(),
 				);
-			}
+				
+				unset($pages['index']);
+				
+				/*
+				$section = array(
+					'section' => $section_name,
+					'title' => $section_title,
+					'current' => ($section_name == $this->current_section),
+					'pages' => array(),
+				);*/
 
-			$menu[] = $section;
+				foreach ($pages as $name => $page) {
+
+					$section['pages'][] = array(
+						'name' => $name,
+						'title' => $page->title,
+						'current' => ($name == $this->current_page),
+					);
+				}
+
+				self::$menu[] = $section;
+			}
 		}
 
-		return $menu;
+		return self::$menu;
 
 	}
 

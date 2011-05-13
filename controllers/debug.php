@@ -7,10 +7,10 @@ class debug_controller {
 
 		echo '<pre>';
 
-		//print_r(Storage::load_section('projects');
-		//print_r(Storage::list_dir(APPPATH.'content'));
-
-		print_r(Storage::list_sections());
+		print_r(Content::load_section('projects'));
+		//print_r(Content::list_dir('/', TRUE));
+		//print_r(Router::$routes);
+		//print_r(Content::list_sections());
 
 		echo '</pre>';
 

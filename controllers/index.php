@@ -4,7 +4,7 @@ class index_controller extends template_controller {
 
 	public function index() {
 
-		$this->template->content = Storage::load('index');
+		$this->template->content = Content::load('index')->content;
 
 	}
 

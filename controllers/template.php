@@ -22,15 +22,14 @@ class template_controller {
 		// set current section to controller name
 		$this->template->current_page = Router::$method;
 
+		/*
 		// define main menu sections
 		Menu::$menu = array(
 			'about' => 'About',
 			'notes' => 'Lab Notes',
 			'pages' => 'Pages',
-
 			'projects' => 'Projects',
-
-		);
+		);*/
 
 		/*
 		// define project menu
