@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /* Site Design Goals:
 - barebones micro MVC pattern
@@ -10,13 +10,12 @@
 - yaml for simple data, content management
 - experiment with various new techs
 - use history API for loading project content: http://html5demos.com/history/
+- abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
-TODO: consider removing categories, adding auto menu ability?
-TODO: allow images to be of different extensions, sizes
+TODO: create sections and pages from content folder structure, catch-all controller
 TODO: simplify HTML project loading, load image data, full tags, clear existing, verify current page is viable
-TODO: move menu data somewhere, HTML UL? read into array? use names as link ids?
-TODO: add lab notes with title, date, summary?
-
+TODO: add lab notes with title, date, summary / integrate with tumblr
+TODO: rounded & matted image styles
 
 */
 
@@ -28,7 +27,7 @@ ini_set('display_errors', TRUE);
 define('APPPATH', __DIR__.'/');
 
 // register autoloader for libraries, controllers, models
-require_once 'libraries/Autoloader.php'; 
+require_once 'libraries/Autoloader.php';
 
 // using Mustache for templating
 require_once 'libraries/mustache/Mustache.php';
@@ -38,12 +37,18 @@ require_once 'libraries/yaml/lib/sfYaml.php';
 
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
-Router::$routes = array(
-	'projects/([A-Za-z0-9]+)' => 'projects/$1', // view project
-	'projects/([A-Za-z0-9]+)/([0-9]+)' => 'projects/$1/$2', // project with pagination	
+
+foreach (Storage::list_sections() as $section) {
+	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'sections/'.$section.'/$1';
+}
+
+Router::$routes += array(
+	// 'projects/([A-Za-z0-9]+)' => 'projects/$1', // view project
 	'_404' => 'template/error_404', // define 404 method
 	'_default' => 'index', // default controller
 );
+
+//die(print_r(Router::$routes));
 
 // match uri to route and instantiate controller
 $controller = Router::execute($_SERVER['REQUEST_URI']);

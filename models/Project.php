@@ -78,11 +78,12 @@ class Project extends Mustache {
 		$this->width = empty($this->width) ? self::$default_width : $this->width;
 		$this->height = empty($this->height) ? self::$default_height : $this->height;		
 		
-		$this->content = self::strip_only_tags($html, 'img');
+		//$this->content = self::strip_only_tags($html, 'img');
+		$this->content = $html;
 		
 		$this->num_images = count($this->images);
 		
-		$this->pagination = $this->current_image.' of '.$this->num_images;
+		//$this->pagination = $this->current_image.' of '.$this->num_images;
 		
 		return $this;
 		
@@ -147,7 +148,7 @@ class Project extends Mustache {
 	public function next_url() {
 		
 		// if we're at the last page
-		if ($this->current_image >= $this->num_images) {
+		if (TRUE || $this->current_image >= $this->num_images) {
 						
 			// try to get next project
 			$next = Menu::relative_project($this->name, 1);

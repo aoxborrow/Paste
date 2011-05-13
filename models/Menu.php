@@ -3,7 +3,7 @@
 // menu view model
 class Menu extends Mustache {
 
-	// projects menu
+	// menu sections
 	public static $menu = array();
 
 	// used for selected section, reference to template var
@@ -14,7 +14,7 @@ class Menu extends Mustache {
 
 	// define mustache template
 	protected $_template = 'templates/menu.mustache';
-	
+
 
 	// builds project menu array for mustache
 	public function menu() {
@@ -22,24 +22,24 @@ class Menu extends Mustache {
 		$menu = array();
 
 		// convert menu definition into key values for mustache
-		foreach (self::$menu as $section => $definition) {
+		foreach (self::$menu as $section_name => $section_title) {
 
 			$section = array(
-				'section' => $section,
-				'title' => $definition[0],
-				'current' => ($section == $this->current_section),
+				'section' => $section_name,
+				'title' => $section_title,
+				'current' => ($section_name == $this->current_section),
 				'pages' => array(),
 			);
 
-			if (isset($definition[1]) and is_array($definition[1])) {
-				foreach ($definition[1] as $name => $title) {
+			$pages = Storage::load_section($section_name);
 
-					$section['pages'][] = array(
-						'name' => $name,
-						'title' => $title,
-						'current' => ($name == $this->current_page),
-					);
-				}
+			foreach ($pages as $name => $title) {
+
+				$section['pages'][] = array(
+					'name' => $name,
+					'title' => $title,
+					'current' => ($name == $this->current_page),
+				);
 			}
 
 			$menu[] = $section;
@@ -48,28 +48,28 @@ class Menu extends Mustache {
 		return $menu;
 
 	}
-	
+
 	// returns project menu array without categories
 	public static function flat_project_menu() {
 
 		return self::$menu['projects'][1];
 
 	}
-	
+
 	public static function first_project() {
-		
+
 		// get first item of flat project menu
 		return array_shift(array_keys(self::flat_project_menu()));
-		
+
 	}
-	
+
 	public static function last_project() {
-		
+
 		// get last item of flat project menu
 		return array_pop(array_keys(self::flat_project_menu()));
-		
+
 	}
-	
+
 	// returns project name relative to specified project
 	public static function relative_project($current_key, $offset = 1) {
 
@@ -78,16 +78,16 @@ class Menu extends Mustache {
 
 		// find current key
 		$current_key_index = array_search($current_key, $keys);
-		
+
 		// return desired offset, if in array
 		if (isset($keys[$current_key_index + $offset])) {
 			return $keys[$current_key_index + $offset];
 		}
-		
+
 		// otherwise return false
 		return FALSE;
 	}
-	
+
 
 	public function render() {
 

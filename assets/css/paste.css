@@ -1,13 +1,22 @@
 /* paste styles */
 
+html {
+	background: #e4e4e4 url('/assets/images/light_bg.png') repeat fixed;
+	height: 100%;
+}
+
 body {
-	background: #e4e4e4 url('/assets/images/light_bg.png');
+	background: url('/assets/images/columns_bg.png') repeat-y fixed;
 	font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", verdana, sans-serif;
 	font-size: 13px;
 	line-height: 20px;
 	color: #666;
 	margin: 0;
 	padding: 0;
+	min-height: 100%;
+}
+div.wrapper {
+	height: 100%;
 }
 
 p {
@@ -17,9 +26,9 @@ p {
 h1 {
 	font-weight: normal;
 	font-family: georgia, serif;
-	font-size: 34px;	
+	font-size: 34px;
 	line-height: 34px;
-	margin-bottom: 10px;
+	margin-bottom: 5px;
 	clear: both;
 	color: #222;
 }
@@ -29,7 +38,6 @@ h2 {
 	font-size: 12px;
 	line-height: 20px;
 	color: #999;
-	margin-top: -8px;
 	margin-bottom: 15px;
 	text-transform: uppercase;
 }
@@ -71,18 +79,20 @@ a.logo {
 /* Left Column Navigation */
 
 .nav {
+	/*
 	position: fixed;
 	left: 0;
 	top: 0;
-	bottom: 0;
+	bottom: 0;*/
+	float: left;
 	width: 180px;
 	/* TODO: figure out scroll bars when menu is too long */
 	/*height: 100%;
 	min-height: 700px;*/
-	overflow-y: auto;
-	overflow-x: hidden;
-	border-right: 1px solid #777;
-	background: #1a1a1a url('/assets/images/dark_bg.png');
+	/*overflow-y: auto;*/
+	/*overflow-x: hidden;*/
+	/*border-right: 1px solid #777;*/
+	/*background: #1a1a1a url('/assets/images/dark_bg.png');*/
 	padding: 0 0 30px 40px;
 	/*font-size: 14px;
 	line-height: 22px;*/
@@ -93,7 +103,7 @@ a.logo {
 
 .nav p strong {
 	font-weight: normal;
-	color: #ddd;
+	color: #eee;
 }
 
 ul.menu {
@@ -105,7 +115,7 @@ ul.menu li a {
 	color: #999;
 	line-height: 23px;
 	font-size: 13px;
-	margin-left: 13px;
+	margin-left: 8px;
 }
 
 ul.menu li.section a {
@@ -141,9 +151,19 @@ img.cover {
 }
 
 div.content {
-	margin-left: 270px;
-	padding-top: 40px;
-	width: 600px;
+	float: left;
+	width: 700px;
+	margin-left: 5px;
+	padding: 40px;
+	/*
+	height: 100%;
+	border-right: 1px solid #ddd;
+	background-color: #f3f3f3;
+	*/
+}
+
+div.content p {
+	width: 550px;
 }
 
 div.project {
@@ -155,6 +175,7 @@ div.project {
 	line-height: 0;
 }
 
+
 div.project div.pagination {
 	font-size: 11px;
 	color: #999;
@@ -165,23 +186,26 @@ div.project div.pagination {
 /* alternate image viewer */
 
 div.image {
-	clear: both;
-	border: 3px solid #ccc;
-	border-radius: 8px;
+	display: inline-block;
+	/*
+	border: 5px solid #e5e5e5;
+	border-radius: 7px;*/
+	line-height: 0;
 }
 
-div.project img {
+div.content img {
 	border-radius: 5px;
+	margin: 15px 0;
 }
 
 
-a.arrow {	
+a.arrow {
 	float: right;
 	text-decoration: none;
 	font-size: 11px;
 	font-weight: bold;
 	line-height: 18px;
-	color: #888;
+	color: #aaa;
 	letter-spacing: 1px;
 }
 
@@ -195,25 +219,27 @@ a.arrow.prev {
 }
 
 a.arrow.next {
+	float: none;
+	position: absolute;
+	left: 930px;
 	background-image: url('/assets/images/arrow-right.png');
 	background-repeat: no-repeat;
-	background-position: 46px 3px;
-	padding: 2px 18px 0px 10px;
-	margin: 0 0 6px 2px;
+	background-position: 36px 3px;
+	padding: 2px 18px 0px 0px;
 }
 
 a.arrow:hover {
-	color: #444;
+	color: #666;
 }
 
 
 /*
 div.project img {
 	background-color: #fff;
-	padding: 10px;		
+	padding: 10px;
 }
 
-a.arrow {	
+a.arrow {
 	float: right;
 	background-color: #fff;
 	text-decoration: none;
@@ -230,7 +256,7 @@ a.arrow.prev {
 	background-image: url('/assets/images/arrow-left.png');
 	background-repeat: no-repeat;
 	background-position: 1px 3px;
-	border-right: 1px solid #ccc;		
+	border-right: 1px solid #ccc;
 	padding: 2px 7px 2px 0px;
 	width: 13px;
 }
@@ -278,7 +304,7 @@ a.launch {
 	color: #777;
 	font-weight: bold;
 	font-size: 11px;
-	text-decoration: none;	
+	text-decoration: none;
 }
 */
 

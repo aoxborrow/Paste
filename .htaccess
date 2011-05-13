@@ -19,7 +19,7 @@ RewriteBase /
 </Files>
 
 # Protect application and system files from being viewed
-RewriteRule ^(?:controllers|views|models|libraries)\b.* index.php/$0 [L]
+RewriteRule ^(?:content|controllers|views|models|libraries|source)\b.* index.php/$0 [L]
 
 # Allow any files or directories that exist to be displayed directly
 RewriteCond %{REQUEST_FILENAME} !-f
