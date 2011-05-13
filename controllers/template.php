@@ -4,11 +4,14 @@ class template_controller {
 
 	// template view model
 	public $template;
+	
+	// template mustache file
+	public $_template = 'site.mustache';
 
 	public function __construct() {
 
 		// setup mustache template
-		$this->template = new Mustache(file_get_contents(APPPATH.'views/templates/site.mustache'));
+		$this->template = new Mustache(file_get_contents(APPPATH.'views/templates/'.$this->_template));
 
 		// default title
 		$this->template->title = 'pastetwo';

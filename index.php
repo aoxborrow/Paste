@@ -14,6 +14,7 @@
 
 TODO: create sections and pages from content folder structure, catch-all controller
 TODO: simplify HTML project loading, load image data, full tags, clear existing, verify current page is viable
+TODO: allow different templates using template controller, set them via section or inline html tag? <!-- template: wide -->
 TODO: add lab notes with title, date, summary / integrate with tumblr
 TODO: rounded & matted image styles
 
@@ -37,6 +38,9 @@ require_once 'libraries/mustache/Mustache.php';
 
 // using YAML for data storage
 // require_once 'libraries/yaml/lib/sfYaml.php';
+
+// load all html content and build menu data
+Content::init();
 
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing

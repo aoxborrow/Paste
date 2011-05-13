@@ -9,6 +9,11 @@ class Content {
 	// content sections
 	public static $sections;
 
+	public static function init() {
+	
+		// load everything...
+		
+	}
 
 	// load individual content page
 	public static function load($name, $file = NULL, $section = NULL) {
