@@ -9,63 +9,11 @@ class Content {
 	// content sections
 	public static $sections;
 
-	public static function init() {
-
-		// load everything...
-
-	}
-
-	// load individual content page
-	public static function load($name, $file = NULL, $section = NULL) {
+	// content database
+	public static $pages;
 
 
 
-		$page = new StdClass;
-		$page->name = $name;
-		$page->section = $section;
-
-		// try to assume file name if absent
-		$file = (empty($file)) ? $name.self::$ext : $file.self::$ext;
-
-		// strip any extra slashes
-		$content_path = realpath(CONTENTPATH.$section.'/'.$file);
-
-		if (FALSE !== ($html = @file_get_contents($content_path))) {
-
-			$dom = DOMDocument::loadHTML($html);
-
-			$page->title = @$dom->getElementsByTagName('h1')->item(0)->nodeValue;
-			$page->content = $html;
-
-		} else {
-
-			$page->content = 'FAILED TO LOAD CONTENT YO<br/>';
-			$page->content .= 'section: '.$section.' , file: '.$file.' , name: '.$name;
-
-		}
-
-		return $page;
-
-	}
-
-	// load section of data files
-	public static function load_section($section) {
-
-		// TODO: add _root section or something equivalent to add single pages to menu
-		// TODO: allow sorting prefix on sections
-		// TODO: load all content data at once, so we can lookup file names easily
-
-		$pages = array();
-
-		foreach (self::list_dir($section) as $file => $name) {
-
-			$pages[$name] = self::load($name, $file, $section);
-
-		}
-
-		return $pages;
-
-	}
 
 	// list section directories from content path
 	public static function sections() {
@@ -81,12 +29,101 @@ class Content {
 
 	}
 
+	// load individual content page
+	public static function load($name, $path) {
+
+		$page = new StdClass;
+		$page->name = $name;
+		$page->path = $path;
+		$page->parent = NULL;
+		$page->is_parent = FALSE; // parent sections
+		$page->visible = TRUE; // menu visibility
+		$page->template = NULL; // allow setting this in variable
+		$page->title = NULL; // get this from variable, h1 content, page name
+		$page->content = NULL; // if no content, then redirect to first child
+		$page->redirect = NULL; // redirect variable which is read into menu links
+		// $page->thumb // future thumbnail use
+
+		// strip any extra slashes
+		// $content_path = realpath(CONTENTPATH.$path);
+		$content_path = realpath($path);
+
+
+		if (FALSE !== ($html = @file_get_contents($content_path))) {
+
+			$dom = DOMDocument::loadHTML($html);
+
+			$page->title = @$dom->getElementsByTagName('h1')->item(0)->nodeValue;
+			$page->content = $html;
+
+		} else {
+
+			return FALSE;
+			// $page->content = 'FAILED TO LOAD CONTENT YO<br/>';
+			// $page->content .= 'section: '.$section.' , file: '.$file.' , name: '.$name;
+
+		}
+
+		return $page;
+
+	}
+
+	// load section of data files
+	public static function load_section($section, $path = NULL, $parent = NULL) {
+
+		$pages = array();
+
+		$path = realpath($path).'/';
+
+		foreach (self::list_dir($path) as $file => $name) {
+
+			// check if file is page or section
+			if (strstr($file, self::$ext) === FALSE) {
+
+				$pages = array_merge($pages, self::load_section($name, $path.$file, $section));
+
+			} else {
+
+				$page = self::load($name, $path.$file);
+
+				// index files are created as the section parent
+				if ($name == 'index') {
+					$page->name = $section;
+					$page->is_parent = TRUE;
+					$page->parent = $parent;
+				} else {
+					$page->parent = $section;
+				}
+				$pages[] = $page;
+
+			}
+
+		}
+
+		return $pages;
+
+	}
+
+	// traverse content directory and load everything...
+	// TODO: allow sorting prefix on sections
+	// TODO: load all content data at once, so we can lookup file names easily
+	// TODO: add visible toggle for menu visibility
+	// TODO: allow inifinite section depth
+
+	public static function init() {
+
+		self::$pages = self::load_section('_root', CONTENTPATH);
+
+	}
+
+
 
 	// return sorted content list
-	public static function list_dir($path = '/', $folders_only = FALSE) {
+	public static function list_dir($path = '/') {
 
 		// path is relative to content path
-		$path = realpath(CONTENTPATH.$path).'/';
+		// $path = realpath(CONTENTPATH.$path).'/';
+		$path = realpath($path).'/';
 
 		if (FALSE === ($handle = opendir($path)))
 			return array();
@@ -101,15 +138,11 @@ class Content {
 			// ignore dot dirs, paths prefixed with an underscore or period
 			if ($file != '.' AND $file != '..' AND $file[0] !== '_' AND $file[0] !== '.') {
 
-				// only list folders
-				if ($folders_only AND ! is_dir($path.$file))
-					continue;
-
 				// file name without extension
-				$file = basename($file, self::$ext);
+				$name = basename($file, self::$ext);
 
 				// split filename by initial period, limited to two parts
-				$parts = explode('.', $file, 2);
+				$parts = explode('.', $name, 2);
 
 				// page name is everything after intial period if one exists
 				$name = (count($parts) > 1) ? $parts[1] : $parts[0];

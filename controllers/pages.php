@@ -5,6 +5,7 @@ class pages_controller extends template_controller {
 
 	public function __call($section, $args) {
 
+		// TODO: remove index controller, make this the default controller, check root section for index.html
 		// TODO: check if index page has content, show it, otherwise redirect to first page
 		if (empty($args[0])) {
 
@@ -14,7 +15,7 @@ class pages_controller extends template_controller {
 			Router::redirect($section.'/index');
 
 		}
-			
+
 		$this->template->content = '<p><b>'.$section.' / '.$args[0].'</b></p>';
 		$this->template->content .= Content::load($args[0], '', $section)->content;
 
