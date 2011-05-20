@@ -51,17 +51,20 @@ Content::init();
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
-	// 'projects/([A-Za-z0-9]+)' => 'projects/$1', // view projects
+	'notes/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
+	'notes/archive' => 'blog/archive', // blog archive
+
 	// TODO: run 404's through page controlller to check for _root pages first
-	'_404' => 'template/error_404', // define 404 method
-	'_default' => 'pages', // default controller
+	// '_404' => 'template/error_404', // define 404 method
+	'_default' => 'content', // default controller
 );
 
 // automatically add routes for content sections
+/*
 foreach (Content::sections() as $section) {
 	Router::$routes[$section] = 'pages/'.$section; // using the pages controller
 	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'pages/'.$section.'/$1';
-}
+}*/
 
 // match uri to route and instantiate controller
 $controller = Router::execute($_SERVER['REQUEST_URI']);

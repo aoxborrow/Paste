@@ -9,8 +9,14 @@ class Router {
 	// array of routes
 	public static $routes;
 
+	// requested uri
+	public static $current_uri;
+
 	// routed uri
-	public static $uri;
+	public static $routed_uri;
+
+	// matched a defined route
+	public static $matched = FALSE;
 
 	// controller instance
 	public static $instance;
@@ -37,7 +43,7 @@ class Router {
 			} catch (ReflectionException $e) {
 
 				// controller does not exist
-				return self::execute('_404');
+				return self::execute('_default');
 
 			}
 
@@ -51,14 +57,14 @@ class Router {
 				// method exists
 				if (self::$method[0] === '_') {
 
-					// do not allow access to hidden methods, unless 404
-					return self::execute('_404');
+					// do not allow access to hidden methods
+					return self::execute('_default');
 				}
 
 				if ($method->isProtected() or $method->isPrivate()) {
 
 					// do not attempt to invoke protected methods
-					return self::execute('_404');
+					return self::execute('_default');
 				}
 
 				// default arguments
@@ -82,39 +88,46 @@ class Router {
 	}
 
 	// take uri and map controller, method and arguments
-	public static function & execute($uri) {
+	public static function execute($uri) {
 
-		// use default route if empty uri
-		self::$uri = (empty($uri) OR $uri == '/') ? self::$routes['_default'] : trim($uri, '/');
+		// store requested URI on first run only
+		if (self::$current_uri === NULL)
+			self::$current_uri = trim($uri, '/');
 
-		// match uri against route
+		// match URI against route
 		foreach (self::$routes as $route => $callback) {
 
 			// trim slashes
 			$route = trim($route, '/');
 			$callback = trim($callback, '/');
 
-			if (preg_match('#^'.$route.'$#u', self::$uri)) {
+			if (preg_match('#^'.$route.'$#u', self::$current_uri)) {
 
 				if (strpos($callback, '$') !== FALSE) {
 
 					// use regex routing
-					self::$uri = preg_replace('#^'.$route.'$#u', $callback, self::$uri);
+					self::$routed_uri = preg_replace('#^'.$route.'$#u', $callback, self::$current_uri);
 
 				} else {
+
 					// standard routing
-					self::$uri = $callback;
+					self::$routed_uri = $callback;
+
 				}
 
 				// valid route has been found
-				$matched = TRUE;
+				self::$matched = TRUE;
 				break;
 
 			}
 		}
 
-		// deciper controller/method
-		$segments = explode('/', self::$uri);
+		// no route matches found, use default route
+		if (! self::$matched)
+			self::$routed_uri = self::$routes['_default'];
+
+		// decipher controller/method
+		$segments = explode('/', self::$routed_uri);
 
 		// controller is first segment
 		self::$controller = $segments[0];
@@ -129,13 +142,13 @@ class Router {
 		return self::instance();
 
 	}
-	
+
 	// for simple redirect
 	public static function redirect($url = '/') {
 
 		header('Location: '.$url);
 		exit;
 
-	}	
+	}
 
 }

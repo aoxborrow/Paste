@@ -1,7 +1,6 @@
 <ul class="menu">
 {{#menu}}
-{{#is_section}}
-	<li class="section"><a{{#current}} class="selected"{{/current}} href="/{{section}}">{{title}}</a></b></li>
+	<li class="section"><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></b></li>
 		{{#pages}}
 				{{#is_section}}
 				<li class="section"><a {{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
@@ -14,6 +13,5 @@
 						<li><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
 				{{/sub_pages}}
 		{{/pages}}
-{{/is_section}}
 {{/menu}}
 </ul>

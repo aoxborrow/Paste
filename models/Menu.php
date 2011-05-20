@@ -18,13 +18,7 @@ class Menu extends Mustache {
 	// builds page menu array for mustache
 	public function menu() {
 
-		self::$menu = array(
-			'section' => Content::$root_section,
-			'is_section' => TRUE,
-			'title' => 'Root Section',
-			'current' => (Content::$root_section == $this->current_section),
-			'pages' => array(),
-		);
+		self::$menu = array();
 
 		// TODO: make this recursive for sections
 		// convert content structure into key values for mustache
@@ -37,16 +31,17 @@ class Menu extends Mustache {
 
 					$section = array(
 						'is_section' => TRUE,
+						'name' => $page->name,
 						'section' => $page->name,
 						'title' => $page->title,
 						'current' => ($page->name == $this->current_section),
-						'sub_pages' => array(),
+						'pages' => array(),
 					);
 
 					foreach (Content::$pages as $sub_page) {
 
 						if ($sub_page->section == $page->name) {
-							$section['sub_pages'][] = array(
+							$section['pages'][] = array(
 								'is_section' => FALSE,
 								'section' => $sub_page->section,
 								'name' => $sub_page->name,
@@ -56,12 +51,12 @@ class Menu extends Mustache {
 						}
 					}
 
-					self::$menu['pages'][] = $section;
+					self::$menu[] = $section;
 
 				// root pages
 				} else {
 
-					self::$menu['pages'][] = array(
+					self::$menu[] = array(
 						'is_section' => FALSE,
 						'section' => $page->section,
 						'name' => $page->name,

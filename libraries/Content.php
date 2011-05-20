@@ -7,7 +7,7 @@ class Content {
 	public static $ext = '.html';
 
 	// root section name
-	public static $root_section = '_root';
+	public static $root_section = 'content';
 
 	// content database
 	public static $pages;

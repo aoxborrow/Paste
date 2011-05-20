@@ -2,6 +2,12 @@
 
 class template_controller {
 
+	// current section default
+	public $current_section;
+
+	// current page default
+	public $current_page;
+
 	// template view model
 	public $template;
 
@@ -11,7 +17,7 @@ class template_controller {
 	public function __construct() {
 
 		// setup mustache template
-		$this->template = new Mustache(file_get_contents(APPPATH.'views/templates/'.$this->_template));
+		$this->template = new Mustache(file_get_contents(TEMPLATEPATH.$this->_template));
 
 		// default title
 		$this->template->title = 'pastetwo';
@@ -23,10 +29,13 @@ class template_controller {
 		$this->template->menu = new Menu;
 
 		// set current section to controller name
-		$this->template->current_section = Router::$controller;
+		$this->current_section = Content::$root_section;
+		$this->template->current_section =& $this->current_section;
 
 		// set current section to controller name
-		$this->template->current_page = Router::$method;
+		$this->current_page = 'index';
+
+		$this->template->current_page =& $this->current_page;
 
 		// bind current_section in menu view to template var
 		$this->template->menu->current_section =& $this->template->current_section;
