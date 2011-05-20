@@ -3,75 +3,40 @@
 // menu view model
 class Menu extends Mustache {
 
-	// menu built from content structure
-	public static $menu;
-
-	// used for selected section, reference to template var
-	public $current_section;
-
-	// used for selected sub-menu item, reference to template var
-	public $current_page;
-
 	// define mustache template
-	public $template = 'menu.mustache';
+	public static $template = 'menu.mustache';
 
-	// builds page menu array for mustache
-	public function menu() {
+	// convert content structure into key values for mustache
+	public function pages() {
 
-		self::$menu = array();
+		$menu = array();
 
-		// TODO: make this recursive for sections
-		// convert content structure into key values for mustache
-		foreach (Content::$pages as $page) {
+		// get root content pages
+		foreach (Content::filter('section', NULL) as $page) {
 
-			if ($page->section == Content::$root_section) {
+			if ($page->is_visible) {
 
-				// root sections
-				if ($page->is_section) {
-
-					$section = array(
-						'is_section' => TRUE,
-						'name' => $page->name,
-						'section' => $page->name,
-						'title' => $page->title,
-						'current' => ($page->name == $this->current_section),
-						'pages' => array(),
-					);
-
-					foreach (Content::$pages as $sub_page) {
-
-						if ($sub_page->section == $page->name) {
-							$section['pages'][] = array(
-								'is_section' => FALSE,
-								'section' => $sub_page->section,
-								'name' => $sub_page->name,
-								'title' => $sub_page->title,
-								'current' => ($sub_page->name == $this->current_page),
-							);
-						}
-					}
-
-					self::$menu[] = $section;
-
-				// root pages
-				} else {
-
-					self::$menu[] = array(
-						'is_section' => FALSE,
-						'section' => $page->section,
-						'name' => $page->name,
-						'title' => $page->title,
-						'current' => ($page->name == $this->current_page),
-					);
-
-				}
-
+				// add children if parent page is section
+				$menu[] = ($page->is_section) ? $this->recursive_pages($page) : $page;
 
 			}
+		}
+
+		return $menu;
+
+	}
+
+	// recursively build menu
+	private function recursive_pages($parent) {
+
+		// add children recursively
+		foreach (Content::filter('section', $parent->name) as $page) {
+
+			$parent->children[] = $this->recursive_pages($page);
 
 		}
 
-		return self::$menu;
+		return $parent;
 
 	}
 
@@ -117,7 +82,7 @@ class Menu extends Mustache {
 
 	public function render() {
 
-		return parent::render(file_get_contents(TEMPLATEPATH.$this->template));
+		return parent::render(file_get_contents(realpath(TEMPLATEPATH.self::$template)));
 
 	}
 

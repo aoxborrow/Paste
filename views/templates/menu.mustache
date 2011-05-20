@@ -1,17 +1,14 @@
 <ul class="menu">
-{{#menu}}
-	<li class="section"><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></b></li>
-		{{#pages}}
-				{{#is_section}}
-				<li class="section"><a {{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
-				{{/is_section}}
-				{{^is_section}}
+{{#pages}}
+<li class="section"><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></b></li>
+{{#children}}
+	<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
+	{{#children}}
+		<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
+		{{#children}}
 				<li><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
-				{{/is_section}}
-
-				{{#sub_pages}}
-						<li><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></b></li>
-				{{/sub_pages}}
-		{{/pages}}
-{{/menu}}
+		{{/children}}
+	{{/children}}
+{{/children}}
+{{/pages}}
 </ul>

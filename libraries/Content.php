@@ -7,7 +7,11 @@ class Content {
 	public static $ext = '.html';
 
 	// root section name
-	public static $root_section = 'content';
+	public static $root_section = NULL;
+
+	// root section name
+	public static $index = 'index';
+
 
 	// content database
 	public static $pages;
@@ -16,30 +20,35 @@ class Content {
 	// traverse content directory and load everything...
 	// TODO: load all content data at once, so we can lookup file names easily
 	// TODO: allow inifinite section depth
+	// TODO: try having root_section as NULL
 
 	public static function init() {
 
-		self::$pages = self::load_section(self::$root_section);
+		self::$pages = self::load_section();
 
 	}
 
-	// list main sections
-	public static function sections() {
+	// filter content by property
+	public static function filter($property, $value, $operator = '==') {
 
-		$sections = array();
+		$pages = array();
 
 		foreach (self::$pages as $page) {
-			if ($page->is_section) {
-				$sections[] = $page->name;
+
+			if ($page->$property === $value) {
+
+				$pages[] = $page;
+
 			}
 		}
 
-		return $sections;
+		return $pages;
 
 	}
 
-	// load section of data files
-	public static function load_section($section, $path = '/', $parent = NULL) {
+
+	// recursively load section of data files
+	public static function load_section($section = NULL, $path = '/', $parent = NULL) {
 
 		$pages = array();
 
@@ -54,9 +63,14 @@ class Content {
 
 				$page = new Page($name, $path.'/'.$file);
 
+				// TODO: clean this up
 				// index files are created as the section parent
 				if ($name == 'index') {
-					$page->name = $section;
+					if ($section === NULL) {
+						$page->name = self::$index;
+					} else {
+						$page->name = $section;
+					}
 					$page->is_section = TRUE;
 					$page->section = $parent;
 				} else {
@@ -74,8 +88,8 @@ class Content {
 
 
 	// TODO: move sorting to configurable function in Menu, we don't care about sorting here
-	// return sorted content list
-	public static function list_dir($path = '/', $sections_only = FALSE) {
+	// return directory list
+	public static function list_dir($path = '/') {
 
 		$files = array();
 

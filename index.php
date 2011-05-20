@@ -18,6 +18,8 @@ It uses Mustache for templates and works out of the box on any PHP5 server.
 - use history API for loading project content: http://html5demos.com/history/
 - abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
+TODO: consider combining router and common methods into Pastefolio class, so Pastefolio::instance() represents router
+TODO: try indxr
 TODO: create sections and pages from content folder structure, catch-all controller
 TODO: simplify HTML project loading, load image data, full tags, clear existing, verify current page is viable
 TODO: allow different templates using template controller, set them via section or inline html tag? <!-- template: wide -->
@@ -51,6 +53,8 @@ Content::init();
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
+	'debug' => 'debug', // blog pages
+	'debug/([A-Za-z0-9]+)' => 'debug/$1', // blog pages
 	'notes/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
 	'notes/archive' => 'blog/archive', // blog archive
 

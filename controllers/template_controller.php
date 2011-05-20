@@ -2,46 +2,47 @@
 
 class template_controller {
 
-	// current section default
+	// current section
 	public $current_section;
 
-	// current page default
+	// current page
 	public $current_page;
 
 	// template view model
 	public $template;
 
 	// template mustache file
-	public $_template = 'site.mustache';
+	public static $_template = 'site.mustache';
+
 
 	public function __construct() {
 
+		// TODO: extend common controller class to provide this and other common methods?
+		if (Router::$instance == NULL) {
+
+			// set router instance to controller
+			Router::$instance = $this;
+		}
+
 		// setup mustache template
-		$this->template = new Mustache(file_get_contents(TEMPLATEPATH.$this->_template));
+		$this->template = new Mustache(file_get_contents(realpath(TEMPLATEPATH.self::$_template)));
 
 		// default title
-		$this->template->title = 'pastetwo';
+		$this->template->title = 'Paste Labs';
 
 		// content area
 		$this->template->content = '';
 
-		// init menu view model
-		$this->template->menu = new Menu;
-
 		// set current section to controller name
-		$this->current_section = Content::$root_section;
+		$this->current_section = Router::$controller;
 		$this->template->current_section =& $this->current_section;
 
 		// set current section to controller name
-		$this->current_page = 'index';
-
+		$this->current_page = Router::$method;
 		$this->template->current_page =& $this->current_page;
 
-		// bind current_section in menu view to template var
-		$this->template->menu->current_section =& $this->template->current_section;
-
-		// bind current_page in menu view to template var
-		$this->template->menu->current_page =& $this->template->current_page;
+		// init menu view model
+		$this->template->menu = new Menu;
 
 	}
 

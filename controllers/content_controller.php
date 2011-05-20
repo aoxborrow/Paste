@@ -7,11 +7,12 @@ class content_controller extends template_controller {
 	public function __call($method, $args) {
 
 		// decipher content request
-		$request = explode('/', Router::$current_uri);
+		$request = empty(Router::$current_uri) ? array(Content::$index) : explode('/', Router::$current_uri);
 
 		// single level, section is root and page is request
 		if (count($request) == 1) {
 
+			$this->current_section = NULL;
 			$this->current_page = $request[0];
 
 		// set section and page
@@ -27,14 +28,19 @@ class content_controller extends template_controller {
 
 		}
 
-		$this->template->content = '<p><b>'.$this->current_section.' / '.$this->current_page.'</b></p>';
-
 		// TODO: check if index page has content, show it, otherwise redirect to first page
 		// redirect to first project
 		//Router::redirect('/'.$section.'/index');
 		//$this->template->content .= Page::factory($section);
 
-		$this->template->content .= Page::factory($this->current_page);
+		// ghetto breadcrumb
+		$this->template->content = '<p><b>'.(($this->current_section !== NULL) ? $this->current_section.' / ' : '').$this->current_page.'</b></p>';
+
+		$page = Page::factory($this->current_page);
+
+		$this->template->title = $page->title.' - '.$this->template->title;
+		$this->template->content .= $page;
+
 
 
 	}

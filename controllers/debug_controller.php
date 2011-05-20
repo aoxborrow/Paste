@@ -1,11 +1,27 @@
 <?php
 
-class debug_controller {
+// debug controller for testing
+class debug_controller extends template_controller {
 
+	public function __construct() {
+
+		parent::__construct();
+
+		echo '<pre>';
+
+	}
 
 	public function index() {
 
-		echo '<pre>';
+		//var_dump(Content::$pages);
+		var_dump($this->template->menu->pages());
+
+		//var_dump(Page::factory('contact')->to_array());
+
+	}
+
+	public function structure() {
+
 
 		foreach (Content::$pages as $page) {
 
@@ -40,10 +56,13 @@ class debug_controller {
 		//print_r(Router::$routes);
 		//print_r(Content::list_sections());
 
-		echo '</pre>';
 
 	}
 
-	public function _render() {}
+	public function _render() {
+
+		echo '</pre>';
+
+	}
 
 }
