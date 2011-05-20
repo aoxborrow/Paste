@@ -5,7 +5,7 @@ class Menu extends Mustache {
 
 	// menu built from content structure
 	public static $menu;
-	
+
 	// used for selected section, reference to template var
 	public $current_section;
 
@@ -13,48 +13,67 @@ class Menu extends Mustache {
 	public $current_page;
 
 	// define mustache template
-	protected $_template = 'templates/menu.mustache';
+	public $template = 'menu.mustache';
 
-	// builds project menu array for mustache
+	// builds page menu array for mustache
 	public function menu() {
-		
-		if (self::$menu === NULL) {
 
-			self::$menu = array();
+		self::$menu = array(
+			'section' => Content::$root_section,
+			'is_section' => TRUE,
+			'title' => 'Root Section',
+			'current' => (Content::$root_section == $this->current_section),
+			'pages' => array(),
+		);
 
-			// convert content structure into key values for mustache
-			foreach (Content::sections() as $section) {
+		// TODO: make this recursive for sections
+		// convert content structure into key values for mustache
+		foreach (Content::$pages as $page) {
 
-				$pages = Content::load_section($section);
-				
-				$section = array(
-					'section' => $section,
-					'title' => $pages['index']->title,
-					'current' => ($section == $this->current_section),
-					'pages' => array(),
-				);
-				
-				unset($pages['index']);
-				
-				/*
-				$section = array(
-					'section' => $section_name,
-					'title' => $section_title,
-					'current' => ($section_name == $this->current_section),
-					'pages' => array(),
-				);*/
+			if ($page->section == Content::$root_section) {
 
-				foreach ($pages as $name => $page) {
+				// root sections
+				if ($page->is_section) {
 
-					$section['pages'][] = array(
-						'name' => $name,
+					$section = array(
+						'is_section' => TRUE,
+						'section' => $page->name,
 						'title' => $page->title,
-						'current' => ($name == $this->current_page),
+						'current' => ($page->name == $this->current_section),
+						'sub_pages' => array(),
 					);
+
+					foreach (Content::$pages as $sub_page) {
+
+						if ($sub_page->section == $page->name) {
+							$section['sub_pages'][] = array(
+								'is_section' => FALSE,
+								'section' => $sub_page->section,
+								'name' => $sub_page->name,
+								'title' => $sub_page->title,
+								'current' => ($sub_page->name == $this->current_page),
+							);
+						}
+					}
+
+					self::$menu['pages'][] = $section;
+
+				// root pages
+				} else {
+
+					self::$menu['pages'][] = array(
+						'is_section' => FALSE,
+						'section' => $page->section,
+						'name' => $page->name,
+						'title' => $page->title,
+						'current' => ($page->name == $this->current_page),
+					);
+
 				}
 
-				self::$menu[] = $section;
+
 			}
+
 		}
 
 		return self::$menu;
@@ -103,7 +122,7 @@ class Menu extends Mustache {
 
 	public function render() {
 
-		return parent::render(file_get_contents(APPPATH.'views/'.$this->_template));
+		return parent::render(file_get_contents(TEMPLATEPATH.$this->template));
 
 	}
 

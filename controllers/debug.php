@@ -9,15 +9,15 @@ class debug_controller {
 
 		foreach (Content::$pages as $page) {
 
-			//if ($page->parent === NULL) {
+			//if ($page->section === NULL) {
 
-				if ($page->is_parent) echo '<b>';
-				if ($page->parent === '_root') echo '&nbsp;&nbsp;&nbsp;';
-				if ($page->parent !== NULL and $page->parent !== '_root') echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+				if ($page->is_section) echo '<b>';
+				if ($page->section === '_root') echo '&nbsp;&nbsp;&nbsp;';
+				if ($page->section !== NULL and $page->section !== '_root') echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 
-				echo $page->parent.' / ';
+				echo $page->section.' / ';
 				echo $page->name.' : '.$page->title.' : <i>'.$page->path.'</i><br/>';
-				if ($page->is_parent) echo '</b>';
+				if ($page->is_section) echo '</b>';
 
 
 			//}
@@ -29,9 +29,7 @@ class debug_controller {
 		$pages = Content::$pages;
 
 		foreach ($pages as $page) {
-			if ($page->parent == '_root') {
-				echo $page->name.'<br/>';
-			}
+			echo $page->name.'<br/>';
 		}
 
 

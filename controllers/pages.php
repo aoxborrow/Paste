@@ -5,19 +5,28 @@ class pages_controller extends template_controller {
 
 	public function __call($section, $args) {
 
+		if ($section == "index") {
+			$section = Content::$root_section;
+		}
+
+
+		$this->template->content = '<p><b>'.$section.' / '.@$args[0].'</b></p>';
+
 		// TODO: remove index controller, make this the default controller, check root section for index.html
 		// TODO: check if index page has content, show it, otherwise redirect to first page
+
 		if (empty($args[0])) {
 
 			// return $this->all($section);
 
 			// redirect to first project
-			Router::redirect($section.'/index');
+			//Router::redirect('/'.$section.'/index');
+			$this->template->content .= Page::factory($section);
 
+		} else {
+
+			$this->template->content .= Page::factory($args[0]);
 		}
-
-		$this->template->content = '<p><b>'.$section.' / '.$args[0].'</b></p>';
-		$this->template->content .= Content::load($args[0], '', $section)->content;
 
 	}
 

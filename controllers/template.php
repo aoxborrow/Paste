@@ -4,7 +4,7 @@ class template_controller {
 
 	// template view model
 	public $template;
-	
+
 	// template mustache file
 	public $_template = 'site.mustache';
 
@@ -19,52 +19,14 @@ class template_controller {
 		// content area
 		$this->template->content = '';
 
+		// init menu view model
+		$this->template->menu = new Menu;
+
 		// set current section to controller name
 		$this->template->current_section = Router::$controller;
 
 		// set current section to controller name
 		$this->template->current_page = Router::$method;
-
-		/*
-		// define main menu sections
-		Menu::$menu = array(
-			'about' => 'About',
-			'notes' => 'Lab Notes',
-			'pages' => 'Pages',
-			'projects' => 'Projects',
-		);*/
-
-		/*
-		// define project menu
-		Menu::$menu = array(
-			'about' => array('About'),
-			'notes' => array('Lab Notes'),
-			'projects' => array('Projects', array(
-				'sorenson' => 'Sorenson',
-				'globallr' => 'Global Leasing',
-				'ifloorplan' => 'iFloorPlan',
-				'twl' => 'T.W. Lewis',
-				'killington' => 'Killington',
-				'kb' => 'KB Home',
-				'mvr' => 'Monte Vista',
-				'contact' => 'Contact Design',
-				'silverplatter' => 'Silver Platter',
-				'tropical' => 'Tropical Salvage',
-				//'rockwell' => 'Rockwell Partners',
-				//'viridian' => 'Viridian Group',
-				//'trade' => 'Design Trade',
-				'modified' => 'Modified Arts',
-				'blufish' => 'Blufish Design',
-				'logos' => 'Logos',
-				//'photos' => 'Photos',
-			)),
-
-		);
-		*/
-
-
-		// init menu view model
-		$this->template->menu = new Menu;
 
 		// bind current_section in menu view to template var
 		$this->template->menu->current_section =& $this->template->current_section;

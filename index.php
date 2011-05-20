@@ -1,5 +1,11 @@
 <?php
 
+/*
+Pastefolio is a simple CMS that uses the MVC pattern and plain HTML files instead of a database.
+It uses Mustache for templates and works out of the box on any PHP5 server.
+
+*/
+
 /* Site Design Goals:
 - barebones micro MVC pattern
 - simple routing
@@ -30,30 +36,31 @@ define('APPPATH', __DIR__.'/');
 // define directory where content files are stored
 define('CONTENTPATH', __DIR__.'/content/');
 
+// define directory where mustache templates are stored
+define('TEMPLATEPATH', __DIR__.'/views/templates/');
+
 // register autoloader for libraries, controllers, models
 require_once 'libraries/Autoloader.php';
 
 // using Mustache for templating
 require_once 'libraries/mustache/Mustache.php';
 
-// using YAML for data storage
-// require_once 'libraries/yaml/lib/sfYaml.php';
-
-// load all html content and build menu data
+// load all content data
 Content::init();
 
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
 	// 'projects/([A-Za-z0-9]+)' => 'projects/$1', // view projects
+	// TODO: run 404's through page controlller to check for _root pages first
 	'_404' => 'template/error_404', // define 404 method
-	'_default' => 'index', // default controller
+	'_default' => 'pages', // default controller
 );
 
 // automatically add routes for content sections
 foreach (Content::sections() as $section) {
 	Router::$routes[$section] = 'pages/'.$section; // using the pages controller
-	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'pages/'.$section.'/$1'; 
+	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'pages/'.$section.'/$1';
 }
 
 // match uri to route and instantiate controller

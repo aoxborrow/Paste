@@ -4,7 +4,7 @@ class notes_controller extends template_controller {
 
 	public function index() {
 
-		$this->template->content = Content::load('notes');
+		$this->template->content = Page::factory('notes');
 
 	}
 
