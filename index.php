@@ -45,7 +45,7 @@ define('TEMPLATEPATH', __DIR__.'/views/templates/');
 require_once 'libraries/Autoloader.php';
 
 // using Mustache for templating
-require_once 'libraries/mustache/Mustache.php';
+require_once 'vendor/mustache/Mustache.php';
 
 // load all content data
 Content::init();
@@ -53,8 +53,7 @@ Content::init();
 // map routes to controllers, define longest first
 // generally uses kohana routing conventions: http://docs.kohanaphp.com/general/routing
 Router::$routes = array(
-	'debug' => 'debug', // blog pages
-	'debug/([A-Za-z0-9]+)' => 'debug/$1', // blog pages
+	'debug' => 'debug', // temporary
 	'notes' => 'blog/page', // default blog page
 	'notes/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
 	'notes/archive' => 'blog/archive', // blog archive
@@ -64,8 +63,7 @@ Router::$routes = array(
 	'_default' => 'content', // default controller
 );
 
-// automatically add routes for content sections
-/*
+/*// automatically add routes for content sections
 foreach (Content::sections() as $section) {
 	Router::$routes[$section] = 'pages/'.$section; // using the pages controller
 	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'pages/'.$section.'/$1';
