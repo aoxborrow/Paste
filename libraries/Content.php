@@ -7,29 +7,21 @@ class Content {
 	public static $ext = '.html';
 
 	// root section name
-	public static $root_section = NULL;
-
-	// root section name
 	public static $index = 'index';
-
 
 	// content database
 	public static $pages;
 
 
 	// traverse content directory and load everything...
-	// TODO: load all content data at once, so we can lookup file names easily
-	// TODO: allow inifinite section depth
-	// TODO: try having root_section as NULL
-
 	public static function init() {
 
 		self::$pages = self::load_section();
 
 	}
 
-	// filter content by property
-	public static function filter($property, $value, $operator = '==') {
+	// filter and return content by property
+	public static function filter($property, $value, $equals = TRUE) {
 
 		$pages = array();
 
@@ -46,7 +38,21 @@ class Content {
 
 	}
 
+	// retrieve page in content database
+	public static function get($name) {
 
+		foreach (self::$pages as $page) {
+			if ($page->name == $name)
+				return $page;
+		}
+
+		return FALSE;
+
+	}
+
+
+	// TODO: allow inifinite section depth
+	// TODO: caching $pages data
 	// recursively load section of data files
 	public static function load_section($section = NULL, $path = '/', $parent = NULL) {
 
@@ -61,25 +67,11 @@ class Content {
 
 			} else {
 
-				$page = new Page($name, $path.'/'.$file);
+				$page = new Page($name, $path.'/'.$file, $section, $parent);
 
-				// TODO: clean this up
-				// index files are created as the section parent
-				if ($name == 'index') {
-					if ($section === NULL) {
-						$page->name = self::$index;
-					} else {
-						$page->name = $section;
-					}
-					$page->is_section = TRUE;
-					$page->section = $parent;
-				} else {
-					$page->section = $section;
-				}
 				$pages[] = $page;
 
 			}
-
 		}
 
 		return $pages;
@@ -131,7 +123,7 @@ class Content {
 
 	// TODO: move sorting to configurable function in Menu, we don't care about sorting here
 	// return sorted content list
-	public static function sorted_dir($path = '/') {
+	public static function old_sorted_list_dir($path = '/') {
 
 		// path is relative to content path
 		$path = realpath(CONTENTPATH.$path).'/';

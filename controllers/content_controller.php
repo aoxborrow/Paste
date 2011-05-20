@@ -21,6 +21,7 @@ class content_controller extends template_controller {
 			$this->current_section = $request[0];
 			$this->current_page = $request[1];
 
+		// multiple levels deep
 		} else {
 
 			echo "I don't know how to handle this request:";
@@ -29,14 +30,13 @@ class content_controller extends template_controller {
 		}
 
 		// TODO: check if index page has content, show it, otherwise redirect to first page
-		// redirect to first project
 		//Router::redirect('/'.$section.'/index');
 		//$this->template->content .= Page::factory($section);
 
 		// ghetto breadcrumb
 		$this->template->content = '<p><b>'.(($this->current_section !== NULL) ? $this->current_section.' / ' : '').$this->current_page.'</b></p>';
 
-		$page = Page::factory($this->current_page);
+		$page = Content::get($this->current_page);
 
 		if ($page === FALSE) {
 

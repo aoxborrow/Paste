@@ -7,8 +7,7 @@ class Page extends Mustache {
 	public $path;
 
 	// default mustache template, relative to TEMPLATEPATH
-	// template defined in page variable
-	// allow setting this in section variable
+	// template defined in page variable, allow setting this in section variable
 	public $template = 'project.mustache';
 
 	// page name and link id
@@ -41,42 +40,35 @@ class Page extends Mustache {
 	// child pages, populated by Menu
 	public $children = array();
 
-	// methods and properties to exclude when converting to array
-	// public $_exclude = array('factory', 'render', 'as_array');
-
-
-	// constructor sets name and loads data
-	public function __construct($name, $path) {
+	// constructor loads data
+	public function __construct($name, $path, $section, $parent) {
 
 		// set project name
 		$this->name = $name;
 		$this->path = trim($path, '/');
 
-		// load content data
-		$this->_load();
+		// index files are created as the section parent
+		if ($name == Content::$index) {
 
-	}
+			$this->is_section = TRUE;
 
-	// factory for chaining methods
-	public static function factory($name) {
+			// if deeper than root section
+			if ($section !== NULL) {
 
-		// find page in Content database
+				// TODO: consider changing structure to leave index files as is, create is_section files that don't have content, only vars
+				// name changed from index to section name
+				$this->name = $section;
+				$this->section = $parent;
 
-		foreach (Content::$pages as $page) {
-			if ($page->name == $name)
-				return $page;
+			}
+		} else {
+
+			// assign section name
+			$this->section = $section;
 		}
 
-		return FALSE;
-
-		/*
-		// instantiate page model
-		$page = new Page;
-		$page->name = $name;
-
-		// load page content if path is defined
-		return ($path === NULL) ? $page : $page->load();
-		*/
+		// load content data
+		$this->load();
 
 	}
 
@@ -91,12 +83,10 @@ class Page extends Mustache {
 
 	}
 
-	// TODO: this should be moved to Content class
-	// TODO: variables: collect all lines within <!-- --> comments, strip empty, strip any commments after # or //
-	// TODO: variable name is trim'ed() string before colon
-	// TODO: variable data is trim'ed() string after colon
+	// TODO: should this be moved to Content class?
+	// TODO: strip any commments after # or //
 	// load individual content page
-	public function _load() {
+	public function load() {
 
 		if (FALSE !== ($html = @file_get_contents(realpath(CONTENTPATH.$this->path)))) {
 

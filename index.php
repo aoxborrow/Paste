@@ -18,11 +18,8 @@ It uses Mustache for templates and works out of the box on any PHP5 server.
 - use history API for loading project content: http://html5demos.com/history/
 - abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
-TODO: consider combining router and common methods into Pastefolio class, so Pastefolio::instance() represents router
+TODO: consider combining router, conent and common methods into Pastefolio class, so Pastefolio::instance() represents router
 TODO: try indxr
-TODO: create sections and pages from content folder structure, catch-all controller
-TODO: simplify HTML project loading, load image data, full tags, clear existing, verify current page is viable
-TODO: allow different templates using template controller, set them via section or inline html tag? <!-- template: wide -->
 TODO: add lab notes with title, date, summary / integrate with tumblr
 TODO: rounded & matted image styles
 
@@ -57,17 +54,8 @@ Router::$routes = array(
 	'notes' => 'blog/page', // default blog page
 	'notes/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
 	'notes/archive' => 'blog/archive', // blog archive
-
-	// TODO: run 404's through page controlller to check for _root pages first
-	// '_404' => 'template/error_404', // define 404 method
-	'_default' => 'content', // default controller
+	'_default' => 'content', // default content controller
 );
-
-/*// automatically add routes for content sections
-foreach (Content::sections() as $section) {
-	Router::$routes[$section] = 'pages/'.$section; // using the pages controller
-	Router::$routes[$section.'/([A-Za-z0-9]+)'] = 'pages/'.$section.'/$1';
-}*/
 
 // match uri to route and instantiate controller
 $controller = Router::execute($_SERVER['REQUEST_URI']);
