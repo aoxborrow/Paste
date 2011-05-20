@@ -55,6 +55,7 @@ Content::init();
 Router::$routes = array(
 	'debug' => 'debug', // blog pages
 	'debug/([A-Za-z0-9]+)' => 'debug/$1', // blog pages
+	'notes' => 'blog/page', // default blog page
 	'notes/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
 	'notes/archive' => 'blog/archive', // blog archive
 

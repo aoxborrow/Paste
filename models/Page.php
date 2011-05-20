@@ -9,7 +9,7 @@ class Page extends Mustache {
 	// default mustache template, relative to TEMPLATEPATH
 	// template defined in page variable
 	// allow setting this in section variable
-	public $template = 'page.mustache';
+	public $template = 'project.mustache';
 
 	// page name and link id
 	public $name;
@@ -67,6 +67,8 @@ class Page extends Mustache {
 				return $page;
 		}
 
+		return FALSE;
+
 		/*
 		// instantiate page model
 		$page = new Page;
@@ -88,24 +90,51 @@ class Page extends Mustache {
 		return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
 
 	}
+
+	// TODO: this should be moved to Content class
 	// TODO: variables: collect all lines within <!-- --> comments, strip empty, strip any commments after # or //
 	// TODO: variable name is trim'ed() string before colon
 	// TODO: variable data is trim'ed() string after colon
 	// load individual content page
 	public function _load() {
 
-		if (FALSE === ($html = @file_get_contents(realpath(CONTENTPATH.$this->path)))) {
-			return FALSE;
+		if (FALSE !== ($html = @file_get_contents(realpath(CONTENTPATH.$this->path)))) {
+
+			// credit to Ben Blank: http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
+			$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
+			preg_match_all($regexp, $html, $comments);
+
+			// split comments on newline
+			$lines = array();
+			foreach ($comments[1] as $comment) {
+				$var_lines = explode("\n", trim($comment));
+				$lines = array_merge($lines, $var_lines);
+			}
+
+			// split lines on colon and assign to key/value
+			$vars = array();
+			foreach ($lines as $line) {
+				$parts = explode(":", $line, 2);
+				if (count($parts) == 2) {
+					$vars[trim($parts[0])] = trim($parts[1]);
+				}
+			}
+
+			foreach ($vars as $key => $value) {
+				if (strtolower($value) === "false" OR $value === '0') {
+					$value = FALSE;
+				} elseif (strtolower($value) === "true" OR $value === '1') {
+					$value = TRUE;
+				}
+				$this->$key = $value;
+			}
+
+			// set title to name if not set otherwise
+			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
+			$this->content = $html;
+			$this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
+
 		}
-
-		$dom = DOMDocument::loadHTML($html);
-
-		$this->title = @$dom->getElementsByTagName('h1')->item(0)->nodeValue;
-
-		// set title to name if not set otherwise
-		$this->title = (empty($this->title)) ? ucwords($this->name) : $this->title;
-		$this->content = $html;
-
 	}
 
 
@@ -164,10 +193,9 @@ class Page extends Mustache {
 
 	public function render() {
 
-		// TODO: put template in section variable
-		if ($this->section == 'projects') {
+		if (! strstr($this->template, '.mustache')) {
 
-			$this->template = 'project.mustache';
+			$this->template = $this->template.'.mustache';
 
 		}
 

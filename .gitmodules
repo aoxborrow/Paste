@@ -1,11 +1,8 @@
-[submodule "libraries/yaml"]
-	path = libraries/yaml
-	url = https://github.com/fabpot/yaml.git
 [submodule "source/html5boilerplate"]
 	path = source/html5boilerplate
 	url = https://github.com/paulirish/html5-boilerplate.git
-[submodule "libraries/mustache"]
-	path = libraries/mustache
+[submodule "vendor/mustache"]
+	path = vendor/mustache
 	url = https://github.com/bobthecow/mustache.php.git
 [submodule "source/history"]
 	path = source/history

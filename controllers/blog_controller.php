@@ -1,10 +1,10 @@
 <?php
 
-class notes_controller extends template_controller {
+class blog_controller extends template_controller {
 
-	public function index() {
+	public function page() {
 
-		$this->template->content = Page::factory('notes');
+		$this->template->content = '<h1>Blog Controller</h1>';
 
 	}
 
