@@ -79,7 +79,6 @@ class Content {
 	}
 
 
-	// TODO: move sorting to configurable function in Menu, we don't care about sorting here
 	// return directory list
 	public static function list_dir($path = '/') {
 
@@ -121,7 +120,7 @@ class Content {
 
 	}
 
-	// TODO: move sorting to configurable function in Menu, we don't care about sorting here
+	// TODO: move sorting to configurable functin in Menu, we don't care about sorting here
 	// return sorted content list
 	public static function old_sorted_list_dir($path = '/') {
 

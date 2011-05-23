@@ -7,15 +7,10 @@ function autoloader($class) {
 		return TRUE;
 	}
 
-	// convert the last word of the class name to a folder, i.e. "template_controller" => "controllers"
-	$index	= strrpos($class, '_');
-	$folder = strtolower(($index == 0 ? $class : substr($class, $index + 1))).'s';
-	// $file = substr($class, 0, $index).'.php';
+	// try the controllers folder
+	if (file_exists(APPPATH.'controllers/'.$class.'.php')) {
 
-	// find the file and load it, i.e. controllers/template_controller.php
-	if (file_exists(APPPATH.$folder.'/'.$class.'.php')) {
-
-		require_once(APPPATH.$folder.'/'.$class.'.php');
+		require_once(APPPATH.'controllers/'.$class.'.php');
 		return TRUE;
 
 	// try the libraries folder

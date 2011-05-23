@@ -3,6 +3,9 @@
 // page view model
 class Page extends Mustache {
 
+	// content file extension
+	public static $ext = '.html';
+
 	// path to page content, relative to CONTENTPATH
 	public $path;
 
@@ -48,7 +51,7 @@ class Page extends Mustache {
 		$this->path = trim($path, '/');
 
 		// index files are created as the section parent
-		if ($name == Content::$index) {
+		if ($name == 'index') {
 
 			$this->is_section = TRUE;
 
@@ -72,14 +75,66 @@ class Page extends Mustache {
 
 	}
 
-	// check if current page or section
-	public function current() {
+	// filter and return pages by properties
+	public static function find_all($terms) {
 
-		// get current page and section from controller
-		$current_page = Router::instance()->current_page;
-		$current_section = Router::instance()->current_section;
+		$pages = array();
 
-		return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+		foreach (Pastefolio::$pages as $page) {
+
+			$matched = TRUE;
+
+			foreach ($terms as $property => $value) {
+
+				if ($page->$property !== $value) {
+
+					$matched = FALSE;
+
+				}
+			}
+
+			if ($matched)
+				$pages[] = $page;
+
+		}
+
+		return $pages;
+
+	}
+
+	// retrieve single page by properties
+	public static function find($terms) {
+
+		$pages = self::find_all($terms);
+
+		return (empty($pages)) ? FALSE : $pages[0];
+
+	}
+
+	// TODO: allow inifinite section depth
+	// TODO: caching $pages data
+	// recursively load sections of content, relative to CONTENTPATH
+	public static function load_path($path = '/', $section = NULL, $parent = NULL) {
+
+		$pages = array();
+
+		foreach (Pastefolio::list_dir($path) as $file => $name) {
+
+			// check if file is page or section
+			if (strstr($file, self::$ext) === FALSE) {
+
+				$pages = array_merge($pages, self::load_path($file, $name, $section));
+
+			} else {
+
+				$page = new Page($name, $path.'/'.$file, $section, $parent);
+
+				$pages[] = $page;
+
+			}
+		}
+
+		return $pages;
 
 	}
 
@@ -127,6 +182,16 @@ class Page extends Mustache {
 		}
 	}
 
+	// check if current page or section
+	public function current() {
+
+		// get current page and section from controller
+		$current_page = Pastefolio::instance()->current_page;
+		$current_section = Pastefolio::instance()->current_section;
+
+		return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+
+	}
 
 	// convert page object to array, moving methods to properties
 	// deprecated, Mustache does this fine

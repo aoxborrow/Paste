@@ -18,10 +18,10 @@ class template_controller {
 	public function __construct() {
 
 		// TODO: extend common controller class to provide this and other common methods?
-		if (Router::$instance == NULL) {
+		if (Pastefolio::$instance == NULL) {
 
 			// set router instance to controller
-			Router::$instance = $this;
+			Pastefolio::$instance = $this;
 		}
 
 		// setup mustache template
@@ -34,11 +34,11 @@ class template_controller {
 		$this->template->content = '';
 
 		// set current section to controller name
-		$this->current_section = Router::$controller;
+		$this->current_section = Pastefolio::$controller;
 		$this->template->current_section =& $this->current_section;
 
 		// set current section to controller name
-		$this->current_page = Router::$method;
+		$this->current_page = Pastefolio::$method;
 		$this->template->current_page =& $this->current_page;
 
 		// init menu view model
@@ -64,7 +64,7 @@ class template_controller {
 	public function _render() {
 
 		// render the template after controller execution
-		echo $this->template->render();
+		return $this->template->render();
 
 	}
 

@@ -12,7 +12,7 @@ class Menu extends Mustache {
 		$menu = array();
 
 		// get root content pages
-		foreach (Content::filter('section', NULL) as $page) {
+		foreach (Page::find_all(array('section' => NULL)) as $page) {
 
 			if ($page->is_visible) {
 
@@ -30,7 +30,7 @@ class Menu extends Mustache {
 	private function recursive_pages($parent) {
 
 		// add children recursively
-		foreach (Content::filter('section', $parent->name) as $page) {
+		foreach (Page::find_all(array('section' => $parent->name)) as $page) {
 
 			$parent->children[] = $this->recursive_pages($page);
 

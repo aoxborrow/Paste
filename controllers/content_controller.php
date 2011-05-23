@@ -7,7 +7,7 @@ class content_controller extends template_controller {
 	public function __call($method, $args) {
 
 		// decipher content request
-		$request = empty(Router::$current_uri) ? array(Content::$index) : explode('/', Router::$current_uri);
+		$request = empty(Pastefolio::$current_uri) ? array('index') : explode('/', Pastefolio::$current_uri);
 
 		// single level, section is root and page is request
 		if (count($request) == 1) {
@@ -36,7 +36,7 @@ class content_controller extends template_controller {
 		// ghetto breadcrumb
 		$this->template->content = '<p><b>'.(($this->current_section !== NULL) ? $this->current_section.' / ' : '').$this->current_page.'</b></p>';
 
-		$page = Content::get($this->current_page);
+		$page = Page::find(array('name' => $this->current_page));
 
 		if ($page === FALSE) {
 
