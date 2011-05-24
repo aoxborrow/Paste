@@ -17,6 +17,7 @@ body {
 }
 div.wrapper {
 	height: 100%;
+	width: 1020px;
 }
 
 p {
@@ -315,11 +316,11 @@ a.launch:hover {
 /* About Page Content */
 
 div.contact {
-	float: right;
+	float: left;
 	background-color: #555;
 	border: 5px solid #555;
 	width: 160px;
-	margin: 0 0 0 35px;
+	margin: 0 30px 100px 0;
 	border-bottom-right-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
