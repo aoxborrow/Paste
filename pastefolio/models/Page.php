@@ -110,6 +110,60 @@ class Page {
 		return (empty($pages)) ? FALSE : $pages[0];
 
 	}
+	
+	// display root section
+	public function root() {
+		
+		$menu = array();
+
+		// get root content pages
+		foreach (Page::find_all(array('section' => NULL)) as $page) {
+
+			if ($page->is_visible) {
+
+				// add child pages if parent is section
+				$menu[] = ($page->is_section) ? $this->recursive_pages($page) : $page;
+
+			}
+		}
+
+		return $menu;
+
+	}
+	
+	// display child pages
+	public function children() {
+		
+		$menu = array();
+
+		// get root content pages
+		foreach (self::find_all(array('section' => $this->name)) as $page) {
+
+			if ($page->is_visible) {
+
+				// add child pages if parent is section
+				$menu[] = ($page->is_section) ? self::recursive_pages($page) : $page;
+
+			}
+		}
+
+		return $menu;
+
+	}
+
+	// recursively build section
+	private static function recursive_pages($parent) {
+
+		// add children recursively
+		foreach (self::find_all(array('section' => $parent->name)) as $page) {
+
+			$parent->children[] = self::recursive_pages($page);
+
+		}
+
+		return $parent;
+
+	}
 
 	// TODO: allow inifinite section depth
 	// TODO: caching $pages data

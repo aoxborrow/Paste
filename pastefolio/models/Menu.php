@@ -5,6 +5,8 @@ class Menu {
 
 	// convert content structure into key values for mustache
 	public function pages() {
+		
+		echo 'running pages...';
 
 		$menu = array();
 

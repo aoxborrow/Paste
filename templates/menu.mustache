@@ -1,5 +1,5 @@
 <ul class="menu">
-{{#pages}}
+{{#root}}
 <li class="section"><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></li>
 {{#children}}
 	<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
@@ -10,5 +10,5 @@
 		{{/children}}
 	{{/children}}
 {{/children}}
-{{/pages}}
+{{/root}}
 </ul>

@@ -27,34 +27,12 @@ class template_controller {
 			Pastefolio::$instance = $this;
 		}
 
-		// get site template
-		$site_template = file_get_contents(realpath(TEMPLATEPATH.self::$site_template));
-
-		// setup mustache view
-		$this->template = new Mustache($site_template);
-
-		// default title
-		$this->template->title = 'Paste Labs';
-
-		// content area
-		$this->template->content = '';
-
 		// set current section to controller name
 		$this->current_section = Pastefolio::$controller;
-		$this->template->current_section =& $this->current_section;
 
 		// set current section to controller name
 		$this->current_page = Pastefolio::$method;
-		$this->template->current_page =& $this->current_page;
 
-		// get menu template
-		$menu_template = file_get_contents(realpath(TEMPLATEPATH.self::$menu_template));
-
-		// menu view model
-		$menu = new Menu;
-
-		// assign menu view to template
-		$this->template->menu = new Mustache($menu_template, $menu);
 
 	}
 

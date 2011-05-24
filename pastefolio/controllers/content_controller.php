@@ -3,6 +3,12 @@
 // default content controller
 class content_controller extends template_controller {
 
+	// site mustache template file
+	public static $site_template = 'site.mustache';
+
+	// menu mustache template file
+	public static $menu_template = 'menu.mustache';
+
 
 	public function __call($method, $args) {
 
@@ -30,7 +36,7 @@ class content_controller extends template_controller {
 		}
 
 		// ghetto breadcrumb
-		$this->template->content = '<p><b>'.(($this->current_section !== NULL) ? $this->current_section.' / ' : '').$this->current_page.'</b></p>';
+		//$this->template->content = '<p><b>'.(($this->current_section !== NULL) ? $this->current_section.' / ' : '').$this->current_page.'</b></p>';
 
 		// get requested page from content database
 		$page = Page::find(array('section' => $this->current_section, 'name' => $this->current_page));
@@ -58,20 +64,36 @@ class content_controller extends template_controller {
 
 		} else {
 
-
 			// ensure .mustache file extension
 			$page->template = (strstr($page->template, '.mustache')) ? $page->template : $page->template.'.mustache';
 
-			// get template file contents
-			$template = file_get_contents(realpath(TEMPLATEPATH.$page->template));
+			// get page template
+			$page_template = file_get_contents(realpath(TEMPLATEPATH.$page->template));
+
+			// get site template
+			$site_template = file_get_contents(realpath(TEMPLATEPATH.self::$site_template));
+
+			// get menu template
+			$menu_template = file_get_contents(realpath(TEMPLATEPATH.self::$menu_template));			
+
+			// setup mustache view
+			// TODO: create Template extends Mustache with changeable content area, menu methods from Menu.php.
+			$this->template = new Mustache($site_template, $page, array('menu' => $menu_template, 'content' => $page_template));
 
 			// set page title similar to breadcrumbs
-			$this->template->title = $page->title.' - '.$this->template->title;
+			// $this->template->title = $page->title.' - '.$this->template->title;
 
 			// passing template and view model to Mustache during runtime, so that we don't store Mustache properties in cache
-			$this->template->content = new Mustache($template, $page);
+			// $this->template->content = new Mustache($template, $page);
 
 		}
+
+	}
+	
+	public function _render() {
+
+		// render the template after controller execution
+		return $this->template->render();
 
 	}
 
