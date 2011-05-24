@@ -4,3 +4,6 @@
 [submodule "source/history"]
 	path = source/history
 	url = https://github.com/balupton/history.js.git
+[submodule "pastefolio"]
+	path = pastefolio
+	url = ssh://root@pastelabs.com/root/git/pastefolio.git
