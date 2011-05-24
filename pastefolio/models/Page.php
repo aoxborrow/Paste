@@ -110,10 +110,10 @@ class Page {
 		return (empty($pages)) ? FALSE : $pages[0];
 
 	}
-	
+
 	// display root section
 	public function root() {
-		
+
 		$menu = array();
 
 		// get root content pages
@@ -130,10 +130,10 @@ class Page {
 		return $menu;
 
 	}
-	
+
 	// display child pages
 	public function children() {
-		
+
 		$menu = array();
 
 		// get root content pages

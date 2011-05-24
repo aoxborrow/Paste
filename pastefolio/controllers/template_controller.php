@@ -2,20 +2,14 @@
 
 class template_controller {
 
+	// template view model
+	public $template;
+
 	// current section
 	public $current_section;
 
 	// current page
 	public $current_page;
-
-	// template view model
-	public $template;
-
-	// site mustache template file
-	public static $site_template = 'site.mustache';
-
-	// menu mustache template file
-	public static $menu_template = 'menu.mustache';
 
 
 	public function __construct() {
@@ -33,6 +27,9 @@ class template_controller {
 		// set current section to controller name
 		$this->current_page = Pastefolio::$method;
 
+
+		// instatiate template view model
+		$this->template = new Template;
 
 	}
 

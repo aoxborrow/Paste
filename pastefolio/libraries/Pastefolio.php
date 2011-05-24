@@ -24,8 +24,7 @@ It uses OOP and the MVC pattern and requires PHP5.
 - use history API for loading project content: http://html5demos.com/history/
 - abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
-TODO: allow *variables that get assigned to all child pages of a section
-TODO: split sections from their index pages? not sure
+TODO: allow *variables that get assigned to all child pages of a section, including default *title in index.html
 TODO: integrate tumblr and add lab notes with title, date, summary
 TODO: rounded & matted image styles
 
