@@ -22,6 +22,9 @@ class Template extends Mustache {
 		// get menu template
 		$menu_template = file_get_contents(realpath(TEMPLATEPATH.self::$menu_template));
 
+		// without partial
+		// $this->menu_tpl = new Mustache($menu_template, $this);
+
 		// setup mustache view with menu partial
 		parent::__construct($site_template, $this, array('menu' => $menu_template));
 
@@ -60,6 +63,5 @@ class Template extends Mustache {
 		return $parent;
 
 	}
-
 
 }

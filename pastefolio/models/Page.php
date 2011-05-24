@@ -199,10 +199,10 @@ class Page {
 
 		$files = array();
 
-		if (FALSE === ($handle = opendir($path)))
+		if (($handle = opendir($path)) === FALSE)
 			return $files;
 
-		while (FALSE !== ($file = readdir($handle))) {
+		while (($file = readdir($handle)) !== FALSE) {
 
 			// ignore dot dirs and paths prefixed with an underscore or period
 			if ($file != '.' AND $file != '..' AND $file[0] !== '_' AND $file[0] !== '.') {
@@ -236,7 +236,7 @@ class Page {
 	// load individual content page
 	public function load() {
 
-		if (FALSE !== ($html = @file_get_contents(realpath($this->path)))) {
+		if (($html = @file_get_contents(realpath($this->path))) !== FALSE) {
 
 			// credit to Ben Blank: http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
 			$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';

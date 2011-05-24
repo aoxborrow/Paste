@@ -119,6 +119,10 @@ class Pastefolio {
 	// simple router, takes uri and maps controller, method and arguments
 	public static function request($uri) {
 
+		// remove query string from URI
+		if (($query = strpos($uri, '?')) !== FALSE)
+			list ($uri, $query) = explode('?', $uri, 2);
+
 		// store requested URI on first run only
 		if (self::$current_uri === NULL)
 			self::$current_uri = trim($uri, '/');
