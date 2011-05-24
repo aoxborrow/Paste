@@ -19,7 +19,7 @@ RewriteBase /
 </Files>
 
 # Protect application and system files from being viewed
-RewriteRule ^(?:content|controllers|views|models|libraries|source)\b.* index.php/$0 [L]
+RewriteRule ^(?:pastefolio|content|templates|source)\b.* index.php/$0 [L]
 
 # Allow any files or directories that exist to be displayed directly
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -33,35 +33,3 @@ AddDefaultCharset utf-8
 
 # force utf-8 for a number of file formats
 AddCharset utf-8 .html .css .js .xml .json .rss
-
-# HTML5 boilerplate stuff
-<IfModule mod_setenvif.c>
-  <IfModule mod_headers.c>
-    BrowserMatch MSIE ie
-    Header set X-UA-Compatible "IE=Edge,chrome=1" env=ie
-  </IfModule>
-</IfModule>
-
-<IfModule mod_headers.c>
-# Because X-UA-Compatible isn't sent to non-IE (to save header bytes),
-# We need to inform proxies that content changes based on UA
-  Header append Vary User-Agent
-# Cache control is set only if mod_headers is enabled, so that's unncessary to declare
-</IfModule>
-
-<IfModule mod_setenvif.c>
-  <IfModule mod_headers.c>
-    SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s,?\s(gzip|deflate)?|X{4,13}|~{4,13}|-{4,13})$ HAVE_Accept-Encoding
-    RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
-  </IfModule>
-</IfModule>
-
-# html, txt, css, js, json, xml, htc:
-<IfModule filter_module>
-  FilterDeclare   COMPRESS
-  FilterProvider  COMPRESS  DEFLATE resp=Content-Type /text/(html|css|javascript|plain|x(ml|-component))/
-  FilterProvider  COMPRESS  DEFLATE resp=Content-Type /application/(javascript|json|xml|x-javascript)/
-  FilterChain     COMPRESS
-  FilterProtocol  COMPRESS  change=yes;byteranges=no
-</IfModule>
-
