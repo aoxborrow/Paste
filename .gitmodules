@@ -1,8 +1,8 @@
 [submodule "source/html5boilerplate"]
 	path = source/html5boilerplate
 	url = https://github.com/paulirish/html5-boilerplate.git
-[submodule "vendor/mustache"]
-	path = vendor/mustache
+[submodule "libraries/mustache"]
+	path = libraries/mustache
 	url = https://github.com/bobthecow/mustache.php.git
 [submodule "source/history"]
 	path = source/history

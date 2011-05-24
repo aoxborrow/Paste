@@ -48,7 +48,7 @@ define('CONTENTPATH', str_replace('\\', '/', realpath($content_path)).'/');
 define('TEMPLATEPATH', str_replace('\\', '/', realpath($template_path)).'/');
 
 // using Mustache for templating: https://github.com/bobthecow/mustache.php
-require_once APPPATH.'vendor/mustache/Mustache.php';
+require_once APPPATH.'libraries/mustache/Mustache.php';
 
 // core Pastefolio class
 require_once APPPATH.'libraries/Pastefolio.php';
