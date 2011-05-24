@@ -1,6 +1,3 @@
-[submodule "source/html5boilerplate"]
-	path = source/html5boilerplate
-	url = https://github.com/paulirish/html5-boilerplate.git
 [submodule "source/history"]
 	path = source/history
 	url = https://github.com/balupton/history.js.git
