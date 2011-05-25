@@ -12,9 +12,6 @@
 
 class Tumblr {
 
-	// URL used to access tumblr API
-	public $url;
-
 	// params to pass to filter feed
 	public $params = array(
 		'type' => 'regular', // If unspecified or empty, all types of posts are returned. (Must be one of $valid_types below)
@@ -33,6 +30,9 @@ class Tumblr {
 
 	// valid tumblr post types
 	public $post_types = array('regular', 'quote', 'photo', 'link', 'conversation', 'video', 'audio');
+
+	// URL used to access tumblr API
+	public $url;
 
 
 	public function __construct($account = 'demo') {

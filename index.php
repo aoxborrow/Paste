@@ -21,7 +21,8 @@ $routes = array(
 	'debug' => 'debug', // temporary
 	'notes' => 'blog', // default blog page
 	'notes/archive' => 'blog/archive', // blog archive
-	'notes/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
+	'notes/page/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
+	'notes/([A-Za-z0-9]+)' => 'blog/post/$1', // blog post
 	'_default' => 'content', // default content controller
 );
 

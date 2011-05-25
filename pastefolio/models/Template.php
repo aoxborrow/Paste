@@ -14,7 +14,6 @@ class Template extends Mustache {
 	// menu mustache template file
 	public $menu_template = 'menu.mustache';
 
-
 	public function __construct() {
 
 		// get site template
