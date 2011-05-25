@@ -14,6 +14,7 @@ class Tumblr {
 
 	// params to pass to filter feed
 	public $params = array(
+		'filter' => 'none', // Text filter
 		'type' => 'regular', // If unspecified or empty, all types of posts are returned. (Must be one of $valid_types below)
 		'id' => NULL, // A specific post ID to return. Use instead of start, num, or type.
 		'start' => NULL, // The post offset to start from. The default is 0.
@@ -38,7 +39,7 @@ class Tumblr {
 	public function __construct($account = 'demo') {
 
 		// tumblr API URL with text filter set to none
-		$this->url = 'http://'.$account.'.tumblr.com/api/read?filter=none&';
+		$this->url = 'http://'.$account.'.tumblr.com/api/read?';
 
 	}
 

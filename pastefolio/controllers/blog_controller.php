@@ -76,6 +76,7 @@ class blog_controller extends template_controller {
 
 	}
 
+	// TODO: deal with post_template better
 	public function _draw($post) {
 
 		$p = '<br clear="all"><p><b><a href="/notes/'.$post['id'].'">#'.$post['id'].'</a></b></p>';
@@ -111,13 +112,9 @@ class blog_controller extends template_controller {
 			$this->blog_content .= $this->_draw($post);
 
 		}
-
-		/*
-		$this->template->content .= '<iframe src="http://assets.tumblr.com/iframe.html?9&amp;src=http%3A%2F%2Fjustgoodtats.com%2F&amp;lang=en_US&amp;name=justgoodtattoos&amp;brag=0" scrolling="no" width="330" height="25" frameborder="0" style="position:absolute; z-index:1337; top:0px; right:0px; border:0px; background-color:transparent; overflow:hidden;" id="tumblr_controls"></iframe>';
-		$this->template->content .= '<script type="text/javascript" src="http://blog.cremesyndicate.com/js"></script><h1>Blog Controller</h1>';
-		*/
 	}
 
+	// TODO: deal with blog template and content better, this is gross
 	public function _render() {
 
 		// get blog template
