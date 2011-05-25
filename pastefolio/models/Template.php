@@ -3,27 +3,28 @@
 class Template extends Mustache {
 
 	// default page title
-	public $title = 'Pastry Dish';
+	public $title = '';
 
 	// page content
 	public $content = '';
 
 	// site mustache template file
-	public static $site_template = 'site.mustache';
+	public $site_template = 'site.mustache';
 
 	// menu mustache template file
-	public static $menu_template = 'menu.mustache';
+	public $menu_template = 'menu.mustache';
+
 
 	public function __construct() {
 
 		// get site template
-		$site_template = file_get_contents(realpath(TEMPLATEPATH.self::$site_template));
+		$site_template = file_get_contents(realpath(TEMPLATEPATH.$this->site_template));
 
 		// get menu template
-		$menu_template = file_get_contents(realpath(TEMPLATEPATH.self::$menu_template));
+		$menu_template = file_get_contents(realpath(TEMPLATEPATH.$this->menu_template));
 
 		// without partial
-		// $this->menu_tpl = new Mustache($menu_template, $this);
+		// $this->menu = new Mustache($menu_template, $this);
 
 		// setup mustache view with menu partial
 		parent::__construct($site_template, $this, array('menu' => $menu_template));

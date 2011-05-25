@@ -14,6 +14,10 @@ if (! isset($content_path))
 if (! isset($template_path))
 	$template_path = 'templates';
 
+// directory for cache (must be writeable)
+if (! isset($cache_path))
+	$cache_path = 'templates';
+
 // define routing rules, longest first
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
 if (! isset($routes))
@@ -36,11 +40,14 @@ define('DOCROOT', $pathinfo['dirname'].DIRECTORY_SEPARATOR);
 $app_path = file_exists($app_path) ? $app_path : DOCROOT.$app_path;
 $content_path = file_exists($content_path) ? $content_path : DOCROOT.$content_path;
 $template_path = file_exists($template_path) ? $template_path : DOCROOT.$template_path;
+$cache_path = file_exists($cache_path) ? $cache_path : DOCROOT.$cache_path;
 
 // global paths with trailing slash for convenience
 define('APPPATH', str_replace('\\', '/', realpath($app_path)).'/');
 define('CONTENTPATH', str_replace('\\', '/', realpath($content_path)).'/');
 define('TEMPLATEPATH', str_replace('\\', '/', realpath($template_path)).'/');
+define('CACHEPATH', str_replace('\\', '/', realpath($cache_path)).'/');
+
 
 // using Mustache for templating: https://github.com/bobthecow/mustache.php
 require_once APPPATH.'libraries/Mustache/Mustache.php';
