@@ -8,7 +8,7 @@ class content_controller extends template_controller {
 		// decipher content request
 		$request = empty(Pastefolio::$current_uri) ? array('index') : explode('/', Pastefolio::$current_uri);
 
-		// single level, section is root and page is request
+		// single level, section is root and page is full request
 		if (count($request) == 1) {
 
 			$this->current_section = NULL;
@@ -20,7 +20,19 @@ class content_controller extends template_controller {
 			$this->current_section = $request[0];
 			$this->current_page = $request[1];
 
-		// multiple levels deep
+		// set sub section and page
+		} elseif (count($request) == 3) {
+
+			$this->current_section = $request[1];
+			$this->current_page = $request[2];
+
+		// sub sub section
+		} elseif (count($request) == 4) {
+
+			$this->current_section = $request[2];
+			$this->current_page = $request[3];
+
+
 		} else {
 
 			echo "I don't know how to handle this request:";
@@ -28,14 +40,9 @@ class content_controller extends template_controller {
 
 		}
 
-		// ghetto breadcrumb
-		// $this->template->content = '<p><b>'.(($this->template->current_section !== NULL) ? $this->template->current_section.' / ' : '').$this->template->current_page.'</b></p>';
-
-		// TODO: cache rendered pages with their mustache template
-		// get requested page from content database
-
 		$cache_key = $this->current_section.'_'.$this->current_page;
 
+		// get requested page from content database
 		$content = Cache::instance()->get($cache_key);
 
 		if (empty($content)) {
@@ -65,31 +72,16 @@ class content_controller extends template_controller {
 
 			} else {
 
-				// set page title similar to breadcrumbs
-				// $this->template->title = $page->title.' - '.$this->template->title;
+				if ($page->section == 'projects')
+					$page->template = 'project';
 
-				// get site template
-				$site_template = file_get_contents(realpath(TEMPLATEPATH.$this->site_template));
+				// combine templates if available
+				if (! empty($page->template))
+					$this->template->combine($page->template);
 
-				if (! empty($page->template)) {
+				$this->template->model = $page;
 
-					// ensure .mustache file extension
-					$page_template = (strstr($page->template, '.mustache')) ? $page->template : $page->template.'.mustache';
-
-					// get page template
-					$page_template = file_get_contents(realpath(TEMPLATEPATH.$page_template));
-
-					// just replace {{{content}}} with page_template instead of using partials
-					$site_template = str_replace('{{{content}}}', $page_template, $site_template);
-
-					// passing template and view model to Mustache during runtime, so that we don't store Mustache properties in cache
-					//$this->template = new Mustache($site_template, $page, array('page' => $page_template));
-
-				}
-
-				//$this->template = new Mustache($site_template, $page);
-				$content = new Mustache($site_template, $page);
-				$content = $content->render();
+				$content = $this->template->render();
 				Cache::instance()->set($cache_key, $content);
 
 			}

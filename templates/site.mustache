@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>{{title}}</title>
+	<title>{{title}} - Pastry Labs</title>
 	<meta name="description" content="Portfolio of Aaron Oxborrow, a freelance web developer based in Salt Lake City, Utah.">
 	<meta name="author" content="Aaron Oxborrow">
 	<link rel="shortcut icon" href="/favicon.ico">
@@ -23,9 +23,9 @@
 		{{#children}}
 			<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
 			{{#children}}
-				<li{{#is_section}} class="subsub section"{{/is_section}}{{^is_section}} class="sub"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+				<li{{#is_section}} class="subsub section"{{/is_section}}{{^is_section}} class="sub"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{parent}}/{{section}}/{{name}}">{{title}}</a></li>
 				{{#children}}
-					<li class="subsub"><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+					<li class="subsub"><a{{#current}} class="selected"{{/current}} href="/{{parent_parent}}/{{parent}}/{{section}}/{{name}}">{{title}}</a></li>
 				{{/children}}
 			{{/children}}
 		{{/children}}

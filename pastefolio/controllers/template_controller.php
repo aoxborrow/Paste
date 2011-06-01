@@ -31,17 +31,12 @@ class template_controller {
 		$this->current_page = Pastefolio::$method;
 
 
-		// get site template
-		$site_template = file_get_contents(realpath(TEMPLATEPATH.$this->site_template));
+		// setup main template
+		$this->template = new Template($this->site_template);
 
-
-		// render the template after controller execution
-		//return $this->template->render($site_template, $this->content);
-
-		// setup template view
-		$this->template = new Mustache($site_template);
-
-
+		// TODO: consider using page model for all requests like so:
+		// this way we can set content directly, or use page->load('contentname') to load in content.
+		// $this->template->page = new Page;
 
 	}
 
@@ -57,6 +52,7 @@ class template_controller {
 		header('HTTP/1.1 404 File Not Found');
 
 		$this->template->content = '<h1>Page not found!</h1>';
+		echo '<h1>Page not found!</h1>';
 
 	}
 
@@ -65,6 +61,7 @@ class template_controller {
 		// send text/html UTF-8 header
 		header('Content-Type: text/html; charset=UTF-8');
 
+		// render the template after controller execution
 		return $this->template->render();
 
 	}

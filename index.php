@@ -1,19 +1,16 @@
 <?php
-// Pastefolio index.php
 
-// define system paths, can be absolute or relative to this file
-// directory where Pastefolio is located
-$app_path = 'pastefolio';
+// location of this file, index.php
+define('DOCROOT', dirname(__FILE__).'/');
 
 // directory where content files are stored
-$content_path = 'content';
+$content_path = DOCROOT.'content';
 
 // directory where mustache templates are stored
-$template_path = 'templates';
+$template_path = DOCROOT.'templates';
 
 // directory for cache (must be writeable)
-$cache_path = 'cache';
-
+$cache_path = DOCROOT.'cache';
 
 // define routing rules, longest first
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing

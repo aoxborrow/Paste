@@ -62,21 +62,42 @@ class Pastefolio {
 	// uri arguments
 	public static $arguments = array();
 
-	// init cache and content database
-	public static function init() {
+	// init routes, cache and content database
+	public static function init(array $routes) {
+
+		// assign user configured routes
+		self::$routes = $routes;
+
+		// setup cache directory
+		Cache::$directory = CACHEPATH;
+
+		// disable cache
+		if (isset($_GET['nocache']))
+			Cache::$lifetime = -1;
+
+		// clear cache
+		if (isset($_GET['clearcache']))
+			Cache::instance()->delete_all();
 
 		// TODO: check latest content file creation time vs. cache creation, clear content cache if different
 		// check cache for content database
-		$pages = Cache::instance()->get('pages');
+		self::$pages = Cache::instance()->get('pages');
 
-		if (empty($pages)) {
+		if (empty(self::$pages)) {
 			// traverse content directory and load all content
-			$pages = Page::load_path(CONTENTPATH);
-			Cache::instance()->set('pages', $pages);
+			self::$pages = Page::load_path(CONTENTPATH);
+			Cache::instance()->set('pages', self::$pages);
 		}
 
-		self::$pages = $pages;
-		//self::$pages = Page::load_path(CONTENTPATH);
+		// match uri to route and instantiate controller
+		self::request($_SERVER['REQUEST_URI']);
+
+		// auto render controller if available
+		if (method_exists(self::$instance, '_render')) {
+
+			echo self::$instance->_render();
+
+		}
 
 	}
 

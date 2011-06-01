@@ -1,8 +1,6 @@
 <?php
 /**
- * Provides a driver-based interface for finding, creating, and deleting cached
- * resources. Caches are identified by a unique string. Tagging of caches is
- * also supported, and caches can be found and deleted by id or tag.
+ * File based cache library.
  *
  * Adapted from Kohana for Pastefolio
  *
@@ -13,24 +11,25 @@
  */
 class Cache {
 
+	// cache directory, must be set before using cache
+	public static $directory;
+
+	// Default lifetime of caches in seconds. Specific lifetime can also be set when creating a new cache.
+	// Setting this to 0 will never automatically delete caches. Setting this to -1 will disable cache.
+	public static $lifetime = 60;
+
+	// Number of cache requests that will be processed before all expired caches are deleted. This is commonly referred to as "garbage collection".
+	// Setting this to 0 or a negative number will disable automatic garbage collection.
+	public static $requests = 1000;
+
 	// singleton instance
 	protected static $instance;
 
-	// For garbage collection
+	// for garbage collection
 	protected static $loaded;
 
-	// Configuration
-	protected $config;
 
-	// Driver object
-	protected $driver;
-
-	/**
-	 * Returns a singleton instance of Cache.
-	 *
-	 * @param   string  configuration
-	 * @return  Cache_Core
-	 */
+	// returns a singleton instance of Cache.
 	public static function & instance()
 	{
 		if (self::$instance === NULL)
@@ -42,54 +41,19 @@ class Cache {
 		return self::$instance;
 	}
 
-	/**
-	 * Loads the configured driver and validates it.
-	 *
-	 * @param   array|string  custom configuration or config group name
-	 * @return  void
-	 */
-	public function __construct()
-	{
-		/* Config options
-		 *  driver   - Cache backend driver. Kohana comes with file, database, and memcache drivers.
-		 *              > File cache is fast and reliable, but requires many filesystem lookups.
-		 *              > Database cache can be used to cache items remotely, but is slower.
-		 *              > Memcache is very high performance, but prevents cache tags from being used.
-		 *
-		 *  params   - Driver parameters, specific to each driver.
-		 *
-		 *  lifetime - Default lifetime of caches in seconds. By default caches are stored for
-		 *             thirty minutes. Specific lifetime can also be set when creating a new cache.
-		 *             Setting this to 0 will never automatically delete caches.
-		 *
-		 *  requests - Average number of cache requests that will processed before all expired
-		 *             caches are deleted. This is commonly referred to as "garbage collection".
-		 *             Setting this to 0 or a negative number will disable automatic garbage collection.
-		 */
 
-		// TODO: combine with file driver to minimize code, remove tags?
-		// Cache configuration
-		$this->config = array(
-			'driver'   => 'file',
-			'params'   => CACHEPATH,
-			'lifetime' => 30,
-			'requests' => 1000
-		);
+	public function __construct() {
 
-		// Load the driver
-		//require_once APPPATH.'libraries/Cache/'.$this->config['driver'].'.php';
+		// make sure the cache directory is writable
+		if ( ! is_dir(self::$directory) OR ! is_writable(self::$directory))
+			die('Cannot write to cache directory');
 
-		// Set driver name
-		$driver = 'Cache_'.ucfirst($this->config['driver']).'_Driver';
-
-		// Initialize the driver
-		$this->driver = new $driver($this->config['params']);
 
 		if (Cache::$loaded !== TRUE)
 		{
-			$this->config['requests'] = (int) $this->config['requests'];
+			self::$requests = (int) self::$requests;
 
-			if ($this->config['requests'] > 0 AND mt_rand(1, $this->config['requests']) === 1)
+			if (self::$requests > 0 AND mt_rand(1, self::$requests) === 1)
 			{
 				// Do garbage collection
 				$this->driver->delete_expired();
@@ -101,104 +65,240 @@ class Cache {
 		}
 	}
 
-	/**
-	 * Fetches a cache by id. NULL is returned when a cache item is not found.
-	 *
-	 * @param   string  cache id
-	 * @return  mixed   cached data or NULL
-	 */
+	// finds an array of files matching the given id or tag.
+	public function exists($id, $tag = FALSE)
+	{
+		if ($id === TRUE)
+		{
+			// Find all the files
+			return glob(self::$directory.'*~*~*');
+		}
+		elseif ($tag === TRUE)
+		{
+			// Find all the files that have the tag name
+			$paths = glob(self::$directory.'*~*'.$id.'*~*');
+
+			// Find all tags matching the given tag
+			$files = array();
+			foreach ($paths as $path)
+			{
+				// Split the files
+				$tags = explode('~', basename($path));
+
+				// Find valid tags
+				if (count($tags) !== 3 OR empty($tags[1]))
+					continue;
+
+				// Split the tags by plus signs, used to separate tags
+				$tags = explode('+', $tags[1]);
+
+				if (in_array($tag, $tags))
+				{
+					// Add the file to the array, it has the requested tag
+					$files[] = $path;
+				}
+			}
+
+			return $files;
+		}
+		else
+		{
+			// Find the file matching the given id
+			return glob(self::$directory.$id.'~*');
+		}
+	}
+
+	// fetches a cache by id. NULL is returned when a cache item is not found.
+	// this will delete the item if it is expired or if the hash does not match the stored hash.
 	public function get($id)
 	{
-		// Sanitize the ID
+		// disable caching with negative lifetime
+		if (self::$lifetime < 0)
+			return NULL;
+
+		// sanitize the ID
 		$id = $this->sanitize_id($id);
 
-		return $this->driver->get($id);
+		if ($file = $this->exists($id))
+		{
+			// use the first file
+			$file = current($file);
+
+			// validate that the cache has not expired
+			if ($this->expired($file))
+			{
+				// remove this cache, it has expired
+				$this->delete($id);
+			}
+			else
+			{
+				// turn off errors while reading the file
+				$ER = error_reporting(0);
+
+				if (($data = file_get_contents($file)) !== FALSE)
+				{
+					// unserialize the data
+					$data = unserialize($data);
+				}
+				else
+				{
+					// delete the data
+					unset($data);
+				}
+
+				// turn errors back on
+				error_reporting($ER);
+			}
+		}
+
+		// Return NULL if there is no data
+		return isset($data) ? $data : NULL;
 	}
 
-	/**
-	 * Fetches all of the caches for a given tag. An empty array will be
-	 * returned when no matching caches are found.
-	 *
-	 * @param   string  cache tag
-	 * @return  array   all cache items matching the tag
-	 */
+
+
+	// fetches all of the caches for a given tag. An empty array will be returned when no matching caches are found.
 	public function find($tag)
 	{
-		return $this->driver->find($tag);
+		// An array will always be returned
+		$result = array();
+
+		if ($paths = $this->exists($tag, TRUE))
+		{
+			// Length of directory name
+			$offset = strlen(self::$directory);
+
+			// Find all the files with the given tag
+			foreach ($paths as $path)
+			{
+				// Get the id from the filename
+				list($id, $junk) = explode('~', basename($path), 2);
+
+				if (($data = $this->get($id)) !== FALSE)
+				{
+					// Add the result to the array
+					$result[$id] = $data;
+				}
+			}
+		}
+
+		return $result;
 	}
 
-	/**
-	 * Set a cache item by id. Tags may also be added and a custom lifetime
-	 * can be set. Non-string data is automatically serialized.
-	 *
-	 * @param   string        unique cache id
-	 * @param   mixed         data to cache
-	 * @param   array|string  tags for this item
-	 * @param   integer       number of seconds until the cache expires
-	 * @return  boolean
-	 */
+	// set a cache item by id. tags may also be added and a custom lifetime can be set. non-string data is automatically serialized.
 	function set($id, $data, $tags = NULL, $lifetime = NULL)
 	{
-		if (is_resource($data))
-			die('cannot cache resource');
 
-		// Sanitize the ID
+		// disable caching with negative lifetime
+		if (self::$lifetime < 0)
+			return NULL;
+
+		if (is_resource($data))
+			die('Cannot cache resource');
+
+		// sanitize the ID
 		$id = $this->sanitize_id($id);
 
 		if ($lifetime === NULL)
 		{
-			// Get the default lifetime
-			$lifetime = $this->config['lifetime'];
+			// use the default lifetime
+			$lifetime = self::$lifetime;
 		}
 
-		return $this->driver->set($id, $data, (array) $tags, $lifetime);
+		// cache file driver expects unix timestamp
+		$lifetime += time();
+
+		if ( ! empty($tags))
+		{
+			// convert the tags into a string list
+			$tags = implode('+', $tags);
+		}
+
+		// write out a serialized cache
+		return (bool) file_put_contents(self::$directory.$id.'~'.$tags.'~'.$lifetime, serialize($data));
 	}
 
-	/**
-	 * Delete a cache item by id.
-	 *
-	 * @param   string   cache id
-	 * @return  boolean
-	 */
-	public function delete($id)
+
+	// deletes a cache item by id or tag
+	public function delete($id, $tag = FALSE)
 	{
-		// Sanitize the ID
-		$id = $this->sanitize_id($id);
+		// sanitize the ID
+		if ($id !== TRUE)
+			$id = $this->sanitize_id($id);
 
-		return $this->driver->delete($id);
+		$files = $this->exists($id, $tag);
+
+		if (empty($files))
+			return FALSE;
+
+		// disable all error reporting while deleting
+		$ER = error_reporting(0);
+
+		foreach ($files as $file)
+		{
+			// remove the cache file
+			if ( ! unlink($file))
+				error_log('Cache: Unable to delete cache file: '.$file);
+		}
+
+		// turn on error reporting again
+		error_reporting($ER);
+
+		return TRUE;
 	}
 
-	/**
-	 * Delete all cache items with a given tag.
-	 *
-	 * @param   string   cache tag name
-	 * @return  boolean
-	 */
+
+	// check if a cache file has expired by filename.
+	protected function expired($file)
+	{
+		// get the expiration time
+		$expires = (int) substr($file, strrpos($file, '~') + 1);
+
+		// expirations of 0 are "never expire"
+		return ($expires !== 0 AND $expires <= time());
+	}
+
+
+	// delete all cache items with a given tag
 	public function delete_tag($tag)
 	{
-		return $this->driver->delete($tag, TRUE);
+		return $this->delete($tag, TRUE);
 	}
 
-	/**
-	 * Delete ALL cache items items.
-	 *
-	 * @return  boolean
-	 */
+	// delete ALL cache items
 	public function delete_all()
 	{
-		return $this->driver->delete(TRUE);
+		return $this->delete(TRUE);
 	}
 
-	/**
-	 * Replaces troublesome characters with underscores.
-	 *
-	 * @param   string   cache id
-	 * @return  string
-	 */
+	// delete expired cache items
+	public function delete_expired()
+	{
+		if ($files = $this->exists(TRUE))
+		{
+			// disable all error reporting while deleting
+			$ER = error_reporting(0);
+
+			foreach ($files as $file)
+			{
+				if ($this->expired($file))
+				{
+					// the cache file has already expired, delete it
+					if ( ! unlink($file))
+						error_log('Cache: Unable to delete cache file: '.$file);
+				}
+			}
+
+			// turn on error reporting again
+			error_reporting($ER);
+		}
+	}
+
+	// replaces troublesome characters with underscores
 	protected function sanitize_id($id)
 	{
-		// Change slashes and spaces to underscores
+		// change slashes and spaces to underscores
 		return str_replace(array('/', '\\', ' '), '_', $id);
 	}
 
-} // End Cache
+}

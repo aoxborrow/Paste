@@ -52,47 +52,36 @@ class Tumblr {
 			}
 		}
 
-		$cache_key = md5(serialize($this->params));
+		// build query string for tumblr API
+		$this->url .= http_build_query($this->params);
 
-		// check cache for content database
-		$posts = Cache::instance()->get($cache_key, array('tumblr'));
+		// try to retrieve XML
+		if (($xml = simplexml_load_file($this->url)) === FALSE) {
+			return FALSE;
+		}
 
-		if (empty($posts)) {
+		$posts = array();
 
-			// build query string for tumblr API
-			$this->url .= http_build_query($this->params);
+		foreach ($xml->xpath("/tumblr/posts/post") as $post_xml) {
 
-			// try to retrieve XML
-			if (($xml = simplexml_load_file($this->url)) === FALSE) {
-				return FALSE;
-			}
+			$post = array();
 
-			$posts = array();
+			// convert SimpleXMLElement to array, flattening '@attributes'
+			foreach ((array) $post_xml as $key => $value) {
 
-			foreach ($xml->xpath("/tumblr/posts/post") as $post_xml) {
-
-				$post = array();
-
-				// convert SimpleXMLElement to array, flattening '@attributes'
-				foreach ((array) $post_xml as $key => $value) {
-
-					if ($key == '@attributes') {
-						// flatten '@attributes' into post array
-						$post = array_merge($post, $value);
-					} else {
-						// change some key names according to keymap
-						if (array_key_exists($key, $this->keymap)) {
-							$key = $this->keymap[$key];
-						}
-						$post[$key] = $value;
+				if ($key == '@attributes') {
+					// flatten '@attributes' into post array
+					$post = array_merge($post, $value);
+				} else {
+					// change some key names according to keymap
+					if (array_key_exists($key, $this->keymap)) {
+						$key = $this->keymap[$key];
 					}
+					$post[$key] = $value;
 				}
-
-				$posts[] = $post;
-
 			}
 
-			Cache::instance()->set($cache_key, $posts, array('tumblr'));
+			$posts[] = $post;
 
 		}
 
@@ -101,85 +90,5 @@ class Tumblr {
 	}
 
 
-	/**
-	* Set up read cache.
-	*
-	* @param int	 $duration	 Number of seconds to cache data
-	* @param string	 $path		 Where to store the cache files (e.g. '_cache/')
-	*/
-	function init_cache($duration, $path = '') {
-		$this->_cache_duration = $duration;
-		$this->_cache_path = $path;
-	}
 
-
-	function read($url,$json = false){
-			$output = $this->_read_from_cache($url, $json);
-
-			if(!empty($output))
-				return $output;
-
-			$url = "$url/api/read";
-			if($json){
-					$url .= "/json";
-			}
-
-			//$url .= '?filter=text';
-			if(ini_get("allow_url_fopen")){
-					$output = file_get_contents($url);
-					$this->_save_to_cache($url, $json, $output);
-			}
-			elseif(function_exists("curl_version")){
-					$c = curl_init($url);
-					curl_setopt($c,CURLOPT_HEADER,1);
-					curl_setopt($c,CURLOPT_RETURNTRANSFER,1);
-					$output = curl_exec($c);
-					$this->_save_to_cache($url, $json, $output);
-			}
-			else{
-					$output = "error: cannot fetch file";
-			}
-			return $output;
-	}
-
-	/**
-	* Attempt to read the results of a read request from the cache.
-	*
-	* @returns string Either an empty string or the cached data
-	*/
-	function _read_from_cache($url, $json) {
-		// no caching
-		if(!$this->_cache_duration)
-			return '';
-
-		$cache_file = $this->_cache_path . 'tumblr-' . md5($url . $json) . '.js';
-
-		$cache_created = (@file_exists($cachefile))? @filemtime($cachefile) : 0;
-		clearstatcache();
-
-		// cache has expired
-		if (time() - $this->_cache_duration > $cache_created)
-			return '';
-
-
-		$output = @file_get_contents($cache_file, false);
-
-		return ($res === false ? '' : $output);
-	}
-
-
-	/**
-	* Save the results of a read request.
-	*
-	* @returns bool
-	*/
-	function _save_to_cache($url, $json, $data) {
-		// no caching
-		if(!$this->_cache_duration) return;
-
-		$cache_file = $this->_cache_path . 'tumblr-' . md5($url . $json) . '.js';
-
-		$res = @file_put_contents($cache_file, $data, FILE_TEXT | LOCK_EX);
-
-	}
 }

@@ -31,8 +31,11 @@ class Page {
 	// thumbnail for gallery display
 	public $thumb;
 
-	// parent section
+	// section
 	public $section;
+
+	// parent section
+	public $parent;
 
 	// page is a section index
 	public $is_section = FALSE;
@@ -45,7 +48,7 @@ class Page {
 
 	// TODO: consider allowing creation of empty page objects for use in controllers, in order to utilize root method, etc.
 	// constructor loads data
-	public function __construct($name, $path, $section, $parent) {
+	public function __construct($name, $path, $section, $parent, $parent_parent = NULL) {
 
 		// set project name
 		$this->name = $name;
@@ -63,12 +66,15 @@ class Page {
 				// name changed from index to section name
 				$this->name = $section;
 				$this->section = $parent;
+				$this->parent = $parent_parent;
 
 			}
 		} else {
 
 			// assign section name
 			$this->section = $section;
+			$this->parent = $parent;
+			$this->parent_parent = $parent_parent;
 		}
 
 		// load content data
@@ -169,7 +175,7 @@ class Page {
 	// TODO: allow inifinite section depth
 	// TODO: caching $pages data
 	// recursively load sections of content, relative to CONTENTPATH
-	public static function load_path($path, $section = NULL, $parent = NULL) {
+	public static function load_path($path, $section = NULL, $parent = NULL, $parent_parent = NULL) {
 
 		$path = rtrim($path, '/');
 
@@ -180,11 +186,11 @@ class Page {
 			// check if it's a sub directory
 			if (is_dir($path.'/'.$file)) {
 
-				$pages = array_merge($pages, self::load_path($path.'/'.$file, $name, $section));
+				$pages = array_merge($pages, self::load_path($path.'/'.$file, $name, $section, $parent));
 
 			} else {
 
-				$page = new Page($name, $path.'/'.$file, $section, $parent);
+				$page = new Page($name, $path.'/'.$file, $section, $parent, $parent_parent);
 
 				$pages[] = $page;
 
