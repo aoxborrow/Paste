@@ -3,7 +3,7 @@
 class blog_controller extends template_controller {
 
 	// blog content
-	public $blog_content;
+	// public $blog_content;
 
 	// instance of blog driver
 	public $blog;
@@ -64,12 +64,9 @@ class blog_controller extends template_controller {
 
 	public function post($id) {
 
-		// configure blog driver with start and limit
-		$this->blog->params(array('id' => $id));
+		foreach ($this->blog->posts(array('id' => $id)) as $post) {
 
-		foreach ($this->blog->posts() as $post) {
-
-			$this->blog_content .= $this->_draw($post);
+			$this->template->content .= $this->_draw($post);
 
 		}
 
@@ -105,11 +102,9 @@ class blog_controller extends template_controller {
 		$start = (($this->page-1) * $this->page_limit);
 
 		// configure blog driver with start and limit
-		$this->blog->params(array('start' => $start, 'num' => $this->page_limit));
+		foreach ($this->blog->posts(array('start' => $start, 'num' => $this->page_limit)) as $post) {
 
-		foreach ($this->blog->posts() as $post) {
-
-			$this->blog_content .= $this->_draw($post);
+			$this->template->content .= $this->_draw($post);
 
 		}
 	}
@@ -117,14 +112,30 @@ class blog_controller extends template_controller {
 	// TODO: deal with blog template and content better, this is gross
 	public function _render() {
 
+		// get site template
+		$site_template = file_get_contents(realpath(TEMPLATEPATH.$this->site_template));
+
 		// get blog template
 		$blog_template = file_get_contents(realpath(TEMPLATEPATH.$this->blog_template));
 
-		$this->template->content .= new Mustache($blog_template,
+		$site_template = str_replace('{{{content}}}', $blog_template, $site_template);
+
+		$page = Page::find(array('name' => 'notes'));
+		$page->nextpage_url = $this->next_url();
+		$page->prevpage_url = $this->prev_url();
+		$page->content = $this->template->content;
+
+
+		// $this->template->content .= new Mustache($blog_template, $page);
+
+		$this->template = new Mustache($site_template, $page);
+
+
+		/*$this->template->content .= new Mustache($blog_template,
 			array('blog_content' => $this->blog_content,
 				  'next_url' => $this->next_url(),
 				  'prev_url' => $this->prev_url(),
-			));
+			));*/
 
 
 		return $this->template->render();
@@ -139,9 +150,7 @@ class blog_controller extends template_controller {
 		// get post archive template
 		$archive_template = file_get_contents(realpath(TEMPLATEPATH.$this->archive_template));
 
-		$this->blog->params(array('num' => 50));
-
-		foreach ($this->blog->posts() as $post) {
+		foreach ($this->blog->posts(array('num' => 50)) as $post) {
 
 			$post = new Mustache($archive_template, $post);
 			$this->template->content .= $post;

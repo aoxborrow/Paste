@@ -16,7 +16,21 @@
 	<div class="nav">
 		<a class="logo" href="/"><img src="/assets/images/paste_logo.png" width="60" height="60"></a>
 		<p><strong>Hello, </strong>this is <br/>the portfolio of <br/>Aaron Oxborrow.</p>
-		{{> menu}}
+
+		<ul class="menu">
+		{{#root}}
+		<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></li>
+		{{#children}}
+			<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+			{{#children}}
+				<li{{#is_section}} class="subsub section"{{/is_section}}{{^is_section}} class="sub"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+				{{#children}}
+					<li class="subsub"><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+				{{/children}}
+			{{/children}}
+		{{/children}}
+		{{/root}}
+		</ul>
 	</div>
 
 	<div class="content">

@@ -11,6 +11,9 @@ class template_controller {
 	// current page
 	public $current_page;
 
+	// site mustache template
+	public $site_template = 'site.mustache';
+
 
 	public function __construct() {
 
@@ -27,8 +30,18 @@ class template_controller {
 		// set current section to controller name
 		$this->current_page = Pastefolio::$method;
 
-		// instatiate template view model
-		$this->template = new Template;
+
+		// get site template
+		$site_template = file_get_contents(realpath(TEMPLATEPATH.$this->site_template));
+
+
+		// render the template after controller execution
+		//return $this->template->render($site_template, $this->content);
+
+		// setup template view
+		$this->template = new Mustache($site_template);
+
+
 
 	}
 
@@ -52,7 +65,6 @@ class template_controller {
 		// send text/html UTF-8 header
 		header('Content-Type: text/html; charset=UTF-8');
 
-		// render the template after controller execution
 		return $this->template->render();
 
 	}

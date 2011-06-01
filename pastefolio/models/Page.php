@@ -11,7 +11,7 @@ class Page {
 
 	// TODO: allow setting this in section variable
 	// default mustache template, relative to TEMPLATEPATH
-	public $template = 'project.mustache';
+	public $template;
 
 	// page name and link id
 	public $name;
@@ -43,6 +43,7 @@ class Page {
 	// child pages, populated by Menu
 	public $children = array();
 
+	// TODO: consider allowing creation of empty page objects for use in controllers, in order to utilize root method, etc.
 	// constructor loads data
 	public function __construct($name, $path, $section, $parent) {
 
@@ -136,7 +137,7 @@ class Page {
 
 		$menu = array();
 
-		// get root content pages
+		// get section child pages
 		foreach (self::find_all(array('section' => $this->name)) as $page) {
 
 			if ($page->is_visible) {
@@ -270,7 +271,8 @@ class Page {
 			// set title to name if not set otherwise
 			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
 			$this->content = $html;
-			$this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
+			// debug page variables
+			// $this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
 
 		}
 	}
@@ -282,7 +284,8 @@ class Page {
 		$current_page = Pastefolio::instance()->current_page;
 		$current_section = Pastefolio::instance()->current_section;
 
-		return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+		// return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+		return ($this->name == $current_page AND $this->section == $current_section);
 
 	}
 

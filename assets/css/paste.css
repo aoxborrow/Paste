@@ -125,8 +125,20 @@ ul.menu li.section a {
 	font-size: 14px;
 	line-height: 28px;
 	margin-left: 0;
-
 }
+ul.menu li.sub a {
+	margin-left: 30px;
+}
+ul.menu li.subsub a {
+	margin-left: 50px;
+}
+ul.menu li.section.subsub a {
+	margin-left: 40px;
+}
+ul.menu li.section.sub a {
+	margin-left: 20px;
+}
+
 
 /* selected sub page */
 ul.menu li a.selected, ul.menu li a:hover.selected {

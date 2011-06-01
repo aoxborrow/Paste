@@ -1,12 +1,12 @@
 <ul class="menu">
 {{#menu}}
-<li class="section"><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></li>
+<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></li>
 {{#children}}
-	<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+	<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
 	{{#children}}
-		<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+		<li{{#is_section}} class="subsub section"{{/is_section}}{{^is_section}} class="sub"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
 		{{#children}}
-				<li><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+			<li class="subsub"><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
 		{{/children}}
 	{{/children}}
 {{/children}}

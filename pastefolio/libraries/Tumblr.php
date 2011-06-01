@@ -43,8 +43,8 @@ class Tumblr {
 
 	}
 
-	// set parametors for retreiving posts
-	public function params($params) {
+	// retrieve XML posts and convert to flat array
+	public function posts($params) {
 
 		foreach ($params as $key => $value) {
 			if (array_key_exists($key, $this->params)) {
@@ -52,41 +52,47 @@ class Tumblr {
 			}
 		}
 
-	}
+		$cache_key = md5(serialize($this->params));
 
-	// retrieve XML posts and convert to flat array
-	public function posts() {
+		// check cache for content database
+		$posts = Cache::instance()->get($cache_key, array('tumblr'));
 
-		// build query string for tumblr API
-		$this->url .= http_build_query($this->params);
+		if (empty($posts)) {
 
-		// try to retrieve XML
-		if (($xml = simplexml_load_file($this->url)) === FALSE) {
-			return FALSE;
-		}
+			// build query string for tumblr API
+			$this->url .= http_build_query($this->params);
 
-		$posts = array();
-
-		foreach ($xml->xpath("/tumblr/posts/post") as $post_xml) {
-
-			$post = array();
-
-			// convert SimpleXMLElement to array, flattening '@attributes'
-			foreach ((array) $post_xml as $key => $value) {
-
-				if ($key == '@attributes') {
-					// flatten '@attributes' into post array
-					$post = array_merge($post, $value);
-				} else {
-					// change some key names according to keymap
-					if (array_key_exists($key, $this->keymap)) {
-						$key = $this->keymap[$key];
-					}
-					$post[$key] = $value;
-				}
+			// try to retrieve XML
+			if (($xml = simplexml_load_file($this->url)) === FALSE) {
+				return FALSE;
 			}
 
-			$posts[] = $post;
+			$posts = array();
+
+			foreach ($xml->xpath("/tumblr/posts/post") as $post_xml) {
+
+				$post = array();
+
+				// convert SimpleXMLElement to array, flattening '@attributes'
+				foreach ((array) $post_xml as $key => $value) {
+
+					if ($key == '@attributes') {
+						// flatten '@attributes' into post array
+						$post = array_merge($post, $value);
+					} else {
+						// change some key names according to keymap
+						if (array_key_exists($key, $this->keymap)) {
+							$key = $this->keymap[$key];
+						}
+						$post[$key] = $value;
+					}
+				}
+
+				$posts[] = $post;
+
+			}
+
+			Cache::instance()->set($cache_key, $posts, array('tumblr'));
 
 		}
 

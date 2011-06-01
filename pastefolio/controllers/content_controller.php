@@ -31,53 +31,77 @@ class content_controller extends template_controller {
 		// ghetto breadcrumb
 		// $this->template->content = '<p><b>'.(($this->template->current_section !== NULL) ? $this->template->current_section.' / ' : '').$this->template->current_page.'</b></p>';
 
+		// TODO: cache rendered pages with their mustache template
 		// get requested page from content database
-		$page = Page::find(array('section' => $this->current_section, 'name' => $this->current_page));
 
-		// no page found
-		if ($page === FALSE) {
+		$cache_key = $this->current_section.'_'.$this->current_page;
 
-			// trigger 404 message
-			return $this->error_404();
+		$content = Cache::instance()->get($cache_key);
 
-		// section page configured to redirect to first child
-		} elseif ($page->is_section AND $page->redirect == 'first_child') {
+		if (empty($content)) {
 
-			// get first child page name
-			$first = array_shift(Page::flat_section($page->name));
+			$page = Page::find(array('section' => $this->current_section, 'name' => $this->current_page));
 
-			// redirect to first project
-			Pastefolio::redirect('/'.$page->name.'/'.$first);
+			// no page found
+			if ($page === FALSE) {
 
-		// page redirect configured
-		} elseif (! empty($page->redirect)) {
+				// trigger 404 message
+				return $this->error_404();
 
-			// redirect to url
-			Pastefolio::redirect($page->redirect);
+			// section page configured to redirect to first child
+			} elseif ($page->is_section AND $page->redirect == 'first_child') {
 
-		} else {
+				// get first child page name
+				$first = array_shift(Page::flat_section($page->name));
 
-			// set page title similar to breadcrumbs
-			$this->template->title = $page->title.' - '.$this->template->title;
+				// redirect to first project
+				Pastefolio::redirect('/'.$page->name.'/'.$first);
 
-			// ensure .mustache file extension
-			$page_template = (strstr($page->template, '.mustache')) ? $page->template : $page->template.'.mustache';
+			// page redirect configured
+			} elseif (! empty($page->redirect)) {
 
-			// get page template
-			$page_template = file_get_contents(realpath(TEMPLATEPATH.$page_template));
+				// redirect to url
+				Pastefolio::redirect($page->redirect);
 
-			// passing template and view model to Mustache during runtime, so that we don't store Mustache properties in cache
-			$this->template->content .= new Mustache($page_template, $page);
+			} else {
+
+				// set page title similar to breadcrumbs
+				// $this->template->title = $page->title.' - '.$this->template->title;
+
+				// get site template
+				$site_template = file_get_contents(realpath(TEMPLATEPATH.$this->site_template));
+
+				if (! empty($page->template)) {
+
+					// ensure .mustache file extension
+					$page_template = (strstr($page->template, '.mustache')) ? $page->template : $page->template.'.mustache';
+
+					// get page template
+					$page_template = file_get_contents(realpath(TEMPLATEPATH.$page_template));
+
+					// just replace {{{content}}} with page_template instead of using partials
+					$site_template = str_replace('{{{content}}}', $page_template, $site_template);
+
+					// passing template and view model to Mustache during runtime, so that we don't store Mustache properties in cache
+					//$this->template = new Mustache($site_template, $page, array('page' => $page_template));
+
+				}
+
+				//$this->template = new Mustache($site_template, $page);
+				$content = new Mustache($site_template, $page);
+				$content = $content->render();
+				Cache::instance()->set($cache_key, $content);
+
+			}
 
 		}
 
-	}
-
-	public function _render() {
-
-		// render the template after controller execution
-		return $this->template->render();
+		echo $content;
 
 	}
+
+	public function _render() {}
+
+
 
 }

@@ -58,11 +58,14 @@ require_once APPPATH.'libraries/Pastefolio.php';
 // register class autoloader
 spl_autoload_register(array('Pastefolio', 'autoloader'));
 
-// traverse content directory and load all content
-Pastefolio::$pages = Page::load_path(CONTENTPATH);
+// start total_execution benchmark
+Benchmark::start('total_execution');
 
 // assign user configured routes
 Pastefolio::$routes = $routes;
+
+// init cache and content database
+Pastefolio::init();
 
 // clean up vars
 unset($app_path, $content_path, $template_path, $routes);
@@ -76,5 +79,17 @@ if (method_exists($controller, '_render')) {
 	echo $controller->_render();
 
 }
+
+// stop total_execution benchmark
+Benchmark::stop('total_execution');
+
+// Fetch memory usage in MB
+$memory = function_exists('memory_get_usage') ? (memory_get_usage() / 1024 / 1024) : 0;
+
+// Fetch benchmark for page execution time
+$benchmark = Benchmark::get('total_execution');
+
+echo '<!-- Execution Time: '.$benchmark['time'].', Memory Usage: '.number_format($memory, 2).'MB, Included Files: '.count(get_included_files()).' -->';
+
 
 

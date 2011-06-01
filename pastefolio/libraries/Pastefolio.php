@@ -24,8 +24,13 @@ It uses OOP and the MVC pattern and requires PHP5.
 - use history API for loading project content: http://html5demos.com/history/
 - abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
+TODO: cache lifetime config in index.php
+TODO: finalize caching for content database, rendered pages, all requests?, tumblr pages, archive.
+TODO: create cache clearing urls and automated cache clear on content update (via name.mtime hash of content dir), tumblr post (check latest, clear cache?)
+TODO: add more features to Tumblr library, like follow and repost links, tumblr iframe
+TODO: create lab notes tumblr and post some sample entries with code and syntax highlighting
+TODO: simplify and clean up content controller. consider limiting to 2 sections deep, using router URI
 TODO: allow *variables that get assigned to all child pages of a section, including default *title in index.html
-TODO: integrate tumblr and add lab notes with title, date, summary
 TODO: rounded & matted image styles
 
 */
@@ -56,6 +61,45 @@ class Pastefolio {
 
 	// uri arguments
 	public static $arguments = array();
+
+	// init cache and content database
+	public static function init() {
+
+		// TODO: check latest content file creation time vs. cache creation, clear content cache if different
+		// check cache for content database
+		$pages = Cache::instance()->get('pages');
+
+		if (empty($pages)) {
+			// traverse content directory and load all content
+			$pages = Page::load_path(CONTENTPATH);
+			Cache::instance()->set('pages', $pages);
+		}
+
+		self::$pages = $pages;
+		//self::$pages = Page::load_path(CONTENTPATH);
+
+	}
+
+	/*
+	public static function build_file_cache($dir = '.') {
+    # build file cache
+    $files = glob($dir.'/*');
+    $files = is_array($files) ? $files : array();
+    foreach($files as $path) {
+      $file = basename($path);
+      if(substr($file, 0, 1) == "." || $file == "_cache") continue;
+      if(is_dir($path)) self::build_file_cache($path);
+      if(is_readable($path)) {
+        self::$file_cache[$dir][] = array(
+          'path' => $path,
+          'file_name' => $file,
+          'is_folder' => (is_dir($path) ? 1 : 0),
+          'mtime' => filemtime($path)
+        );
+      }
+    }
+  }
+*/
 
 
 	// adapted from Kohana 2.3
