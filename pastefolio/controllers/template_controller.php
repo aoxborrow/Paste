@@ -30,13 +30,9 @@ class template_controller {
 		// set current section to controller name
 		$this->current_page = Pastefolio::$method;
 
-
 		// setup main template
 		$this->template = new Template($this->site_template);
 
-		// TODO: consider using page model for all requests like so:
-		// this way we can set content directly, or use page->load('contentname') to load in content.
-		// $this->template->page = new Page;
 
 	}
 

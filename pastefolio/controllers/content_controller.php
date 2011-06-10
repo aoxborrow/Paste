@@ -40,60 +40,43 @@ class content_controller extends template_controller {
 
 		}
 
-		$cache_key = $this->current_section.'_'.$this->current_page;
-
 		// get requested page from content database
-		$content = Cache::instance()->get($cache_key);
+		$page = Page::find(array('section' => $this->current_section, 'name' => $this->current_page));
 
-		if (empty($content)) {
+		// no page found
+		if ($page === FALSE) {
 
-			$page = Page::find(array('section' => $this->current_section, 'name' => $this->current_page));
+			// trigger 404 message
+			return $this->error_404();
 
-			// no page found
-			if ($page === FALSE) {
+		// section page configured to redirect to first child
+		} elseif ($page->is_section AND $page->redirect == 'first_child') {
 
-				// trigger 404 message
-				return $this->error_404();
+			// get first child page name
+			$first = array_shift(Page::flat_section($page->name));
 
-			// section page configured to redirect to first child
-			} elseif ($page->is_section AND $page->redirect == 'first_child') {
+			// redirect to first project
+			Pastefolio::redirect('/'.$page->name.'/'.$first);
 
-				// get first child page name
-				$first = array_shift(Page::flat_section($page->name));
+		// page redirect configured
+		} elseif (! empty($page->redirect)) {
 
-				// redirect to first project
-				Pastefolio::redirect('/'.$page->name.'/'.$first);
+			// redirect to url
+			Pastefolio::redirect($page->redirect);
 
-			// page redirect configured
-			} elseif (! empty($page->redirect)) {
+		} else {
 
-				// redirect to url
-				Pastefolio::redirect($page->redirect);
+			if ($page->section == 'projects')
+				$page->template = 'project';
 
-			} else {
+			// combine templates if available
+			if (! empty($page->template))
+				$this->template->combine($page->template);
 
-				if ($page->section == 'projects')
-					$page->template = 'project';
-
-				// combine templates if available
-				if (! empty($page->template))
-					$this->template->combine($page->template);
-
-				$this->template->model = $page;
-
-				$content = $this->template->render();
-				Cache::instance()->set($cache_key, $content);
-
-			}
+			$this->template->model = $page;
 
 		}
 
-		echo $content;
-
 	}
-
-	public function _render() {}
-
-
 
 }

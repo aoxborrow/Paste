@@ -45,8 +45,14 @@ require_once APPPATH.'libraries/Pastefolio.php';
 // register class autoloader
 spl_autoload_register(array('Pastefolio', 'autoloader'));
 
+// setup cache directory
+Cache::$directory = CACHEPATH;
+
+// assign user configured routes
+Pastefolio::$routes = $routes;
+
 // init pastefolio routing, cache, content
-Pastefolio::init($routes);
+Pastefolio::init();
 
 // stop benchmark, get execution time
 $benchmark_time = number_format(microtime(TRUE) - $benchmark_start, 4);

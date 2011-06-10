@@ -38,6 +38,9 @@ TODO: rounded & matted image styles
 
 class Pastefolio {
 
+	// cached content
+	public static $cached;
+
 	// content database
 	public static $pages = array();
 
@@ -63,13 +66,10 @@ class Pastefolio {
 	public static $arguments = array();
 
 	// init routes, cache and content database
-	public static function init(array $routes) {
+	public static function init() {
 
-		// assign user configured routes
-		self::$routes = $routes;
-
-		// setup cache directory
-		Cache::$directory = CACHEPATH;
+		// match requested uri to route
+		self::request($_SERVER['REQUEST_URI']);
 
 		// disable cache
 		if (isset($_GET['nocache']))
@@ -79,25 +79,52 @@ class Pastefolio {
 		if (isset($_GET['clearcache']))
 			Cache::instance()->delete_all();
 
-		// TODO: check latest content file creation time vs. cache creation, clear content cache if different
-		// check cache for content database
-		self::$pages = Cache::instance()->get('pages');
+		// use requested URI as cache key
+		$cache_key = empty(self::$current_uri) ? 'index' : self::$current_uri;
 
-		if (empty(self::$pages)) {
-			// traverse content directory and load all content
-			self::$pages = Page::load_path(CONTENTPATH);
-			Cache::instance()->set('pages', self::$pages);
+		// try to fetch requested URI from cache
+		self::$cached = Cache::instance()->get($cache_key);
+
+		// TODO: call method to check caches or instantiate controller
+
+		// execute controller if URI is not cached
+		if (empty(self::$cached)) {
+
+			// start output buffering
+			// ob_start(array(__CLASS__, 'output_buffer'));
+			ob_start();
+
+			// TODO: should move page cache to Page model and only init when requested
+			// TODO: check latest content file creation time vs. cache creation, clear content cache if different
+			// check cache for content database
+			self::$pages = Cache::instance()->get('pages');
+
+			if (empty(self::$pages)) {
+				// traverse content directory and load all content
+				self::$pages = Page::load_path(CONTENTPATH);
+				Cache::instance()->set('pages', self::$pages);
+			}
+
+			// instantiate controller
+			self::instance();
+
+			// auto render controller if available
+			if (method_exists(self::$instance, '_render')) {
+
+				echo self::$instance->_render();
+
+			}
+
+			// store the output buffer
+			self::$cached = ob_get_clean();
+
+			// write to cache
+			Cache::instance()->set($cache_key, self::$cached);
+
 		}
 
-		// match uri to route and instantiate controller
-		self::request($_SERVER['REQUEST_URI']);
-
-		// auto render controller if available
-		if (method_exists(self::$instance, '_render')) {
-
-			echo self::$instance->_render();
-
-		}
+		// output content
+		echo self::$cached;
 
 	}
 
@@ -121,6 +148,16 @@ class Pastefolio {
     }
   }
 */
+
+/*
+	public static function output_buffer($output) {
+
+		// store output
+		self::$output = $output;
+
+		// set and return the final output
+		return self::$output;
+	}*/
 
 
 	// adapted from Kohana 2.3
@@ -238,9 +275,6 @@ class Pastefolio {
 
 		// remaining arguments
 		self::$arguments = array_slice($segments, 2);
-
-		// instantiate controller
-		return self::instance();
 
 	}
 
