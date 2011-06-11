@@ -37,6 +37,17 @@ class Tumblr {
 
 	}
 
+	// retrieve single post
+	public function post($params) {
+
+		// get post(s) base on params
+		$posts = $this->posts($params);
+
+		// return first post in array
+		return current($posts);
+
+	}
+
 	// retrieve XML posts and convert to flat array
 	public function posts($params) {
 

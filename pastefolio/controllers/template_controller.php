@@ -1,6 +1,9 @@
 <?php
 
-class template_controller {
+class template_controller extends cache_controller {
+
+	// buffered output
+	public $output;
 
 	// template view model
 	public $template;
@@ -17,11 +20,17 @@ class template_controller {
 
 	public function __construct() {
 
+		// setup caching
+		parent::__construct();
+
 		if (Pastefolio::$instance == NULL) {
 
 			// set router instance to controller
 			Pastefolio::$instance = $this;
 		}
+
+		// start output buffering
+		ob_start();
 
 		// set current section to controller name
 		$this->current_section = Pastefolio::$controller;
@@ -32,6 +41,8 @@ class template_controller {
 		// setup main template
 		$this->template = new Template($this->site_template);
 
+		// empty page model
+		$this->template->page = new Page;
 
 	}
 
@@ -58,7 +69,13 @@ class template_controller {
 		header('Content-Type: text/html; charset=UTF-8');
 
 		// render the template after controller execution
-		return $this->template->render();
+		echo $this->template->render();
+
+		// store the output buffer
+		$this->output = ob_get_clean();
+
+		// store output in cache
+		parent::_cache();
 
 	}
 

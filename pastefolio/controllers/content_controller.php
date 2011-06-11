@@ -3,19 +3,6 @@
 // catch-all content controller
 class content_controller extends template_controller {
 
-	public function __construct() {
-
-		parent::__construct();
-
-		// if cached content is available, check that cache is current
-		if (Pastefolio::$cached !== NULL) {
-
-			// check hash of content cache vs current content directory
-
-		}
-
-	}
-
 	public function __call($method, $args) {
 
 		// decipher content request
@@ -53,17 +40,25 @@ class content_controller extends template_controller {
 
 		} else {
 
-			if ($page->section == 'projects')
-				$page->template = 'project';
+			$tpl = $page->template();
+
+			$this->template->set($tpl);
+
+			// echo 'template: '.$tpl.'<br/>';
+
+			$partial = $page->partial();
+
+			// echo 'partial: '.$partial.'<br/>';
 
 			// combine templates if available
-			if (! empty($page->template))
-				$this->template->combine($page->template);
+			if (! empty($partial))
+				$this->template->partial($partial);
 
-			$this->template->model = $page;
+			$this->template->page = $page;
 
 		}
 
 	}
+
 
 }

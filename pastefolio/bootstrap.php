@@ -2,10 +2,6 @@
 // Pastefolio bootstrap.php
 
 // system path defaults, should be configured in index.php
-// directory where Pastefolio is located
-if (! isset($app_path))
-	$app_path = dirname(__FILE__);
-
 // directory where content files are stored
 if (! isset($content_path))
 	$content_path = 'content';
@@ -17,6 +13,10 @@ if (! isset($template_path))
 // directory for cache (must be writeable)
 if (! isset($cache_path))
 	$cache_path = 'templates';
+
+// directory where Pastefolio is located
+if (! isset($app_path))
+	$app_path = dirname(__FILE__);
 
 // define routing rules, longest first
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
@@ -57,8 +57,24 @@ Cache::$lifetime = $cache_time;
 // assign user configured routes
 Pastefolio::$routes = $routes;
 
-// init pastefolio routing, cache, content
-Pastefolio::init();
+// match requested uri to route and instantiate controller
+Pastefolio::request($_SERVER['REQUEST_URI']);
+
+// check if cached content is available
+if (empty(Pastefolio::$instance->output)) {
+
+	// execute controller method
+	Pastefolio::execute();
+
+	// auto render controller if available
+	if (method_exists(Pastefolio::$instance, '_render'))
+		Pastefolio::$instance->_render();
+
+}
+
+// echo buffered output
+echo Pastefolio::$instance->output;
+
 
 // stop benchmark, get execution time
 $benchmark_time = number_format(microtime(TRUE) - $benchmark_start, 4);

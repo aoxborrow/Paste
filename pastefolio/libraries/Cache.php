@@ -56,7 +56,7 @@ class Cache {
 			if (self::$requests > 0 AND mt_rand(1, self::$requests) === 1)
 			{
 				// Do garbage collection
-				$this->driver->delete_expired();
+				$this->delete_expired();
 
 			}
 

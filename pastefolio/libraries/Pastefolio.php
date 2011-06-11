@@ -28,16 +28,13 @@ TODO: finalize caching for content database, rendered pages, all requests?, tumb
 TODO: create cache clearing urls and automated cache clear on content update (via name.mtime hash of content dir), tumblr post (check latest, clear cache?)
 TODO: add more features to Tumblr library, like follow and repost links, tumblr iframe
 TODO: create lab notes tumblr and post some sample entries with code and syntax highlighting
-TODO: allow *variables that get assigned to all child pages of a section, including default *title in index.html
+TODO: ---cascade variables to child pages -- allow *variables that get assigned to all child pages of a section, including default *title in index.html
 TODO: rounded & matted image styles
 
 */
 
 
 class Pastefolio {
-
-	// cached content
-	public static $cached;
 
 	// configured routes
 	public static $routes = array();
@@ -51,6 +48,9 @@ class Pastefolio {
 	// controller instance
 	public static $instance;
 
+	// controller reflector
+	public static $class;
+
 	// routed controller
 	public static $controller;
 
@@ -60,55 +60,6 @@ class Pastefolio {
 	// uri arguments
 	public static $arguments = array();
 
-	// init routes, cache and content database
-	public static function init() {
-
-		// match requested uri to route
-		self::request($_SERVER['REQUEST_URI']);
-
-		// disable cache
-		if (isset($_GET['nocache']))
-			Cache::$lifetime = -1;
-
-		// clear cache
-		if (isset($_GET['clearcache']))
-			Cache::instance()->delete_all();
-
-		// use requested URI as cache key
-		$cache_key = empty(self::$current_uri) ? 'index' : self::$current_uri;
-
-		// TODO: should probably move this to template controller, and allow each controller their own validate_cache method
-		// try to fetch requested URI from cache
-		self::$cached = Cache::instance()->get($cache_key);
-
-		// TODO: call method to check caches or instantiate controller
-		// Content::check_cache();
-
-		// execute controller if URI is not cached
-		if (TRUE or empty(self::$cached)) {
-
-			// start output buffering
-			ob_start();
-
-			// instantiate controller
-			self::instance();
-
-			// auto render controller if available
-			if (method_exists(self::$instance, '_render'))
-				echo self::$instance->_render();
-
-			// store the output buffer
-			self::$cached = ob_get_clean();
-
-			// write to cache
-			//Cache::instance()->set($cache_key, self::$cached);
-
-		}
-
-		// output content
-		echo self::$cached;
-
-	}
 
 	/*
 	public static function build_file_cache($dir = '.') {
@@ -131,18 +82,9 @@ class Pastefolio {
   }
 */
 
-/*
-	public static function output_buffer($output) {
-
-		// store output
-		self::$output = $output;
-
-		// set and return the final output
-		return self::$output;
-	}*/
 
 
-	// adapted from Kohana 2.3
+	// instantiate controller
 	public static function & instance() {
 
 		if (self::$instance === NULL) {
@@ -150,7 +92,7 @@ class Pastefolio {
 			try {
 
 				// start validation of the controller
-				$class = new ReflectionClass(self::$controller.'_controller');
+				self::$class = new ReflectionClass(self::$controller.'_controller');
 
 			} catch (ReflectionException $e) {
 
@@ -160,43 +102,51 @@ class Pastefolio {
 			}
 
 			// create a new controller instance
-			self::$instance = $class->newInstance();
-
-			try {
-				// load the controller method
-				$method = $class->getMethod(self::$method);
-
-				// method exists
-				if (self::$method[0] === '_') {
-
-					// do not allow access to hidden methods
-					return self::request('_default');
-				}
-
-				if ($method->isProtected() or $method->isPrivate()) {
-
-					// do not attempt to invoke protected methods
-					return self::request('_default');
-				}
-
-				// default arguments
-				$arguments = self::$arguments;
-
-			} catch (ReflectionException $e) {
-
-				// use __call instead
-				$method = $class->getMethod('__call');
-
-				// use arguments in __call format
-				$arguments = array(self::$method, self::$arguments);
-			}
-
-			// execute the controller method
-			$method->invokeArgs(self::$instance, $arguments);
+			self::$instance = self::$class->newInstance();
 
 		}
 
 		return self::$instance;
+	}
+
+	// execute requested method
+	public static function execute() {
+
+		// ensure controller is instantiated
+		self::instance();
+
+		try {
+			// load the controller method
+			$method = self::$class->getMethod(self::$method);
+
+			// method exists
+			if (self::$method[0] === '_') {
+
+				// do not allow access to hidden methods
+				return self::request('_default');
+			}
+
+			if ($method->isProtected() or $method->isPrivate()) {
+
+				// do not attempt to invoke protected methods
+				return self::request('_default');
+			}
+
+			// default arguments
+			$arguments = self::$arguments;
+
+		} catch (ReflectionException $e) {
+
+			// use __call instead
+			$method = self::$class->getMethod('__call');
+
+			// use arguments in __call format
+			$arguments = array(self::$method, self::$arguments);
+		}
+
+		// execute the controller method
+		$method->invokeArgs(self::$instance, $arguments);
+
 	}
 
 
@@ -257,6 +207,9 @@ class Pastefolio {
 
 		// remaining arguments
 		self::$arguments = array_slice($segments, 2);
+
+		// instatiate controller
+		self::instance();
 
 	}
 

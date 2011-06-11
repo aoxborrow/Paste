@@ -4,10 +4,10 @@
 class Template {
 
 	// view model
-	public $model;
+	public $page;
 
 	// template contents
-	public $template;
+	public $_template;
 
 	// cache templates when possible
 	protected static $cache = array();
@@ -16,15 +16,23 @@ class Template {
 	protected static $ext = '.mustache';
 
 	// pass template name and optionally a view model into constructor
-	public function __construct($template, $model = NULL) {
+	public function __construct($template = NULL, $page = NULL) {
 
 		if (! empty($template))
 			// load template
-			$this->template = $this->load($template);
+			$this->_template = $this->load($template);
 
-		if (! empty($model))
+		if (! empty($page))
 			// assign view model
-			$this->model = $model;
+			$this->page = $page;
+
+	}
+
+	// set main template
+	public function set($template) {
+
+		// load template
+		$this->_template = $this->load($template);
 
 	}
 
@@ -50,12 +58,13 @@ class Template {
 
 	}
 
+	// TODO: make this an array of partials that gets combined on render
 	// merge one template into another via the {{{content}}} string
-	public function combine($sub_template) {
+	public function partial($partial) {
 
-		$sub_template = $this->load($sub_template);
+		$partial = $this->load($partial);
 
-		$this->template = str_replace('{{{content}}}', $sub_template, $this->template);
+		$this->_template = str_replace('{{{content}}}', $partial, $this->_template);
 
 	}
 
@@ -63,7 +72,7 @@ class Template {
 	public function render() {
 
 		// instantiate Mustache view
-		return (string) new Mustache($this->template, $this->model);
+		return (string) new Mustache($this->_template, $this->page);
 
 	}
 

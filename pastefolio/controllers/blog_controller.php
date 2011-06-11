@@ -9,25 +9,23 @@ class blog_controller extends template_controller {
 	public $page = -1;
 
 	// number of posts per page
-	public $page_limit = 1;
+	public $page_limit = 4;
 
 	// individual blog post template
-	public $blog_template = 'blog';
+	public $blog_page_template = 'blog_page';
 
 	// individual blog post template
-	public $post_template = 'post';
+	public $blog_post_template = 'blog_post';
 
 	// archive listing template
-	public $archive_template = 'post_archive';
+	public $blog_archive_template = 'blog_archive';
+
+	// archive listing template
+	public $blog_post_archive_template = 'blog_post_archive';
 
 	public function __construct() {
 
 		parent::__construct();
-
-		$name = (Pastefolio::$method == 'archive') ? 'archive' : 'notes';
-
-		// setup page model
-		$this->template->model = Content::find(array('name' => $name));
 
 		// instantiate blog driver
 		$this->blog = new Tumblr('pitchforkreviewsreviews');
@@ -40,7 +38,7 @@ class blog_controller extends template_controller {
 
 	}
 
-	public function next_url() {
+	public function next_page() {
 
 		if ($this->page > 0) {
 			return '/notes/page/'.($this->page + 1);
@@ -50,7 +48,7 @@ class blog_controller extends template_controller {
 
 	}
 
-	public function prev_url() {
+	public function prev_page() {
 
 		if ($this->page > 1) {
 			return '/notes/page/'.($this->page - 1);
@@ -62,33 +60,25 @@ class blog_controller extends template_controller {
 
 	public function post($id) {
 
-		// cache key
-		$cache_key = 'blog_post_'.$id;
+		// hack to get menu highlighted
+		Pastefolio::$current_uri = 'notes';
 
-		// check for cached content
-		$content = Cache::instance()->get($cache_key);
+		// blog page template
+		$this->template->partial($this->blog_page_template);
+		$this->template->page = Content::find(array('name' => 'notes'));
 
-		if (empty($content)) {
+		// get post based on id
+		$post = $this->blog->post(array('id' => $id));
 
-			foreach ($this->blog->posts(array('id' => $id)) as $post) {
-
-				// render single blog post
-				$content .= $this->_draw($post);
-
-			}
-
-			Cache::instance()->set($cache_key, $content);
-
-		}
-
-		$this->template->model->content = $content;
+		// render single blog post
+		$this->template->page->content = $this->_draw_post($post);
 
 	}
 
 	// TODO: deal with post_template better
-	public function _draw($post) {
+	public function _draw_post($post) {
 
-		return new Template($this->post_template, $post);
+		return new Template($this->blog_post_template, $post);
 
 	}
 
@@ -96,75 +86,46 @@ class blog_controller extends template_controller {
 	// draw page of blog posts
 	public function page($page = 1) {
 
+		// hack to get menu highlighted
+		Pastefolio::$current_uri = 'notes';
+
+		// blog page template
+		$this->template->partial($this->blog_page_template);
+		$this->template->page = Content::find(array('name' => 'notes'));
+
 		// don't allow negative pages
 		$this->page = ($page < 1) ? 1 : $page;
 
 		// compute starting post for current page
 		$start = (($this->page-1) * $this->page_limit);
 
-		// cache key
-		$cache_key = 'blog_page_'.$this->page;
+		// configure blog driver with start and limit
+		foreach ($this->blog->posts(array('start' => $start, 'num' => $this->page_limit)) as $post) {
 
-		// check for cached content
-		$content = Cache::instance()->get($cache_key);
-
-		if (empty($content)) {
-
-			// configure blog driver with start and limit
-			foreach ($this->blog->posts(array('start' => $start, 'num' => $this->page_limit)) as $post) {
-
-				// render blog posts
-				$content .= $this->_draw($post);
-
-			}
-
-			// add content to cache
-			Cache::instance()->set($cache_key, $content);
+			// render blog posts
+			$this->template->page->content .= $this->_draw_post($post);
 
 		}
 
-		$this->template->model->content = $content;
-		$this->template->model->nextpage_url = $this->next_url();
-		$this->template->model->prevpage_url = $this->prev_url();
+		$this->template->page->next_page = $this->next_page();
+		$this->template->page->prev_page = $this->prev_page();
 
-	}
-
-	// TODO: deal with archive render better, this is gross
-	public function _render() {
-
-		$this->template->combine($this->blog_template);
-
-		return parent::_render();
 
 	}
 
 	public function archive() {
 
-		// use archive template
-		$this->blog_template = 'blog_archive';
+		$this->template->partial($this->blog_archive_template);
+		$this->template->page = Content::find(array('name' => 'archive', 'section' => 'notes'));
 
-		// cache key
-		$cache_key = 'blog_archive';
+		// fetch last 50 posts (max tumblr allows)
+		foreach ($this->blog->posts(array('num' => 50)) as $post) {
 
-		// check for cached content
-		$content = Cache::instance()->get($cache_key);
-
-		if (empty($content)) {
-
-			// fetch last 50 posts (max tumblr allows)
-			foreach ($this->blog->posts(array('num' => 50)) as $post) {
-
-				// render each post with the archive template
-				$content .= new Template($this->archive_template, $post);
-
-			}
-
-			// add content to cache
-			Cache::instance()->set($cache_key, $content);
+			// render each post with the archive template
+			$this->template->page->content .= new Template($this->blog_post_archive_template, $post);
 
 		}
 
-		$this->template->model->content = $content;
 
 	}
 

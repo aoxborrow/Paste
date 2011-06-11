@@ -1,11 +1,9 @@
 <?php
 
 // debug controller for testing
-class debug_controller extends template_controller {
+class debug_controller {
 
 	public function __construct() {
-
-		parent::__construct();
 
 		echo '<pre>';
 

@@ -21,6 +21,9 @@ class Page extends Mustache{
 	// mustache template relative to TEMPLATEPATH
 	public $template;
 
+	// partial mustache template, gets folded into parent section template
+	public $partial;
+
 	// redirect URL for creating aliases
 	public $redirect;
 
@@ -38,6 +41,9 @@ class Page extends Mustache{
 
 	// all parent sections
 	public $parents = array();
+
+	// these vars cascade down through child pages
+	public $_inherit = array('template', 'partial');
 
 	// takes a content file path and returns a Page model
 	public static function factory($path) {
@@ -66,7 +72,7 @@ class Page extends Mustache{
 
 			$page->is_section = TRUE;
 
-			// if deeper than root section
+			// if deeper than root section (root section remains index)
 			if (! empty($page->parents))
 
 				// change name from index to section name and remove section from parents array
@@ -107,14 +113,17 @@ class Page extends Mustache{
 		// current page URL matches request url
 		return ltrim($this->url(), '/') == Pastefolio::$current_uri;
 
-		/*
+	}
+
+	// check if current page or section
+	public function current2() {
+
 		// get current page and section from controller
 		$current_page = Pastefolio::instance()->current_page;
 		$current_section = Pastefolio::instance()->current_section;
 
 		// return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
 		return ($this->name == $current_page AND $this->section == $current_section);
-		*/
 
 	}
 
@@ -127,7 +136,7 @@ class Page extends Mustache{
 			// process variables
 			$vars = $this->_variables($html);
 
-			// assign to current model
+			// assign vars to current model
 			foreach ($vars as $key => $value)
 				$this->$key = $value;
 
@@ -138,9 +147,40 @@ class Page extends Mustache{
 			$this->content = $html;
 
 			// add debug page variables
-			$this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
+			// $this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
 
 		}
+	}
+
+	public function template() {
+
+		return $this->_inherit('template');
+
+	}
+
+	public function partial() {
+
+		return $this->_inherit('partial');
+
+	}
+
+	// get property from parent section
+	public function _inherit($var) {
+
+		if (empty($this->$var)) {
+
+			// get parent section
+			$parent = $this->parent();
+
+			// return parent property
+			$this->$var = $parent->_inherit($var);
+
+			// echo 'inherited '.$parent->name.'->'.$var.': '.$this->$var.'<br/>';
+
+		}
+
+		return $this->$var;
+
 	}
 
 	// process content for embedded variables
@@ -198,6 +238,16 @@ class Page extends Mustache{
 	public function root() {
 
 		return Content::section(NULL);
+
+	}
+
+	// get parent section
+	public function parent() {
+
+		// root section parent is 'index', rest are section name
+		$parent = ($this->section == NULL) ? 'index' : $this->section;
+
+		return Content::find(array('name' => $parent));
 
 	}
 
@@ -264,7 +314,7 @@ class Page extends Mustache{
 	public function next_sibling() {
 
 		// get next page in section
-		$next = $this->relative_page(1);
+		$next = $this->_relative_page(1);
 
 		// cycle to first page if last in section
 		return ($next === FALSE) ? $this->first_sibling()->url() : $next->url();
@@ -274,14 +324,14 @@ class Page extends Mustache{
 	public function prev_sibling() {
 
 		// get previous page in section
-		$prev = $this->relative_page(-1);
+		$prev = $this->_relative_page(-1);
 
 		// cycle to last page if first in section
 		return ($prev === FALSE) ? $this->last_sibling()->url() : $prev->url();
 	}
 
 	// returns page relative to current
-	public function relative_page($offset = 0) {
+	public function _relative_page($offset = 0) {
 
 		// create page map from current section
 		$section = Content::find_flat(array('section' => $this->section, 'is_visible' => TRUE));
