@@ -27,7 +27,7 @@ class blog_controller extends template_controller {
 		$name = (Pastefolio::$method == 'archive') ? 'archive' : 'notes';
 
 		// setup page model
-		$this->template->model = Page::find(array('name' => $name));
+		$this->template->model = Content::find(array('name' => $name));
 
 		// instantiate blog driver
 		$this->blog = new Tumblr('pitchforkreviewsreviews');

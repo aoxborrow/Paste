@@ -8,15 +8,15 @@ if (! isset($app_path))
 
 // directory where content files are stored
 if (! isset($content_path))
-	$content_path = DOCROOT.'content';
+	$content_path = 'content';
 
 // directory where mustache templates are stored
 if (! isset($template_path))
-	$template_path = DOCROOT.'templates';
+	$template_path = 'templates';
 
 // directory for cache (must be writeable)
 if (! isset($cache_path))
-	$cache_path = DOCROOT.'templates';
+	$cache_path = 'templates';
 
 // define routing rules, longest first
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
@@ -32,9 +32,9 @@ version_compare(PHP_VERSION, '5.2', '<') and exit('Pastefolio requires PHP 5.2 o
 
 // global paths with trailing slash for convenience
 define('APPPATH', str_replace('\\', '/', realpath($app_path)).'/');
-define('CONTENTPATH', str_replace('\\', '/', realpath($content_path)).'/');
-define('TEMPLATEPATH', str_replace('\\', '/', realpath($template_path)).'/');
-define('CACHEPATH', str_replace('\\', '/', realpath($cache_path)).'/');
+define('CONTENTPATH', str_replace('\\', '/', realpath(DOCROOT.$content_path)).'/');
+define('TEMPLATEPATH', str_replace('\\', '/', realpath(DOCROOT.$template_path)).'/');
+define('CACHEPATH', str_replace('\\', '/', realpath(DOCROOT.$cache_path)).'/');
 
 // start benchmark
 $benchmark_start = microtime(TRUE);
@@ -42,11 +42,17 @@ $benchmark_start = microtime(TRUE);
 // core Pastefolio class
 require_once APPPATH.'libraries/Pastefolio.php';
 
+// using Mustache for templating: https://github.com/bobthecow/mustache.php
+require_once APPPATH.'libraries/Mustache/Mustache.php';
+
 // register class autoloader
 spl_autoload_register(array('Pastefolio', 'autoloader'));
 
 // setup cache directory
 Cache::$directory = CACHEPATH;
+
+// set cache lifetime in seconds. 0 or FALSE disables cache
+Cache::$lifetime = $cache_time;
 
 // assign user configured routes
 Pastefolio::$routes = $routes;
@@ -61,7 +67,7 @@ $benchmark_time = number_format(microtime(TRUE) - $benchmark_start, 4);
 echo '<!-- Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).' -->';
 
 // clean up config vars
-unset($app_path, $content_path, $template_path, $routes, $benchmark_start, $benchmark_time);
+unset($app_path, $content_path, $template_path, $routes, $cache, $benchmark_start, $benchmark_time);
 
 
 

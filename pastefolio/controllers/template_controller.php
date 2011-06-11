@@ -17,7 +17,6 @@ class template_controller {
 
 	public function __construct() {
 
-		// TODO: extend common controller class to provide this and other common methods?
 		if (Pastefolio::$instance == NULL) {
 
 			// set router instance to controller
@@ -52,6 +51,7 @@ class template_controller {
 
 	}
 
+	// auto render template
 	public function _render() {
 
 		// send text/html UTF-8 header

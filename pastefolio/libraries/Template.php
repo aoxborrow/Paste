@@ -18,11 +18,6 @@ class Template {
 	// pass template name and optionally a view model into constructor
 	public function __construct($template, $model = NULL) {
 
-		// load Mustache class if we haven't already
-		if (! class_exists('Mustache', FALSE))
-			// using Mustache for templating: https://github.com/bobthecow/mustache.php
-			require_once APPPATH.'libraries/Mustache/Mustache.php';
-
 		if (! empty($template))
 			// load template
 			$this->template = $this->load($template);

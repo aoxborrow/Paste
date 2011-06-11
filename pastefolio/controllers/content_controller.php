@@ -3,6 +3,19 @@
 // default content controller
 class content_controller extends template_controller {
 
+	public function __construct() {
+
+		parent::__construct();
+
+		// if cached content is available, check that cache is current
+		if (Pastefolio::$cached !== NULL) {
+
+			// check hash of content cache vs current content directory
+
+		}
+
+	}
+
 	public function __call($method, $args) {
 
 		// decipher content request
@@ -41,7 +54,7 @@ class content_controller extends template_controller {
 		}
 
 		// get requested page from content database
-		$page = Page::find(array('section' => $this->current_section, 'name' => $this->current_page));
+		$page = Content::find(array('section' => $this->current_section, 'name' => $this->current_page));
 
 		// no page found
 		if ($page === FALSE) {
@@ -53,7 +66,7 @@ class content_controller extends template_controller {
 		} elseif ($page->is_section AND $page->redirect == 'first_child') {
 
 			// get first child page name
-			$first = array_shift(Page::flat_section($page->name));
+			$first = array_shift(Content::flat_section($page->name));
 
 			// redirect to first project
 			Pastefolio::redirect('/'.$page->name.'/'.$first);

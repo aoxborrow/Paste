@@ -24,7 +24,6 @@ It uses OOP and the MVC pattern and requires PHP5.
 - use history API for loading project content: http://html5demos.com/history/
 - abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
-TODO: cache lifetime config in index.php
 TODO: finalize caching for content database, rendered pages, all requests?, tumblr pages, archive.
 TODO: create cache clearing urls and automated cache clear on content update (via name.mtime hash of content dir), tumblr post (check latest, clear cache?)
 TODO: add more features to Tumblr library, like follow and repost links, tumblr iframe
@@ -40,9 +39,6 @@ class Pastefolio {
 
 	// cached content
 	public static $cached;
-
-	// content database
-	public static $pages = array();
 
 	// configured routes
 	public static $routes = array();
@@ -82,44 +78,31 @@ class Pastefolio {
 		// use requested URI as cache key
 		$cache_key = empty(self::$current_uri) ? 'index' : self::$current_uri;
 
+		// TODO: should probably move this to template controller, and allow each controller their own validate_cache method
 		// try to fetch requested URI from cache
 		self::$cached = Cache::instance()->get($cache_key);
 
 		// TODO: call method to check caches or instantiate controller
+		// Content::check_cache();
 
 		// execute controller if URI is not cached
-		if (empty(self::$cached)) {
+		if (TRUE or empty(self::$cached)) {
 
 			// start output buffering
-			// ob_start(array(__CLASS__, 'output_buffer'));
 			ob_start();
-
-			// TODO: should move page cache to Page model and only init when requested
-			// TODO: check latest content file creation time vs. cache creation, clear content cache if different
-			// check cache for content database
-			self::$pages = Cache::instance()->get('pages');
-
-			if (empty(self::$pages)) {
-				// traverse content directory and load all content
-				self::$pages = Page::load_path(CONTENTPATH);
-				Cache::instance()->set('pages', self::$pages);
-			}
 
 			// instantiate controller
 			self::instance();
 
 			// auto render controller if available
-			if (method_exists(self::$instance, '_render')) {
-
+			if (method_exists(self::$instance, '_render'))
 				echo self::$instance->_render();
-
-			}
 
 			// store the output buffer
 			self::$cached = ob_get_clean();
 
 			// write to cache
-			Cache::instance()->set($cache_key, self::$cached);
+			//Cache::instance()->set($cache_key, self::$cached);
 
 		}
 

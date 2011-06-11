@@ -19,16 +19,17 @@
 
 		<ul class="menu">
 		{{#root}}
-		<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></li>
+		{{#is_visible}}<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{name}}">{{title}}</a></li>
 		{{#children}}
-			<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
+			{{#is_visible}}<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{section}}/{{name}}">{{title}}</a></li>
 			{{#children}}
-				<li{{#is_section}} class="subsub section"{{/is_section}}{{^is_section}} class="sub"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{parent}}/{{section}}/{{name}}">{{title}}</a></li>
+				{{#is_visible}}<li{{#is_section}} class="subsub section"{{/is_section}}{{^is_section}} class="sub"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="/{{parent1}}/{{section}}/{{name}}">{{title}}</a></li>
 				{{#children}}
-					<li class="subsub"><a{{#current}} class="selected"{{/current}} href="/{{parent_parent}}/{{parent}}/{{section}}/{{name}}">{{title}}</a></li>
-				{{/children}}
-			{{/children}}
-		{{/children}}
+					{{#is_visible}}<li class="subsub"><a{{#current}} class="selected"{{/current}} href="/{{parent2}}/{{parent1}}/{{section}}/{{name}}">{{title}}</a></li>
+					{{/is_visible}}
+				{{/children}}{{/is_visible}}
+			{{/children}}{{/is_visible}}
+		{{/children}}{{/is_visible}}
 		{{/root}}
 		</ul>
 	</div>

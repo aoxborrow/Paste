@@ -1,16 +1,16 @@
 <?php
 
-// location of this file, index.php
-define('DOCROOT', dirname(__FILE__).'/');
+// directory where content files are stored, relative to this file
+$content_path = 'content';
 
-// directory where content files are stored
-$content_path = DOCROOT.'content';
+// directory where mustache templates are stored, relative to this file
+$template_path = 'templates';
 
-// directory where mustache templates are stored
-$template_path = DOCROOT.'templates';
+// directory for cache, relative to this file (must be writeable)
+$cache_path = 'cache';
 
-// directory for cache (must be writeable)
-$cache_path = DOCROOT.'cache';
+// set cache lifetime in seconds. 0 or FALSE disables cache
+$cache_time = FALSE;
 
 // define routing rules, longest first
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
@@ -22,6 +22,9 @@ $routes = array(
 	'notes/([A-Za-z0-9]+)' => 'blog/post/$1', // blog post
 	'_default' => 'content', // default content controller
 );
+
+// location of this file, index.php
+define('DOCROOT', dirname(__FILE__).'/');
 
 // Pastefolio bootstrap
 require_once 'pastefolio/bootstrap.php';

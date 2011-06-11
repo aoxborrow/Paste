@@ -15,8 +15,8 @@ class Cache {
 	public static $directory;
 
 	// Default lifetime of caches in seconds. Specific lifetime can also be set when creating a new cache.
-	// Setting this to 0 will never automatically delete caches. Setting this to -1 will disable cache.
-	public static $lifetime = 60;
+	// Setting this to 0 or FALSE will disable cache.
+	public static $lifetime = 600;
 
 	// Number of cache requests that will be processed before all expired caches are deleted. This is commonly referred to as "garbage collection".
 	// Setting this to 0 or a negative number will disable automatic garbage collection.
@@ -112,8 +112,8 @@ class Cache {
 	// this will delete the item if it is expired or if the hash does not match the stored hash.
 	public function get($id)
 	{
-		// disable caching with negative lifetime
-		if (self::$lifetime < 0)
+		// no caching with without lifetime
+		if (! self::$lifetime)
 			return NULL;
 
 		// sanitize the ID
@@ -155,6 +155,46 @@ class Cache {
 		return isset($data) ? $data : NULL;
 	}
 
+	// get a cache file modification time by id. FALSE is returned when the cache item is not found.
+	public function get_mtime($id)
+	{
+		// sanitize the ID
+		$id = $this->sanitize_id($id);
+
+		if ($file = $this->exists($id))
+		{
+			// use the first file
+			$file = current($file);
+
+			// get mtime of cache file
+			return filemtime($file);
+
+		}
+
+		return FALSE;
+
+	}
+
+	// get a cache file expiration time by id. FALSE is returned when the cache item is not found.
+	public function get_expiration($id)
+	{
+		// sanitize the ID
+		$id = $this->sanitize_id($id);
+
+		if ($file = $this->exists($id))
+		{
+			// use the first file
+			$file = current($file);
+
+			// get expiration of cache file
+			return $this->expires($file);
+
+		}
+
+		return FALSE;
+
+	}
+
 
 
 	// fetches all of the caches for a given tag. An empty array will be returned when no matching caches are found.
@@ -188,9 +228,8 @@ class Cache {
 	// set a cache item by id. tags may also be added and a custom lifetime can be set. non-string data is automatically serialized.
 	function set($id, $data, $tags = NULL, $lifetime = NULL)
 	{
-
-		// disable caching with negative lifetime
-		if (self::$lifetime < 0)
+		// no caching with without lifetime
+		if (! self::$lifetime)
 			return NULL;
 
 		if (is_resource($data))
@@ -248,14 +287,22 @@ class Cache {
 	}
 
 
-	// check if a cache file has expired by filename.
-	protected function expired($file)
+	// get expiration date of cache file
+	public function expires($file)
 	{
 		// get the expiration time
-		$expires = (int) substr($file, strrpos($file, '~') + 1);
+		return (int) substr($file, strrpos($file, '~') + 1);
 
-		// expirations of 0 are "never expire"
-		return ($expires !== 0 AND $expires <= time());
+	}
+
+	// check if a cache file has expired
+	public function expired($file)
+	{
+		// get the expiration time
+		$expires = $this->expires($file);
+
+		// check if expiration is before now
+		return ($expires <= time());
 	}
 
 

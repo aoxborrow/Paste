@@ -2,17 +2,11 @@
 /**
  * Simple Tumblr driver for Pastefolio blog
  *
- * Modified version of Evan Walsh's Tumblr class
- * (http://code.evanwalsh.net/Projects/Tumblr).
- *
- * Modified by Alex Dunae (dialect.ca).
- * https://github.com/alexdunae/tumblr-php
 */
-
 
 class Tumblr {
 
-	// params to pass to filter feed
+	// API params to filter Tumblr feed
 	public $params = array(
 		'filter' => 'none', // Text filter
 		'type' => 'regular', // If unspecified or empty, all types of posts are returned. (Must be one of $valid_types below)
@@ -24,12 +18,12 @@ class Tumblr {
 	);
 
 	// convert tumblr properties to more obvious keys
-	public $keymap = array(
+	public $key_map = array(
 		'regular-title' => 'title',
 		'regular-body' => 'body',
 	);
 
-	// valid tumblr post types
+	// valid tumblr post types (unused for now)
 	public $post_types = array('regular', 'quote', 'photo', 'link', 'conversation', 'video', 'audio');
 
 	// URL used to access tumblr API
@@ -38,7 +32,7 @@ class Tumblr {
 
 	public function __construct($account = 'demo') {
 
-		// tumblr API URL with text filter set to none
+		// tumblr API URL
 		$this->url = 'http://'.$account.'.tumblr.com/api/read?';
 
 	}
@@ -73,9 +67,9 @@ class Tumblr {
 					// flatten '@attributes' into post array
 					$post = array_merge($post, $value);
 				} else {
-					// change some key names according to keymap
-					if (array_key_exists($key, $this->keymap)) {
-						$key = $this->keymap[$key];
+					// change some key names according to key map
+					if (array_key_exists($key, $this->key_map)) {
+						$key = $this->key_map[$key];
 					}
 					$post[$key] = $value;
 				}
