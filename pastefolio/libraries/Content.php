@@ -37,7 +37,7 @@ class Content {
 
 		$pages = self::find_all($terms);
 
-		return (empty($pages)) ? FALSE : $pages[0];
+		return (empty($pages)) ? FALSE : current($pages);
 
 	}
 
@@ -48,34 +48,52 @@ class Content {
 
 		foreach (self::db() as $page) {
 
-			$matched = TRUE;
+			foreach ($terms as $property => $value) {
+
+				if ($page->$property !== $value)
+					continue 2;
+
+			}
+
+			$pages[] = $page;
+
+		}
+
+		return $pages;
+
+	}
+
+	// can't get this closure to work right
+	// filter and return pages by properties
+	public static function find_all2($terms) {
+
+		$pages = self::db();
+
+		$pages = array_filter($pages, function($page) use ($terms) {
 
 			foreach ($terms as $property => $value) {
 
 				if ($page->$property !== $value)
-					$matched = FALSE;
-					// this could be faster, exit loop on first false property
-					continue;
+					return FALSE;
 
 			}
 
-			if ($matched)
-				$pages[] = $page;
+			return TRUE;
 
-		}
+		});
 
 		return $pages;
 
 	}
 
-	// returns section pages as index => name
-	public static function flat_section($section) {
+	// returns page properties in a flat array
+	public static function find_flat($terms, $property = 'name') {
 
 		$pages = array();
 
-		foreach (self::find_all(array('section' => $section)) as $page) {
+		foreach (self::find_all($terms) as $page) {
 
-			$pages[] = $page->name;
+			$pages[] = $page->$property;
 
 		}
 
@@ -83,23 +101,10 @@ class Content {
 
 	}
 
-	// recursively get section child pages
+	// get section child pages
 	public static function section($section) {
 
-		$children = array();
-
-		// get section child pages
-		foreach (self::find_all(array('section' => $section)) as $page) {
-
-			// add child pages if page is a section
-			if ($page->is_section)
-				$page->children = self::section($page->name);
-
-			$children[] = $page;
-
-		}
-
-		return $children;
+		return self::find_all(array('section' => $section));
 
 	}
 

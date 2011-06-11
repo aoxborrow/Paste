@@ -1,6 +1,6 @@
 <?php
 
-// default content controller
+// catch-all content controller
 class content_controller extends template_controller {
 
 	public function __construct() {
@@ -21,37 +21,11 @@ class content_controller extends template_controller {
 		// decipher content request
 		$request = empty(Pastefolio::$current_uri) ? array('index') : explode('/', Pastefolio::$current_uri);
 
-		// single level, section is root and page is full request
-		if (count($request) == 1) {
+		// current section is 2nd to last argument (ie. parent2/parent1/section/page) or NULL if root section
+		$this->current_section = (count($request) < 2) ? NULL : $request[count($request) - 2];
 
-			$this->current_section = NULL;
-			$this->current_page = $request[0];
-
-		// set section and page
-		} elseif (count($request) == 2) {
-
-			$this->current_section = $request[0];
-			$this->current_page = $request[1];
-
-		// set sub section and page
-		} elseif (count($request) == 3) {
-
-			$this->current_section = $request[1];
-			$this->current_page = $request[2];
-
-		// sub sub section
-		} elseif (count($request) == 4) {
-
-			$this->current_section = $request[2];
-			$this->current_page = $request[3];
-
-
-		} else {
-
-			echo "I don't know how to handle this request:";
-			die(print_r($request));
-
-		}
+		// current page is always last argument of request
+		$this->current_page = end($request);
 
 		// get requested page from content database
 		$page = Content::find(array('section' => $this->current_section, 'name' => $this->current_page));
@@ -66,10 +40,10 @@ class content_controller extends template_controller {
 		} elseif ($page->is_section AND $page->redirect == 'first_child') {
 
 			// get first child page name
-			$first = array_shift(Content::flat_section($page->name));
+			$first = $page->first_child();
 
-			// redirect to first project
-			Pastefolio::redirect('/'.$page->name.'/'.$first);
+			// redirect to first child url
+			Pastefolio::redirect($first->url());
 
 		// page redirect configured
 		} elseif (! empty($page->redirect)) {

@@ -1,7 +1,7 @@
 <?php
 
 // page model
-class Page {
+class Page extends Mustache{
 
 	// page name and link id
 	public $name;
@@ -38,9 +38,6 @@ class Page {
 
 	// all parent sections
 	public $parents = array();
-
-	// child pages, populated by Content library
-	public $children = array();
 
 	// takes a content file path and returns a Page model
 	public static function factory($path) {
@@ -80,6 +77,10 @@ class Page {
 		// set section from parents array if deeper than root
 		$page->section = (empty($page->parents)) ? NULL : $page->parents[0];
 
+		// setup parent1, parent2, etc. properties for use in templates
+		foreach ($page->parents as $num => $parent)
+			$page->{'parent'.$num} = $parent;
+
 		// load file content into model
 		$page->load();
 
@@ -88,6 +89,111 @@ class Page {
 
 	}
 
+	// build full URL based on parent sections
+	public function url($base = '/') {
+
+		// iterate parent sections in reverse
+		foreach (array_reverse($this->parents) as $parent)
+			$base .= $parent.'/';
+
+		// add page name
+		return $base.$this->name;
+
+	}
+
+	// check if current page or section
+	public function current() {
+
+		// current page URL matches request url
+		return ltrim($this->url(), '/') == Pastefolio::$current_uri;
+
+		/*
+		// get current page and section from controller
+		$current_page = Pastefolio::instance()->current_page;
+		$current_section = Pastefolio::instance()->current_section;
+
+		// return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+		return ($this->name == $current_page AND $this->section == $current_section);
+		*/
+
+	}
+
+
+	// load individual content page, process variables
+	public function load() {
+
+		if (($html = @file_get_contents(realpath($this->path))) !== FALSE) {
+
+			// process variables
+			$vars = $this->_variables($html);
+
+			// assign to current model
+			foreach ($vars as $key => $value)
+				$this->$key = $value;
+
+			// set title to name if not set otherwise
+			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
+
+			// assign entire html to content property
+			$this->content = $html;
+
+			// add debug page variables
+			$this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
+
+		}
+	}
+
+	// process content for embedded variables
+	protected function _variables($html) {
+
+		// credit to Ben Blank: http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
+		$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
+		preg_match_all($regexp, $html, $comments);
+
+		// split comments on newline
+		$lines = array();
+		foreach ($comments[1] as $comment) {
+			$var_lines = explode("\n", trim($comment));
+			$lines = array_merge($lines, $var_lines);
+		}
+
+		// split lines on colon and assign to key/value
+		$vars = array();
+		foreach ($lines as $line) {
+			$parts = explode(":", $line, 2);
+			if (count($parts) == 2) {
+				$vars[trim($parts[0])] = trim($parts[1]);
+			}
+		}
+
+		// assign variables in content
+		foreach ($vars as $key => $value) {
+
+			// convert booleans to native
+			if (strtolower($value) === "false" OR $value === '0') {
+
+				$value = FALSE;
+
+			// convert booleans to native
+			} elseif (strtolower($value) === "true" OR $value === '1') {
+
+				$value = TRUE;
+
+			// strip any comments from	variables
+			} elseif (strpos($value, '//')) {
+
+				$value = substr($value, 0, strpos($value, '//'));
+
+			}
+
+			$vars[$key] = $value;
+		}
+
+		return $vars;
+
+	}
+
+
 	// get root section
 	public function root() {
 
@@ -95,169 +201,107 @@ class Page {
 
 	}
 
-	// display child pages
-	public function children() {
+	// return all visible child pages
+	public function children($terms = array()) {
 
-		return Content::section($this->name);
+		// add optional search terms
+		$terms = array_merge($terms, array('section' => $this->name, 'is_visible' => TRUE));
 
-	}
-
-	public function parent1() {
-
-		return $this->parents[1];
+		return Content::find_all($terms);
 
 	}
 
-	public function parent2() {
+	public function first_child() {
 
-		return $this->parents[2];
+		// get visible child pages
+		$children = $this->children();
 
-	}
-
-	public function __get($property) {
-
-		// allow accessing parent names DOESN'T WORK!
-		if (substr($property, 0, 6) == 'parent') {
-
-			// get number from property name, ie. parent0, parent1, etc.
-			$parent_num = (int) substr($property, 7, 1);
-
-			// return parent name
-			return (isset($this->parents[$parent_num])) ? $this->parents[$parent_num] : '';
-
-		}
-
-		// otherwise avoid undefined property errors
-		return '';
+		// get first of child pages
+		return array_shift($children);
 
 	}
 
-	// TODO: strip any commments after # or //
-	// load individual content page
-	public function load() {
+	public function last_child() {
 
-		if (($html = @file_get_contents(realpath($this->path))) !== FALSE) {
+		// get visible child pages
+		$children = $this->children();
 
-			// credit to Ben Blank: http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
-			$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
-			preg_match_all($regexp, $html, $comments);
-
-			// split comments on newline
-			$lines = array();
-			foreach ($comments[1] as $comment) {
-				$var_lines = explode("\n", trim($comment));
-				$lines = array_merge($lines, $var_lines);
-			}
-
-			// split lines on colon and assign to key/value
-			$vars = array();
-			foreach ($lines as $line) {
-				$parts = explode(":", $line, 2);
-				if (count($parts) == 2) {
-					$vars[trim($parts[0])] = trim($parts[1]);
-				}
-			}
-
-			// convert booleans to native
-			foreach ($vars as $key => $value) {
-				if (strtolower($value) === "false" OR $value === '0') {
-					$value = FALSE;
-				} elseif (strtolower($value) === "true" OR $value === '1') {
-					$value = TRUE;
-				}
-				$this->$key = $value;
-			}
-
-			// set title to name if not set otherwise
-			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
-			$this->content = $html;
-			// debug page variables
-			$this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
-
-		}
-	}
-
-	// check if current page or section
-	public function current() {
-
-		// get current page and section from controller
-		$current_page = Pastefolio::instance()->current_page;
-		$current_section = Pastefolio::instance()->current_section;
-
-		// return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
-		return ($this->name == $current_page AND $this->section == $current_section);
+		// get first of child pages
+		return array_shift($children);
 
 	}
 
+	// return all visible siblings
+	public function siblings($terms = array()) {
 
-	public function next_url() {
+		// add optional search terms
+		$terms = array_merge($terms, array('section' => $this->section, 'is_visible' => TRUE));
 
-		// start with current section if exists
-		$url = (empty($this->section)) ? '/' : '/'.$this->section.'/';
+		return Content::find_all($terms);
+
+	}
+
+	public function first_sibling() {
+
+		// get visible siblings
+		$siblings = $this->siblings();
+
+		// get first sibling in section
+		return array_shift($siblings);
+
+	}
+
+	public function last_sibling() {
+
+		// get visible siblings
+		$siblings = $this->siblings();
+
+		// get last sibling in section
+		return array_pop($siblings);
+
+	}
+
+	public function next_sibling() {
 
 		// get next page in section
 		$next = $this->relative_page(1);
 
 		// cycle to first page if last in section
-		$url .= ($next === FALSE) ? $this->first_page() : $next;
-
-		return $url;
+		return ($next === FALSE) ? $this->first_sibling()->url() : $next->url();
 
 	}
 
-	public function prev_url() {
-
-		// start with current section if exists
-		$url = (empty($this->section)) ? '/' : '/'.$this->section.'/';
+	public function prev_sibling() {
 
 		// get previous page in section
 		$prev = $this->relative_page(-1);
 
 		// cycle to last page if first in section
-		$url .= ($prev === FALSE) ? $this->last_page() : $prev;
-
-		return $url;
-
+		return ($prev === FALSE) ? $this->last_sibling()->url() : $prev->url();
 	}
 
-	// returns project name relative to specified project
+	// returns page relative to current
 	public function relative_page($offset = 0) {
 
 		// create page map from current section
-		$section = Content::flat_section($this->section);
+		$section = Content::find_flat(array('section' => $this->section, 'is_visible' => TRUE));
 
 		// find current key
 		$current_page_index = array_search($this->name, $section);
 
-		// return desired offset, if in array
+		// check desired offset
 		if (isset($section[$current_page_index + $offset])) {
-			return $section[$current_page_index + $offset];
+
+			// get relative page name
+			$relative_page = $section[$current_page_index + $offset];
+
+			// return relative page model
+			return Content::find(array('name' => $relative_page));
+
 		}
 
 		// otherwise return false
 		return FALSE;
 	}
-
-
-	public function first_page() {
-
-		// create page map from current section
-		$section = Content::flat_section($this->section);
-
-		// get first item of current section
-		return array_shift($section);
-
-	}
-
-	public function last_page() {
-
-		// create page map from current section
-		$section = Content::flat_section($this->section);
-
-		// get last item of current section
-		return array_pop($section);
-
-	}
-
 
 }

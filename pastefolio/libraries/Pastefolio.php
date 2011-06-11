@@ -28,7 +28,6 @@ TODO: finalize caching for content database, rendered pages, all requests?, tumb
 TODO: create cache clearing urls and automated cache clear on content update (via name.mtime hash of content dir), tumblr post (check latest, clear cache?)
 TODO: add more features to Tumblr library, like follow and repost links, tumblr iframe
 TODO: create lab notes tumblr and post some sample entries with code and syntax highlighting
-TODO: simplify and clean up content controller. consider limiting to 2 sections deep, using router URI
 TODO: allow *variables that get assigned to all child pages of a section, including default *title in index.html
 TODO: rounded & matted image styles
 
