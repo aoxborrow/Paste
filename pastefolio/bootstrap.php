@@ -66,7 +66,7 @@ if (empty(Pastefolio::$instance->output)) {
 	// execute controller method
 	Pastefolio::execute();
 
-	// auto render controller if available
+	// auto render controller template if available
 	if (method_exists(Pastefolio::$instance, '_render'))
 		Pastefolio::$instance->_render();
 

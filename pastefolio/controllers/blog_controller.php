@@ -6,22 +6,16 @@ class blog_controller extends template_controller {
 	public $blog;
 
 	// current page of posts
-	public $page = -1;
+	public $blog_page = -1;
 
 	// number of posts per page
 	public $page_limit = 4;
 
 	// individual blog post template
-	public $blog_page_template = 'blog_page';
-
-	// individual blog post template
-	public $blog_post_template = 'blog_post';
+	public $blog_post_partial = 'blog_post';
 
 	// archive listing template
-	public $blog_archive_template = 'blog_archive';
-
-	// archive listing template
-	public $blog_post_archive_template = 'blog_post_archive';
+	public $blog_post_archive_partial = 'blog_post_archive';
 
 	public function __construct() {
 
@@ -40,8 +34,8 @@ class blog_controller extends template_controller {
 
 	public function next_page() {
 
-		if ($this->page > 0) {
-			return '/notes/page/'.($this->page + 1);
+		if ($this->blog_page > 0) {
+			return '/notes/page/'.($this->blog_page + 1);
 		}
 
 		return FALSE;
@@ -50,8 +44,8 @@ class blog_controller extends template_controller {
 
 	public function prev_page() {
 
-		if ($this->page > 1) {
-			return '/notes/page/'.($this->page - 1);
+		if ($this->blog_page > 1) {
+			return '/notes/page/'.($this->blog_page - 1);
 		}
 
 		return FALSE;
@@ -63,25 +57,19 @@ class blog_controller extends template_controller {
 		// hack to get menu highlighted
 		Pastefolio::$current_uri = 'notes';
 
-		// blog page template
-		$this->template->partial($this->blog_page_template);
-		$this->template->page = Content::find(array('name' => 'notes'));
+		// load content page
+		$this->page = Content::find(array('name' => 'post', 'section' => 'notes'));
 
 		// get post based on id
 		$post = $this->blog->post(array('id' => $id));
 
+		// set page title from post
+		$this->page->title = $post['title'];
+
 		// render single blog post
-		$this->template->page->content = $this->_draw_post($post);
+		$this->page->content = Template::factory($this->blog_post_partial)->render($post);
 
 	}
-
-	// TODO: deal with post_template better
-	public function _draw_post($post) {
-
-		return new Template($this->blog_post_template, $post);
-
-	}
-
 
 	// draw page of blog posts
 	public function page($page = 1) {
@@ -89,40 +77,42 @@ class blog_controller extends template_controller {
 		// hack to get menu highlighted
 		Pastefolio::$current_uri = 'notes';
 
-		// blog page template
-		$this->template->partial($this->blog_page_template);
-		$this->template->page = Content::find(array('name' => 'notes'));
+		// load content page
+		$this->page = Content::find(array('name' => 'notes'));
 
 		// don't allow negative pages
-		$this->page = ($page < 1) ? 1 : $page;
+		$this->blog_page = ($page < 1) ? 1 : $page;
 
 		// compute starting post for current page
-		$start = (($this->page-1) * $this->page_limit);
+		$start = (($this->blog_page-1) * $this->page_limit);
 
 		// configure blog driver with start and limit
 		foreach ($this->blog->posts(array('start' => $start, 'num' => $this->page_limit)) as $post) {
 
 			// render blog posts
-			$this->template->page->content .= $this->_draw_post($post);
+			$this->page->content .= Template::factory($this->blog_post_partial)->render($post);
 
 		}
 
-		$this->template->page->next_page = $this->next_page();
-		$this->template->page->prev_page = $this->prev_page();
+		// set page title
+		$this->page->title = $this->page->title.', Page '.$this->blog_page;
 
+		// setup prev/next links
+		$this->page->next_page = $this->next_page();
+		$this->page->prev_page = $this->prev_page();
 
 	}
 
 	public function archive() {
 
-		$this->template->partial($this->blog_archive_template);
-		$this->template->page = Content::find(array('name' => 'archive', 'section' => 'notes'));
+		// load content page
+		$this->page = Content::find(array('name' => 'archive', 'section' => 'notes'));
 
 		// fetch last 50 posts (max tumblr allows)
 		foreach ($this->blog->posts(array('num' => 50)) as $post) {
 
 			// render each post with the archive template
-			$this->template->page->content .= new Template($this->blog_post_archive_template, $post);
+			$this->page->content .= Template::factory($this->blog_post_archive_partial)->render($post);
 
 		}
 

@@ -3,9 +3,6 @@
 // template view wrapper, in order to more easily change templating libraries
 class Template {
 
-	// view model
-	public $page;
-
 	// template contents
 	public $_template;
 
@@ -15,16 +12,18 @@ class Template {
 	// template file extension
 	protected static $ext = '.mustache';
 
-	// pass template name and optionally a view model into constructor
-	public function __construct($template = NULL, $page = NULL) {
+	// factory for method chaining. supply optional template name
+	public static function factory($template = NULL) {
 
+		// instantiate this class
+		$tpl = new Template;
+
+		// load template if supplied
 		if (! empty($template))
-			// load template
-			$this->_template = $this->load($template);
+			$tpl->set($template);
 
-		if (! empty($page))
-			// assign view model
-			$this->page = $page;
+		// return Template instance
+		return $tpl;
 
 	}
 
@@ -68,20 +67,30 @@ class Template {
 
 	}
 
-	// render the template and return the output
-	public function render() {
+	// render the template with supplied page model and return the output
+	public function render($page = NULL) {
+
+		// a Page model with inherited template and partials
+		if ($page instanceof Page) {
+
+			// get defined page template
+			$page_template = $page->template();
+
+			// setup main page template
+			$this->set($page_template);
+
+			// get defined page partial if available
+			$page_partial = $page->partial();
+
+			// combine templates if partial defined
+			if (! empty($page_partial))
+				$this->partial($page_partial);
+
+		}
 
 		// instantiate Mustache view
-		return (string) new Mustache($this->_template, $this->page);
+		return (string) new Mustache($this->_template, $page);
 
 	}
-
-	// render the template in string conversion
-	public function __toString() {
-
-		return $this->render();
-
-	}
-
 
 }

@@ -1,9 +1,18 @@
 <?php
 
-class template_controller extends cache_controller {
+class template_controller {
+
+	// enable caching
+	public $caching = TRUE;
+
+	// content cache key
+	public $cache_key;
 
 	// buffered output
 	public $output;
+
+	// page data model
+	public $page;
 
 	// template view model
 	public $template;
@@ -14,35 +23,44 @@ class template_controller extends cache_controller {
 	// current page
 	public $current_page;
 
-	// site mustache template
-	public $site_template = 'site.mustache';
-
 
 	public function __construct() {
 
-		// setup caching
-		parent::__construct();
-
-		if (Pastefolio::$instance == NULL) {
-
-			// set router instance to controller
+		// set router instance to controller
+		if (Pastefolio::$instance == NULL)
 			Pastefolio::$instance = $this;
-		}
+
+		// disable cache
+		if (isset($_GET['nocache']) || ! $this->caching)
+			Cache::$lifetime = FALSE;
+
+		// clear cache
+		if (isset($_GET['clearcache']))
+			Cache::instance()->delete_all();
+
+		// use requested URI as cache key
+		$this->cache_key = empty(Pastefolio::$current_uri) ? 'index' : Pastefolio::$controller.'-'.Pastefolio::$current_uri;
+
+		// try to fetch requested URI from cache
+		$this->output = Cache::instance()->get($this->cache_key);
+
+		// validate cache and delete if old
+		$this->_validate_cache();
 
 		// start output buffering
 		ob_start();
 
-		// set current section to controller name
+		// current_section is controller name by default
 		$this->current_section = Pastefolio::$controller;
 
-		// set current section to controller name
+		// current_page is controller method by default
 		$this->current_page = Pastefolio::$method;
 
-		// setup main template
-		$this->template = new Template($this->site_template);
+		// setup template model
+		$this->template = new Template;
 
 		// empty page model
-		$this->template->page = new Page;
+		$this->page = new Page;
 
 	}
 
@@ -55,10 +73,25 @@ class template_controller extends cache_controller {
 
 	public function error_404() {
 
+		// disable caching for 404s
+		$this->caching = FALSE;
+
+		// send 404 header
 		header('HTTP/1.1 404 File Not Found');
 
-		$this->template->content = '<h1>Page not found!</h1>';
-		echo '<h1>Page not found!</h1>';
+		// draw 404 content page if available
+		$this->page = Content::find(array('name' => '404'));
+
+	}
+
+	// TODO: validate cache and delete if old. this should be implemented by each controller
+	public function _validate_cache() {
+
+		if (! empty($this->output)) {
+			// validate cache
+			// if invalid, delete tag based on controller
+			// Cache::instance()->delete_tag(Pastefolio::$controller);
+		}
 
 	}
 
@@ -69,13 +102,14 @@ class template_controller extends cache_controller {
 		header('Content-Type: text/html; charset=UTF-8');
 
 		// render the template after controller execution
-		echo $this->template->render();
+		echo $this->template->render($this->page);
 
 		// store the output buffer
 		$this->output = ob_get_clean();
 
-		// store output in cache
-		parent::_cache();
+		// store output in cache if enabled
+		if ($this->caching)
+			Cache::instance()->set($this->cache_key, $this->output, array(Pastefolio::$controller));
 
 	}
 

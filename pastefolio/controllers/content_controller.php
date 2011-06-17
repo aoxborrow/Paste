@@ -15,50 +15,31 @@ class content_controller extends template_controller {
 		$this->current_page = end($request);
 
 		// get requested page from content database
-		$page = Content::find(array('section' => $this->current_section, 'name' => $this->current_page));
+		$this->page = Content::find(array('section' => $this->current_section, 'name' => $this->current_page));
 
 		// no page found
-		if ($page === FALSE) {
+		if ($this->page === FALSE) {
 
 			// trigger 404 message
 			return $this->error_404();
 
 		// section page configured to redirect to first child
-		} elseif ($page->is_section AND $page->redirect == 'first_child') {
+		} elseif ($this->page->is_section AND $this->page->redirect == 'first_child') {
 
 			// get first child page name
-			$first = $page->first_child();
+			$first = $this->page->first_child();
 
 			// redirect to first child url
 			Pastefolio::redirect($first->url());
 
 		// page redirect configured
-		} elseif (! empty($page->redirect)) {
+		} elseif (! empty($this->page->redirect)) {
 
 			// redirect to url
-			Pastefolio::redirect($page->redirect);
-
-		} else {
-
-			$tpl = $page->template();
-
-			$this->template->set($tpl);
-
-			// echo 'template: '.$tpl.'<br/>';
-
-			$partial = $page->partial();
-
-			// echo 'partial: '.$partial.'<br/>';
-
-			// combine templates if available
-			if (! empty($partial))
-				$this->template->partial($partial);
-
-			$this->template->page = $page;
+			Pastefolio::redirect($this->page->redirect);
 
 		}
 
 	}
-
 
 }

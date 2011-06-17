@@ -9,27 +9,26 @@
  */
 
 /*
-Pastefolio is a simple portfolio CMS that uses static HTML files instead of a database and Mustache for templates.
-It uses OOP and the MVC pattern and requires PHP5.
-*/
+Pastefolio is a simple portfolio CMS that uses static HTML files instead of a database.
+It uses OOP and the MVC pattern and requires PHP5. It uses Mustache for ultra dumb templates.
 
-/* Site Design Goals:
+Site Design Goals:
 - barebones micro MVC pattern
 - simple routing
 - only load classes i'll be using
 - no html in controllers, super thin controllers
-- view models act as both data model and mustache model
+- view models
 - mustache for ultra dumb templates
 - experiment with various new techs
 - use history API for loading project content: http://html5demos.com/history/
 - abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
-TODO: finalize caching for content database, rendered pages, all requests?, tumblr pages, archive.
-TODO: create cache clearing urls and automated cache clear on content update (via name.mtime hash of content dir), tumblr post (check latest, clear cache?)
-TODO: add more features to Tumblr library, like follow and repost links, tumblr iframe
 TODO: create lab notes tumblr and post some sample entries with code and syntax highlighting
-TODO: ---cascade variables to child pages -- allow *variables that get assigned to all child pages of a section, including default *title in index.html
+TODO: add more features to Tumblr library, like follow and repost links, tumblr iframe
 TODO: rounded & matted image styles
+
+Low Priority - can just use ?clearcache when needed.
+TODO: build validate_cache methods (via name.mtime hash of content dir, store in __db__), tumblr post (check latest, ajax check?, use tags for pages vs. blog pages vs. blog posts)
 
 */
 
@@ -59,29 +58,6 @@ class Pastefolio {
 
 	// uri arguments
 	public static $arguments = array();
-
-
-	/*
-	public static function build_file_cache($dir = '.') {
-    # build file cache
-    $files = glob($dir.'/*');
-    $files = is_array($files) ? $files : array();
-    foreach($files as $path) {
-      $file = basename($path);
-      if(substr($file, 0, 1) == "." || $file == "_cache") continue;
-      if(is_dir($path)) self::build_file_cache($path);
-      if(is_readable($path)) {
-        self::$file_cache[$dir][] = array(
-          'path' => $path,
-          'file_name' => $file,
-          'is_folder' => (is_dir($path) ? 1 : 0),
-          'mtime' => filemtime($path)
-        );
-      }
-    }
-  }
-*/
-
 
 
 	// instantiate controller

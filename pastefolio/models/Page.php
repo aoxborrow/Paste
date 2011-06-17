@@ -43,7 +43,7 @@ class Page extends Mustache{
 	public $parents = array();
 
 	// these vars cascade down through child pages
-	public $_inherit = array('template', 'partial');
+	// public $_inherit = array('template', 'partial');
 
 	// takes a content file path and returns a Page model
 	public static function factory($path) {
@@ -110,7 +110,7 @@ class Page extends Mustache{
 	// check if current page or section
 	public function current() {
 
-		// current page URL matches request url
+		// if current page URL matches request url
 		return ltrim($this->url(), '/') == Pastefolio::$current_uri;
 
 	}
@@ -146,7 +146,7 @@ class Page extends Mustache{
 			// assign entire html to content property
 			$this->content = $html;
 
-			// add debug page variables
+			// add page variables for debugging
 			// $this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
 
 		}
@@ -172,7 +172,7 @@ class Page extends Mustache{
 			// get parent section
 			$parent = $this->parent();
 
-			// return parent property
+			// assign parent property to current page
 			$this->$var = $parent->_inherit($var);
 
 			// echo 'inherited '.$parent->name.'->'.$var.': '.$this->$var.'<br/>';
@@ -334,7 +334,7 @@ class Page extends Mustache{
 	public function _relative_page($offset = 0) {
 
 		// create page map from current section
-		$section = Content::find_flat(array('section' => $this->section, 'is_visible' => TRUE));
+		$section = Content::find_names(array('section' => $this->section, 'is_visible' => TRUE));
 
 		// find current key
 		$current_page_index = array_search($this->name, $section);

@@ -22,7 +22,7 @@ class Content {
 				// traverse content directory and load all content
 				self::$db = self::load_section(CONTENTPATH);
 
-				//store content database in cache
+				// store content database in cache
 				Cache::instance()->set('__db__', self::$db);
 			}
 
@@ -31,6 +31,27 @@ class Content {
 		return self::$db;
 
 	}
+
+		/*
+		public static function build_file_cache($dir = '.') {
+	    # build file cache
+	    $files = glob($dir.'/*');
+	    $files = is_array($files) ? $files : array();
+	    foreach($files as $path) {
+	      $file = basename($path);
+	      if(substr($file, 0, 1) == "." || $file == "_cache") continue;
+	      if(is_dir($path)) self::build_file_cache($path);
+	      if(is_readable($path)) {
+	        self::$file_cache[$dir][] = array(
+	          'path' => $path,
+	          'file_name' => $file,
+	          'is_folder' => (is_dir($path) ? 1 : 0),
+	          'mtime' => filemtime($path)
+	        );
+	      }
+	    }
+	  }
+	*/
 
 	// retrieve single page by properties
 	public static function find($terms) {
@@ -51,11 +72,13 @@ class Content {
 			foreach ($terms as $property => $value) {
 
 				if ($page->$property !== $value)
+					// skip to next page if property doesn't match
 					continue 2;
 
 			}
 
-			$pages[] = $page;
+			// clone the page object so we don't alter original
+			$pages[] = clone $page;
 
 		}
 
@@ -63,37 +86,14 @@ class Content {
 
 	}
 
-	// can't get this closure to work right
-	// filter and return pages by properties
-	public static function find_all2($terms) {
-
-		$pages = self::db();
-
-		$pages = array_filter($pages, function($page) use ($terms) {
-
-			foreach ($terms as $property => $value) {
-
-				if ($page->$property !== $value)
-					return FALSE;
-
-			}
-
-			return TRUE;
-
-		});
-
-		return $pages;
-
-	}
-
-	// returns page properties in a flat array
-	public static function find_flat($terms, $property = 'name') {
+	// returns page names in a flat array
+	public static function find_names($terms) {
 
 		$pages = array();
 
 		foreach (self::find_all($terms) as $page) {
 
-			$pages[] = $page->$property;
+			$pages[] = $page->name;
 
 		}
 
