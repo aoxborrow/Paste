@@ -1,6 +1,6 @@
 <?php
 
-// template view wrapper, in order to more easily change templating libraries
+// template view wrapper, in order to easily change templating libraries
 class Template {
 
 	// template contents
@@ -67,13 +67,13 @@ class Template {
 
 	}
 
-	// render the template with supplied page model and return the output
+	// render the template with supplied page model
 	public function render($page = NULL) {
 
 		// a Page model with inherited template and partials
 		if ($page instanceof Page) {
 
-			// get defined page template
+			// get defined page template, inherited from parent if necessary
 			$page_template = $page->template();
 
 			// setup main page template
@@ -88,7 +88,7 @@ class Template {
 
 		}
 
-		// instantiate Mustache view
+		// instantiate Mustache view and render template
 		return (string) new Mustache($this->_template, $page);
 
 	}

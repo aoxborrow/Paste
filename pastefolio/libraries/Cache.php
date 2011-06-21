@@ -16,7 +16,7 @@ class Cache {
 
 	// Default lifetime of caches in seconds. Specific lifetime can also be set when creating a new cache.
 	// Setting this to 0 or FALSE will disable cache.
-	public static $lifetime = 600;
+	public static $lifetime = 3600;
 
 	// Number of cache requests that will be processed before all expired caches are deleted. This is commonly referred to as "garbage collection".
 	// Setting this to 0 or a negative number will disable automatic garbage collection.
@@ -112,7 +112,7 @@ class Cache {
 	// this will delete the item if it is expired or if the hash does not match the stored hash.
 	public function get($id)
 	{
-		// no caching with without lifetime
+		// no caching without lifetime
 		if (! self::$lifetime)
 			return NULL;
 
@@ -228,7 +228,7 @@ class Cache {
 	// set a cache item by id. tags may also be added and a custom lifetime can be set. non-string data is automatically serialized.
 	function set($id, $data, $tags = NULL, $lifetime = NULL)
 	{
-		// no caching with without lifetime
+		// no caching without lifetime
 		if (! self::$lifetime)
 			return NULL;
 

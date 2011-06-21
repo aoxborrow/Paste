@@ -3,7 +3,11 @@
 // catch-all content controller
 class content_controller extends template_controller {
 
-	public function __call($method, $args) {
+	public function __call($method, $arguments) {
+
+		// check for cached content before executing
+		if ($this->_valid_cache())
+			return;
 
 		// decipher content request
 		$request = empty(Pastefolio::$current_uri) ? array('index') : explode('/', Pastefolio::$current_uri);
@@ -21,7 +25,7 @@ class content_controller extends template_controller {
 		if ($this->page === FALSE) {
 
 			// trigger 404 message
-			return $this->error_404();
+			return $this->_404();
 
 		// section page configured to redirect to first child
 		} elseif ($this->page->is_section AND $this->page->redirect == 'first_child') {

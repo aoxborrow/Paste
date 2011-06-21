@@ -14,6 +14,10 @@ if (! isset($template_path))
 if (! isset($cache_path))
 	$cache_path = 'templates';
 
+// set cache lifetime in seconds. 0 or FALSE disables cache
+if (! isset($cache_time))
+	$cache_time = 3600;
+
 // directory where Pastefolio is located
 if (! isset($app_path))
 	$app_path = dirname(__FILE__);
@@ -54,37 +58,21 @@ Cache::$directory = CACHEPATH;
 // set cache lifetime in seconds. 0 or FALSE disables cache
 Cache::$lifetime = $cache_time;
 
+// init Content database
+Content::init();
+
 // assign user configured routes
 Pastefolio::$routes = $routes;
 
 // match requested uri to route and instantiate controller
-Pastefolio::request($_SERVER['REQUEST_URI']);
+Pastefolio::execute($_SERVER['REQUEST_URI']);
 
-// check if cached content is available
-if (empty(Pastefolio::$instance->output)) {
-
-	// execute controller method
-	Pastefolio::execute();
-
-	// auto render controller template if available
-	if (method_exists(Pastefolio::$instance, '_render'))
-		Pastefolio::$instance->_render();
-
-}
-
-// echo buffered output
-echo Pastefolio::$instance->output;
-
+// auto render controller template if available
+if (method_exists(Pastefolio::$instance, '_render'))
+	Pastefolio::$instance->_render();
 
 // stop benchmark, get execution time
 $benchmark_time = number_format(microtime(TRUE) - $benchmark_start, 4);
 
 // add benchmark time to end of HTML
 echo '<!-- Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).' -->';
-
-// clean up config vars
-unset($app_path, $content_path, $template_path, $routes, $cache, $benchmark_start, $benchmark_time);
-
-
-
-

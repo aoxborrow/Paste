@@ -28,7 +28,7 @@ TODO: add more features to Tumblr library, like follow and repost links, tumblr 
 TODO: rounded & matted image styles
 
 Low Priority - can just use ?clearcache when needed.
-TODO: build validate_cache methods (via name.mtime hash of content dir, store in __db__), tumblr post (check latest, ajax check?, use tags for pages vs. blog pages vs. blog posts)
+TODO: build validate_cache methods (via name.mtime hash of content dir, store in __content__), tumblr post (check latest, ajax check?, use tags for pages vs. blog pages vs. blog posts)
 
 */
 
@@ -46,9 +46,6 @@ class Pastefolio {
 
 	// controller instance
 	public static $instance;
-
-	// controller reflector
-	public static $class;
 
 	// routed controller
 	public static $controller;
@@ -68,66 +65,59 @@ class Pastefolio {
 			try {
 
 				// start validation of the controller
-				self::$class = new ReflectionClass(self::$controller.'_controller');
+				$class = new ReflectionClass(self::$controller.'_controller');
 
 			} catch (ReflectionException $e) {
 
 				// controller does not exist
-				return self::request('_default');
+				return self::execute('_default');
 
 			}
 
 			// create a new controller instance
-			self::$instance = self::$class->newInstance();
+			self::$instance = $class->newInstance();
+
+			try {
+
+				// load the controller method
+				$method = $class->getMethod(self::$method);
+
+				// method exists
+				if (self::$method[0] === '_') {
+
+					// do not allow access to hidden methods
+					return self::execute('_default');
+				}
+
+				if ($method->isProtected() or $method->isPrivate()) {
+
+					// do not attempt to invoke protected methods
+					return self::execute('_default');
+				}
+
+				// default arguments
+				$arguments = self::$arguments;
+
+			} catch (ReflectionException $e) {
+
+				// use __call instead
+				$method = $class->getMethod('__call');
+
+				// use arguments in __call format
+				$arguments = array(self::$method, self::$arguments);
+			}
+
+			// execute the controller method
+			$method->invokeArgs(self::$instance, $arguments);
 
 		}
 
 		return self::$instance;
 	}
 
-	// execute requested method
-	public static function execute() {
-
-		// ensure controller is instantiated
-		self::instance();
-
-		try {
-			// load the controller method
-			$method = self::$class->getMethod(self::$method);
-
-			// method exists
-			if (self::$method[0] === '_') {
-
-				// do not allow access to hidden methods
-				return self::request('_default');
-			}
-
-			if ($method->isProtected() or $method->isPrivate()) {
-
-				// do not attempt to invoke protected methods
-				return self::request('_default');
-			}
-
-			// default arguments
-			$arguments = self::$arguments;
-
-		} catch (ReflectionException $e) {
-
-			// use __call instead
-			$method = self::$class->getMethod('__call');
-
-			// use arguments in __call format
-			$arguments = array(self::$method, self::$arguments);
-		}
-
-		// execute the controller method
-		$method->invokeArgs(self::$instance, $arguments);
-
-	}
-
 
 	// simple router, takes uri and maps controller, method and arguments
-	public static function request($uri) {
+	public static function execute($uri) {
 
 		// remove query string from URI
 		if (($query = strpos($uri, '?')) !== FALSE)

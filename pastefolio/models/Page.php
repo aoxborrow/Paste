@@ -9,6 +9,9 @@ class Page extends Mustache{
 	// path to page content
 	public $path;
 
+	// modified time (unix mtime)
+	public $mtime;
+
 	// page title, used in menu
 	public $title;
 
@@ -53,6 +56,9 @@ class Page extends Mustache{
 
 		// file name without prefix or extension
 		$page->name = Content::base_name($path);
+
+		// file modified time
+		$page->mtime = filemtime($path);
 
 		// path without trailing slash
 		$page->path = rtrim($path, '/');

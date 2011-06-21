@@ -2,14 +2,11 @@
 
 class template_controller {
 
-	// enable caching
-	public $caching = TRUE;
+	// buffered output
+	public $output;
 
 	// content cache key
 	public $cache_key;
-
-	// buffered output
-	public $output;
 
 	// page data model
 	public $page;
@@ -31,7 +28,7 @@ class template_controller {
 			Pastefolio::$instance = $this;
 
 		// disable cache
-		if (isset($_GET['nocache']) || ! $this->caching)
+		if (isset($_GET['nocache']))
 			Cache::$lifetime = FALSE;
 
 		// clear cache
@@ -39,13 +36,13 @@ class template_controller {
 			Cache::instance()->delete_all();
 
 		// use requested URI as cache key
-		$this->cache_key = empty(Pastefolio::$current_uri) ? 'index' : Pastefolio::$controller.'-'.Pastefolio::$current_uri;
+		$this->cache_key = empty(Pastefolio::$current_uri) ? 'index' : Pastefolio::$controller.'_'.Pastefolio::$current_uri;
 
 		// try to fetch requested URI from cache
 		$this->output = Cache::instance()->get($this->cache_key);
 
-		// validate cache and delete if old
-		$this->_validate_cache();
+		// send text/html UTF-8 header
+		header('Content-Type: text/html; charset=UTF-8');
 
 		// start output buffering
 		ob_start();
@@ -66,50 +63,57 @@ class template_controller {
 
 	public function __call($method, $args) {
 
-		// print_r(func_get_args());
-		return $this->error_404();
+		// controller method not found
+		return $this->_404();
 
 	}
 
-	public function error_404() {
+	// validate cache and delete if old. this method should be implemented by each controller that uses caching
+	public function _valid_cache() {
+
+		return ! empty($this->output);
+
+	}
+
+	public function _404() {
 
 		// disable caching for 404s
-		$this->caching = FALSE;
+		Cache::$lifetime = FALSE;
 
 		// send 404 header
 		header('HTTP/1.1 404 File Not Found');
 
-		// draw 404 content page if available
+		// draw 404 content if available
 		$this->page = Content::find(array('name' => '404'));
 
-	}
-
-	// TODO: validate cache and delete if old. this should be implemented by each controller
-	public function _validate_cache() {
-
-		if (! empty($this->output)) {
-			// validate cache
-			// if invalid, delete tag based on controller
-			// Cache::instance()->delete_tag(Pastefolio::$controller);
-		}
+		// if no 404 content available, just echo simple error message
+		if (empty($this->page))
+			echo '<h1>404 - File Not Found</h1>';
 
 	}
 
 	// auto render template
 	public function _render() {
 
-		// send text/html UTF-8 header
-		header('Content-Type: text/html; charset=UTF-8');
+		// no cached version available, render template
+		if (empty($this->output)) {
 
-		// render the template after controller execution
-		echo $this->template->render($this->page);
+			// render the template after controller execution
+			echo $this->template->render($this->page);
 
-		// store the output buffer
-		$this->output = ob_get_clean();
+			// store the output buffer
+			$this->output = ob_get_contents();
 
-		// store output in cache if enabled
-		if ($this->caching)
-			Cache::instance()->set($this->cache_key, $this->output, array(Pastefolio::$controller));
+			// store output in cache if enabled
+			Cache::instance()->set($this->cache_key, $this->output);
+
+		}
+
+		// end output buffering and clear buffer
+		ob_end_clean();
+
+		// echo buffered output
+		echo $this->output;
 
 	}
 

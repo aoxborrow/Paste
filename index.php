@@ -10,7 +10,7 @@ $template_path = 'templates';
 $cache_path = 'cache';
 
 // set cache lifetime in seconds. 0 or FALSE disables cache
-$cache_time = 600;
+$cache_time = 60;
 
 // define routing rules, longest first
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing

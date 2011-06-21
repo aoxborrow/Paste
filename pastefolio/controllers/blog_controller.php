@@ -28,6 +28,10 @@ class blog_controller extends template_controller {
 
 	public function index() {
 
+		// check for cached content before executing
+		if ($this->_valid_cache())
+			return;
+
 		return $this->page();
 
 	}
@@ -54,6 +58,11 @@ class blog_controller extends template_controller {
 
 	public function post($id) {
 
+		// check for cached content before executing
+		if ($this->_valid_cache())
+			return;
+
+
 		// hack to get menu highlighted
 		Pastefolio::$current_uri = 'notes';
 
@@ -73,6 +82,11 @@ class blog_controller extends template_controller {
 
 	// draw page of blog posts
 	public function page($page = 1) {
+
+		// check for cached content before executing
+		if ($this->_valid_cache())
+			return;
+
 
 		// hack to get menu highlighted
 		Pastefolio::$current_uri = 'notes';
