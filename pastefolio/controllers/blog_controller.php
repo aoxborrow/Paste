@@ -1,5 +1,6 @@
 <?php
 
+// simple blog controller, using Tumblr API
 class blog_controller extends template_controller {
 
 	// instance of blog driver

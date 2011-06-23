@@ -16,20 +16,16 @@ Site Design Goals:
 - barebones micro MVC pattern
 - simple routing
 - only load classes i'll be using
-- no html in controllers, super thin controllers
-- view models
+- super thin controllers
+- robust view models
 - mustache for ultra dumb templates
 - experiment with various new techs
 - use history API for loading project content: http://html5demos.com/history/
 - abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
 
 TODO: create lab notes tumblr and post some sample entries with code and syntax highlighting
-TODO: add more features to Tumblr library, like follow and repost links, tumblr iframe
+TODO: update project images
 TODO: rounded & matted image styles
-
-Low Priority - can just use ?clearcache when needed.
-TODO: build validate_cache methods (via name.mtime hash of content dir, store in __content__), tumblr post (check latest, ajax check?, use tags for pages vs. blog pages vs. blog posts)
-
 */
 
 

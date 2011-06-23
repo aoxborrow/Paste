@@ -47,7 +47,7 @@ class template_controller {
 		// current_page is controller method by default
 		$this->current_page = Pastefolio::$method;
 
-		// setup template model
+		// setup template instance
 		$this->template = new Template;
 
 		// empty page model

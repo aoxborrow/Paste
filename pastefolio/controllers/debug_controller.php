@@ -1,6 +1,6 @@
 <?php
 
-// debug controller for testing
+// debug controller for testing and benchmarking
 class debug_controller {
 
 	public $benchmark_start;
@@ -22,21 +22,17 @@ class debug_controller {
 			/*
 			// 100x = .775
 			// 1000x = 7.3575
-			echo 'loading content db #'.$i."\n";
+			echo 'benchmarking content db #'.$i."\n";
 			$c = Content::load_section(CONTENTPATH);
 			*/
 
 			// 100x = .145
 			// 1000x = 1.3808
-			echo 'checking content hash #'.$i."\n";
+			echo 'benchmarking content hash #'.$i."\n";
 			$c = Content::content_hash(CONTENTPATH);
 			clearstatcache();
 
 		}
-
-		//Content::db();
-		//Content::validate_cache();
-		//var_dump(array_values(Pastefolio::$pages));
 
 	}
 
