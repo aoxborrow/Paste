@@ -45,9 +45,9 @@ h2 {
 
 a:hover, a:active { outline: none; }
 
-a, a:active, a:visited { color: #444; text-decoration: none; }
-a:hover { color: #888; }
-a:link { -webkit-tap-highlight-color: #444; }
+a, a:active, a:visited { color: #111; text-decoration: none; }
+a:hover { color: #000; text-decoration: underline; }
+a:link { -webkit-tap-highlight-color: #111; }
 
 ::-moz-selection{ background: #f6182c; color:#fff; text-shadow: none; }
 ::selection { background: #f6182c; color:#fff; text-shadow: none; }
@@ -159,7 +159,6 @@ ul.menu li a:hover {
 /* Right Column & Project Content */
 
 img.cover {
-	border: 5px solid #fff;
 	margin-top: 10px;
 }
 
@@ -327,14 +326,14 @@ a.launch:hover {
 
 /* About Page Content */
 
-div.contact {
+div.about p {
+	width: 100%;
+}
+
+
+div.about img.mugshot {
 	float: left;
-	background-color: #555;
-	border: 5px solid #555;
-	width: 160px;
-	margin: 0 30px 100px 0;
-	border-bottom-right-radius: 5px;
-	border-bottom-left-radius: 5px;
+	margin: 0 30px 100px 0;	
 }
 
 div.contact b {
@@ -342,27 +341,22 @@ div.contact b {
 }
 
 div.contact p {
-	margin: 0 0 4px 8px;
+	margin: 20px 0 4px 0px;
 }
 
 div.contact a, div.contact strong {
 	font-weight: bold;
 	font-size: 11px;
-	color: #ddd;
+	color: #77;
 	text-decoration: none;
 }
 
 div.contact a:hover {
-	color: #fff;
+	color: #222;
 }
 
 div.contact img {
 	margin: 5px 8px -3px -3px;
 }
 
-div.contact img.mugshot {
-	margin: 0;
-	width: 160px;
-	height: 180px;
-}
 

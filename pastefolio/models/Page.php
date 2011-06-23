@@ -132,7 +132,7 @@ class Page extends Mustache{
 	}
 
 	// check if current page or section
-	public function current() {
+	public function current_old() {
 
 		// if current page URL matches request url
 		return ltrim($this->url(), '/') == Pastefolio::$current_uri;
@@ -140,14 +140,14 @@ class Page extends Mustache{
 	}
 
 	// check if current page or section
-	public function current2() {
+	public function current() {
 
 		// get current page and section from controller
 		$current_page = Pastefolio::instance()->current_page;
 		$current_section = Pastefolio::instance()->current_section;
 
-		// return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
-		return ($this->name == $current_page AND $this->section == $current_section);
+		return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+		// return ($this->name == $current_page AND $this->section == $current_section);
 
 	}
 
