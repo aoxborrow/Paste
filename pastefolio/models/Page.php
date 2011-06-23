@@ -101,15 +101,33 @@ class Page extends Mustache{
 
 	}
 
-	// build full URL based on parent sections
+	// build full URL based on parent sections, or use defined redirect
 	public function url($base = '/') {
 
-		// iterate parent sections in reverse
-		foreach (array_reverse($this->parents) as $parent)
-			$base .= $parent.'/';
+		// section page configured to redirect to first child
+		if ($this->is_section AND $this->redirect == 'first_child') {
 
-		// add page name
-		return $base.$this->name;
+			// get first child page name
+			$first = $this->first_child();
+
+			// return first child url
+			return $first->url();
+
+		// redirect configured
+		} elseif (! empty($this->redirect)) {
+
+			return $this->redirect;
+
+		} else {
+
+			// iterate parent sections in reverse
+			foreach (array_reverse($this->parents) as $parent)
+				$base .= $parent.'/';
+
+			// add page name
+			return $base.$this->name;
+
+		}
 
 	}
 
@@ -130,6 +148,35 @@ class Page extends Mustache{
 
 		// return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
 		return ($this->name == $current_page AND $this->section == $current_section);
+
+	}
+
+	public function template() {
+
+		return $this->_inherit('template');
+
+	}
+
+	public function partial() {
+
+		return $this->_inherit('partial');
+
+	}
+
+	// get property from parent section
+	public function _inherit($var) {
+
+		if (empty($this->$var)) {
+
+			// get parent section
+			$parent = $this->parent();
+
+			// assign parent property to current page
+			$this->$var = $parent->_inherit($var);
+
+		}
+
+		return $this->$var;
 
 	}
 
@@ -156,37 +203,6 @@ class Page extends Mustache{
 			// $this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
 
 		}
-	}
-
-	public function template() {
-
-		return $this->_inherit('template');
-
-	}
-
-	public function partial() {
-
-		return $this->_inherit('partial');
-
-	}
-
-	// get property from parent section
-	public function _inherit($var) {
-
-		if (empty($this->$var)) {
-
-			// get parent section
-			$parent = $this->parent();
-
-			// assign parent property to current page
-			$this->$var = $parent->_inherit($var);
-
-			// echo 'inherited '.$parent->name.'->'.$var.': '.$this->$var.'<br/>';
-
-		}
-
-		return $this->$var;
-
 	}
 
 	// process content for embedded variables
@@ -225,8 +241,8 @@ class Page extends Mustache{
 
 				$value = TRUE;
 
-			// strip any comments from	variables
-			} elseif (strpos($value, '//')) {
+			// strip any comments from	variables, except redirect
+			} elseif ($key !== 'redirect' AND strpos($value, '//')) {
 
 				$value = substr($value, 0, strpos($value, '//'));
 

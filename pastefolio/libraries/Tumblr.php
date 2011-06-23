@@ -1,9 +1,6 @@
 <?php
-/**
- * Simple Tumblr driver for Pastefolio blog
- *
-*/
 
+// Simple Tumblr driver for Pastefolio blog
 class Tumblr {
 
 	// API params to filter Tumblr feed

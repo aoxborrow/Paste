@@ -19,7 +19,7 @@
 
 		<ul class="menu">
 		{{#root}}
-		{{#is_visible}}<li{{#is_section}} class="section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
+		{{#is_visible}}<li class="section"><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
 		{{#children}}
 			{{#is_visible}}<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
 			{{#children}}

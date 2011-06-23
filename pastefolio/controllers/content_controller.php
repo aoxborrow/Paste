@@ -27,20 +27,11 @@ class content_controller extends template_controller {
 			// trigger 404 message
 			return $this->_404();
 
-		// section page configured to redirect to first child
-		} elseif ($this->page->is_section AND $this->page->redirect == 'first_child') {
-
-			// get first child page name
-			$first = $this->page->first_child();
-
-			// redirect to first child url
-			Pastefolio::redirect($first->url());
-
 		// page redirect configured
 		} elseif (! empty($this->page->redirect)) {
 
 			// redirect to url
-			Pastefolio::redirect($this->page->redirect);
+			Pastefolio::redirect($this->page->url());
 
 		}
 

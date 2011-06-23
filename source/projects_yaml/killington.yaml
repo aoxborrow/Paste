@@ -1,6 +1,0 @@
-title: 'Killington Resort'
-subtitle: 'Flash Development'
-numpics: 1
-extension: .jpg
-color: 332C29
-description: '<p><a title="killington.com" href="http://killington.com" target="_blank">Killington Resort</a> is the largest ski resort in the Northeast and is known for its diversity of terrain and extensive network of lifts. I was contracted to build an interactive map of the 200+ trails and 30 lifts which stretch across seven mountain areas in Vermont. The map consumes internal XML feeds to display the current conditions so visitors can see "What''s Open, Right Now." </p><p><a class="launch" title="View Map Demo" href="./archive/killington/" target="_blank">VIEW MAP DEMO</a></p>'

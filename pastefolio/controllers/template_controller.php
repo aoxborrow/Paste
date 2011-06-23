@@ -41,12 +41,6 @@ class template_controller {
 		// try to fetch requested URI from cache
 		$this->output = Cache::instance()->get($this->cache_key);
 
-		// send text/html UTF-8 header
-		header('Content-Type: text/html; charset=UTF-8');
-
-		// start output buffering
-		ob_start();
-
 		// current_section is controller name by default
 		$this->current_section = Pastefolio::$controller;
 
@@ -58,6 +52,9 @@ class template_controller {
 
 		// empty page model
 		$this->page = new Page;
+
+		// start output buffering
+		ob_start();
 
 	}
 
@@ -111,6 +108,9 @@ class template_controller {
 
 		// end output buffering and clear buffer
 		ob_end_clean();
+
+		// send text/html UTF-8 header
+		header('Content-Type: text/html; charset=UTF-8');
 
 		// echo buffered output
 		echo $this->output;
