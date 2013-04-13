@@ -24,7 +24,7 @@ $routes = array(
 );
 
 // location of this file, index.php
-define('DOCROOT', dirname(__FILE__).'/');
+$doc_root = __DIR__.'/';
 
 // Paste bootstrap
 require_once 'Paste/bootstrap.php';

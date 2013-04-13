@@ -23,13 +23,13 @@ class debug_controller {
 			// 100x = .775
 			// 1000x = 7.3575
 			echo 'benchmarking content db #'.$i."\n";
-			$c = Content::load_section(CONTENTPATH);
+			$c = Content::load_section(CONTENT_PATH);
 			*/
 
 			// 100x = .145
 			// 1000x = 1.3808
 			echo 'benchmarking content hash #'.$i."\n";
-			$c = Content::content_hash(CONTENTPATH);
+			$c = Content::content_hash(CONTENT_PATH);
 			clearstatcache();
 
 		}

@@ -1,59 +1,61 @@
-<?php
-// Pastefolio bootstrap.php
+<?php 
+// Paste bootstrap.php
+
+// setup error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', TRUE);
+
+// check PHP version
+version_compare(PHP_VERSION, '5.3', '<') and exit('Paste requires PHP 5.3 or newer.');
 
 // system path defaults, should be configured in index.php
-// directory where content files are stored
+// location of index.php, default is one level up
+if (! isset($doc_root))
+	$doc_root = __DIR__.'/../';
+
+// directory where content files are stored, relative to doc_root
 if (! isset($content_path))
 	$content_path = 'content';
 
-// directory where mustache templates are stored
+// directory where templates are stored, relative to doc_root
 if (! isset($template_path))
 	$template_path = 'templates';
 
-// directory for cache (must be writeable)
+// directory for cache (must be writeable), relative to doc_root
 if (! isset($cache_path))
-	$cache_path = 'templates';
+	$cache_path = 'cache';
 
 // set cache lifetime in seconds. 0 or FALSE disables cache
 if (! isset($cache_time))
-	$cache_time = 3600;
+	$cache_time = 0;
 
-// directory where Pastefolio is located
+// directory where Paste is located
 if (! isset($app_path))
-	$app_path = dirname(__FILE__);
+	$app_path = __DIR__;
+
+// global paths with trailing slash for convenience
+define('DOC_ROOT', realpath($doc_root).'/');
+define('APP_PATH', realpath($app_path).'/');
+define('CONTENT_PATH', realpath(DOC_ROOT.$content_path).'/');
+define('TEMPLATE_PATH', realpath(DOC_ROOT.$template_path).'/');
+define('CACHE_PATH', realpath(DOC_ROOT.$cache_path).'/');
+
+// start benchmark
+$benchmark_start = microtime(TRUE);
 
 // define routing rules, longest first
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
 if (! isset($routes))
 	$routes = array('_default' => 'content'); // default content controller
 
-// setup error reporting
-error_reporting(E_ALL & ~E_STRICT);
-ini_set('display_errors', TRUE);
-
-// check PHP version
-version_compare(PHP_VERSION, '5.2', '<') and exit('Pastefolio requires PHP 5.2 or newer.');
-
-// global paths with trailing slash for convenience
-define('APPPATH', str_replace('\\', '/', realpath($app_path)).'/');
-define('CONTENTPATH', str_replace('\\', '/', realpath(DOCROOT.$content_path)).'/');
-define('TEMPLATEPATH', str_replace('\\', '/', realpath(DOCROOT.$template_path)).'/');
-define('CACHEPATH', str_replace('\\', '/', realpath(DOCROOT.$cache_path)).'/');
-
-// start benchmark
-$benchmark_start = microtime(TRUE);
-
 // core Pastefolio class
-require_once APPPATH.'libraries/Pastefolio.php';
-
-// using Mustache for templating: https://github.com/bobthecow/mustache.php
-// require_once APPPATH.'libraries/Mustache/Mustache.php';
+require_once APP_PATH.'libraries/Pastefolio.php';
 
 // register class autoloader
 spl_autoload_register(array('Pastefolio', 'autoloader'));
 
 // setup cache directory
-Cache::$directory = CACHEPATH;
+Cache::$directory = CACHE_PATH;
 
 // set cache lifetime in seconds. 0 or FALSE disables cache
 Cache::$lifetime = $cache_time;
