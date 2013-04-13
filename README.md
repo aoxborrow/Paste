@@ -1,4 +1,20 @@
-## Pastefolio
+## Paste (2013 rewrite)
+
+**REWRITE 2013 TODO:**
+
+- separate core and a sample site for this repo, move personal portfolio stuff to separate repo
+- does a file based site really need a file cache? -- use memcache if anything. benchmark cache vs. no cache
+- ditch _controller extension.. change templates to just .html
+- probably ditch tumblr... either write a file based blog driver.. Markdown? or just link to a tumblr
+- redo the section control as suggested in Page.php L75
+- more unique syntax for page vars
+- use class const instead of global constants.. e.g Paste::APP_DIR
+- consider dumping the router and controllers completely -- it's not a framework. instead use defined Larvel-style callback routes.
+- simplify as much as possible. too much code for what it's supposed to be
+
+
+
+### Pastefolio (2011)
 
 - Pastefolio is a simple portfolio "CMS" that uses static HTML files instead of a database.
 - It aims to be super fast and easy to maintain. It takes some cues from [http://www.staceyapp.com/](Stacey App).
@@ -8,14 +24,13 @@
 - Mustache.php is used for templating including partials.
 - It uses OOP and the MVC pattern and requires PHP5.
 
-## Design Goals
+### Design Goals
 
 * experiment with various new techs
 * barebones micro MVC pattern
 * simple routing with user-defined routes
-* auto load classes on demand
+* autoloader
 * super thin controllers
-* robust view models
+* robust models
 * mustache for ultra dumb templates
-* use history API for loading project content: http://html5demos.com/history/
 * abstract a separate "pastefolio" core system, create demo app with basic template
