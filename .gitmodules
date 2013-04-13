@@ -1,3 +1,0 @@
-[submodule "pastefolio/libraries/Mustache"]
-	path = pastefolio/libraries/Mustache
-	url = http://github.com/bobthecow/mustache.php

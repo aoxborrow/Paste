@@ -26,5 +26,5 @@ $routes = array(
 // location of this file, index.php
 define('DOCROOT', dirname(__FILE__).'/');
 
-// Pastefolio bootstrap
-require_once 'pastefolio/bootstrap.php';
+// Paste bootstrap
+require_once 'Paste/bootstrap.php';

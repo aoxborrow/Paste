@@ -8,7 +8,6 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 	<link rel="stylesheet" href="/assets/css/base.css">
 	<link rel="stylesheet" href="/assets/css/paste.css">
-	<!-- <script src="/assets/js/modernizr-1.7.min.js"></script>-->
 </head>
 <body>
 <div class="wrapper clearfix">
@@ -17,12 +16,28 @@
 		<a class="logo" href="/"><img src="/assets/images/paste_logo.png" width="60" height="60"></a>
 		<p><strong>Hello, </strong>this is <br/>the portfolio of <br/>Aaron Oxborrow.</p>
 
-		<ul class="menu">
+		<ul class="menu" style="display: none;">
 		{{#root}}
 		{{#is_visible}}<li class="section"><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
 		{{#children}}
 			{{#is_visible}}<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
 			{{/is_visible}}
+		{{/children}}{{/is_visible}}
+		{{/root}}
+		</ul>
+		
+		<ul class="menu">
+		{{#root}}
+		{{#is_visible}}<li class="section"><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
+		{{#children}}
+			{{#is_visible}}<li{{#is_section}} class="sub section"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
+			{{#children}}
+				{{#is_visible}}<li{{#is_section}} class="subsub section"{{/is_section}}{{^is_section}} class="sub"{{/is_section}}><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
+				{{#children}}
+					{{#is_visible}}<li class="subsub"><a{{#current}} class="selected"{{/current}} href="{{url}}">{{title}}</a></li>
+					{{/is_visible}}
+				{{/children}}{{/is_visible}}
+			{{/children}}{{/is_visible}}
 		{{/children}}{{/is_visible}}
 		{{/root}}
 		</ul>
