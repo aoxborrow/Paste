@@ -15,6 +15,6 @@
 		"mustache/mustache": "2.1.*"
 	},
 	"autoload": {
-		"files": ["paste/Paste.php"]
+		"files": ["Paste/Paste.php"]
 	}
 }
