@@ -5,13 +5,6 @@ class Debug {
 
 	public $benchmark_start;
 
-	public static function page($slug = NULL) {
-		
-		echo 'called Debug::page('.$slug.')';
-		die();
-		
-	}
-
 	public function bench() {
 
 		// start benchmark

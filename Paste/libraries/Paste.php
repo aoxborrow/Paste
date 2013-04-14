@@ -8,7 +8,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-class Pastefolio {
+class Paste {
 
 	// configured routes
 	public static $routes = array();
@@ -55,13 +55,9 @@ class Pastefolio {
 		}
 		
 
-		// no route callback matched, use default route, pass URI as only parameter
-		if (! self::$routed_callback) {
+		// no route callback matched, use default route
+		if (! self::$routed_callback)
 			self::$routed_callback = self::$routes['_default'];
-			self::$routed_parameters = array(self::$uri);
-		}
-		
-		echo 'params: '.print_r(self::$routed_parameters, true).'<br/>';
 		
 		// execute routed callback
 		call_user_func_array(self::$routed_callback, self::$routed_parameters);
@@ -72,20 +68,8 @@ class Pastefolio {
 	// find URI from CLI or PHP_SELF
 	public static function uri() {
 
-		// get URI from command line argument if running from CLI
-		if (PHP_SAPI === 'cli') {
-
-			// use first command line argument or "/"
-			$uri = $_SERVER['argv'][1] ?: '/';
-
-		} else {
-
-			// requested URI not including APP_NAME or containing directories
-			// $uri = $_SERVER['PHP_SELF'];
-			// $_SERVER['REQUEST_URI']
-			$uri = getenv('REQUEST_URI') ?: '/';
-
-		}
+		// get requested URI, or from command line argument if running from CLI
+		$uri = (PHP_SAPI === 'cli') ? $_SERVER['argv'][1] : getenv('REQUEST_URI');
 		
 		// remove query string from URI
 		if (FALSE !== $query = strpos($uri, '?'))

@@ -16,17 +16,11 @@ $cache_time = 0;
 // 'route regex' => any valid callback
 // matched tokens from the regex will be passed as parameters
 // e.g. 'blog/post/([A-Za-z0-9]+)' => 'Class::method',
-
 $routes = array(
-	'page/([A-Za-z0-9-_]+)' => array('Debug', 'page'),
-
-	// default content controller
-	'_default' => function($uri) { 
-		
-		echo 'Called _default route callback from URI: '.$uri;
-		
-	}, 
-);
+	// example user defined blog route
+	'blog/post/([A-Za-z0-9-_]+)' => function($slug) { 
+		echo "Example callback route, slug: <b>$slug</b><br/>";
+	});
 
 // location of this file, index.php
 $doc_root = __DIR__.'/';

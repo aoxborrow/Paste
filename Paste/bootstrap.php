@@ -8,6 +8,9 @@ ini_set('display_errors', TRUE);
 // check PHP version
 version_compare(PHP_VERSION, '5.3', '<') and exit('Paste requires PHP 5.3 or newer.');
 
+// start benchmark
+define('EXECUTION_START', microtime(TRUE));
+
 // system path defaults, should be configured in index.php
 // location of index.php, default is one level up
 if (! isset($doc_root))
@@ -40,14 +43,15 @@ define('CONTENT_PATH', realpath(DOC_ROOT.$content_path).'/');
 define('TEMPLATE_PATH', realpath(DOC_ROOT.$template_path).'/');
 define('CACHE_PATH', realpath(DOC_ROOT.$cache_path).'/');
 
-// start benchmark
-$benchmark_start = microtime(TRUE);
+// two useful constants for formatting text
+define('TAB', "\t"); 
+define('EOL', "\n");
 
 // core Pastefolio class
-require_once APP_PATH.'libraries/Pastefolio.php';
+require_once APP_PATH.'libraries/Paste.php';
 
 // register class autoloader
-spl_autoload_register(array('Pastefolio', 'autoloader'));
+spl_autoload_register(array('Paste', 'autoloader'));
 
 // setup cache directory
 Cache::$directory = CACHE_PATH;
@@ -55,15 +59,22 @@ Cache::$directory = CACHE_PATH;
 // set cache lifetime in seconds. 0 or FALSE disables cache
 Cache::$lifetime = $cache_time;
 
-// assign user configured routes
-Pastefolio::$routes = $routes;
+// merge user defined routes over defaults
+Paste::$routes = array_merge(array(
+	
+	// default content controller
+	'_default' => function() { 
+		
+		echo "Called _default route, URI: ".Paste::$uri."<br/>";
+		
+	}), $routes);
 
-// match requested uri to route and instantiate controller
-Pastefolio::run();
+// match routes and execute
+Paste::run();
 
 // stop benchmark, get execution time
-$benchmark_time = number_format(microtime(TRUE) - $benchmark_start, 4);
+define('EXECUTION_TIME', number_format(microtime(TRUE) - EXECUTION_START, 4));
 
 // add benchmark time to end of HTML
-// echo '<!-- Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).' -->';
-echo '<!-- Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).' -->';
+// echo EOL.EOL.'<!-- Execution Time: '.EXECUTION_TIME.', Included Files: '.count(get_included_files()).' -->';
+echo EOL.'<br/>Execution Time: '.EXECUTION_TIME.', Included Files: '.count(get_included_files());
