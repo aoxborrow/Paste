@@ -43,11 +43,6 @@ define('CACHE_PATH', realpath(DOC_ROOT.$cache_path).'/');
 // start benchmark
 $benchmark_start = microtime(TRUE);
 
-// define routing rules, longest first
-// generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
-if (! isset($routes))
-	$routes = array('_default' => 'content'); // default content controller
-
 // core Pastefolio class
 require_once APP_PATH.'libraries/Pastefolio.php';
 
@@ -60,21 +55,15 @@ Cache::$directory = CACHE_PATH;
 // set cache lifetime in seconds. 0 or FALSE disables cache
 Cache::$lifetime = $cache_time;
 
-// init Content database
-Content::init();
-
 // assign user configured routes
 Pastefolio::$routes = $routes;
 
 // match requested uri to route and instantiate controller
-Pastefolio::execute($_SERVER['REQUEST_URI']);
-
-// auto render controller template if available
-if (method_exists(Pastefolio::$instance, '_render'))
-	Pastefolio::$instance->_render();
+Pastefolio::run();
 
 // stop benchmark, get execution time
 $benchmark_time = number_format(microtime(TRUE) - $benchmark_start, 4);
 
 // add benchmark time to end of HTML
-echo 'Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).'';
+// echo '<!-- Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).' -->';
+echo '<!-- Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).' -->';

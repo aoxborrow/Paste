@@ -1,10 +1,10 @@
 <?php
 /**
- * Pastefolio - a simple portfolio CMS. This class provides autoloader, routing and other common methods.
+ * Paste - a super simple "CMS" built around static files and folders.
  *
  * @author     Aaron Oxborrow <aaron@pastelabs.com>
- * @link       http://pastefolio.com
- * @copyright  (c) 2011 Aaron Oxborrow
+ * @link       http://github.com/paste/Paste
+ * @copyright  (c) 2013 Aaron Oxborrow
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
@@ -14,178 +14,116 @@ class Pastefolio {
 	public static $routes = array();
 
 	// request uri
-	public static $current_uri;
+	public static $uri;
 
-	// routed uri
-	public static $routed_uri;
+	// routed callback
+	public static $routed_callback;
 
-	// controller instance
-	public static $instance;
+	// routed callback params
+	public static $routed_parameters = array();
 
-	// routed controller
-	public static $controller;
+	// simple router, takes uri and maps arguments to 
+	public static function run($uri = FALSE) {
+		
+		// no uri supplied, detect it
+		if ($uri === FALSE)
+			$uri = self::uri();
 
-	// routed method, index is default
-	public static $method = 'index';
-
-	// uri arguments
-	public static $arguments = array();
-
-
-	// instantiate controller
-	public static function & instance() {
-
-		if (self::$instance === NULL) {
-
-			try {
-				
-				// start validation of the controller
-				$class = new ReflectionClass(self::$controller.'_controller');
-
-			} catch (ReflectionException $e) {
-
-				// controller does not exist
-				return self::execute('_default');
-
-			}
-
-			// create a new controller instance
-			self::$instance = $class->newInstance();
-
-			try {
-
-				// load the controller method
-				$method = $class->getMethod(self::$method);
-
-				// do not allow access to hidden methods
-				if (self::$method[0] === '_')
-					return self::execute('_default');
-
-				// do not attempt to invoke protected methods
-				if ($method->isProtected() or $method->isPrivate())
-					return self::execute('_default');
-
-				// default arguments
-				$arguments = self::$arguments;
-
-			} catch (ReflectionException $e) {
-
-				// use __call instead
-				$method = $class->getMethod('__call');
-
-				// use arguments in __call format
-				$arguments = array(self::$method, self::$arguments);
-			}
-
-			// execute the controller method
-			$method->invokeArgs(self::$instance, $arguments);
-
-		}
-
-		return self::$instance;
-	}
-
-
-	// simple router, takes uri and maps controller, method and arguments
-	public static function execute($uri) {
-
-		// remove query string from URI
-		if (($query = strpos($uri, '?')) !== FALSE)
-			list ($uri, $query) = explode('?', $uri, 2);
-
-		// store requested URI on first run only
-		if (self::$current_uri === NULL)
-			self::$current_uri = trim($uri, '/');
-
-		// matches a defined route
-		$matched = FALSE;
+		// store requested URI, remove leading and trailing slashes
+		self::$uri = trim($uri, '/');
 
 		// match URI against route
 		foreach (self::$routes as $route => $callback) {
 
-			// trim slashes
-			$route = trim($route, '/');
-			$callback = trim($callback, '/');
-
-			if (preg_match('#^'.$route.'$#u', self::$current_uri)) {
-
-				if (strpos($callback, '$') !== FALSE) {
-
-					// use regex routing
-					self::$routed_uri = preg_replace('#^'.$route.'$#u', $callback, self::$current_uri);
-
-				} else {
-
-					// standard routing
-					self::$routed_uri = $callback;
-
+			// e.g. 'blog/post/([A-Za-z0-9]+)' => 'blog/post/$1'
+			// match URI against keys of defined $routes
+			if (preg_match('#^'.$route.'$#u', self::$uri, $params)) {
+				
+				// we have a live one
+				if (is_callable($callback)) {
+					
+					// our route callback
+					self::$routed_callback = $callback;
+					
+					// parameters are each of the regex matches
+					self::$routed_parameters = array_slice($params, 1);
+					
+					// no need to look further
+					break;
 				}
-
-				// valid route has been found
-				$matched = TRUE;
-				break;
-
 			}
 		}
-
-		// no route matches found, use default route
-		if (! $matched)
-			self::$routed_uri = self::$routes['_default'];
-
-		// decipher controller/method
-		$segments = explode('/', self::$routed_uri);
-
-		// controller is first segment
-		self::$controller = $segments[0];
-
-		// use default method if none specified
-		self::$method = (isset($segments[1])) ? $segments[1] : self::$method;
-
-		// remaining arguments
-		self::$arguments = array_slice($segments, 2);
 		
-		// instatiate controller
-		self::instance();
+
+		// no route callback matched, use default route, pass URI as only parameter
+		if (! self::$routed_callback) {
+			self::$routed_callback = self::$routes['_default'];
+			self::$routed_parameters = array(self::$uri);
+		}
+		
+		echo 'params: '.print_r(self::$routed_parameters, true).'<br/>';
+		
+		// execute routed callback
+		call_user_func_array(self::$routed_callback, self::$routed_parameters);
+
+	}
+
+
+	// find URI from CLI or PHP_SELF
+	public static function uri() {
+
+		// get URI from command line argument if running from CLI
+		if (PHP_SAPI === 'cli') {
+
+			// use first command line argument or "/"
+			$uri = $_SERVER['argv'][1] ?: '/';
+
+		} else {
+
+			// requested URI not including APP_NAME or containing directories
+			// $uri = $_SERVER['PHP_SELF'];
+			// $_SERVER['REQUEST_URI']
+			$uri = getenv('REQUEST_URI') ?: '/';
+
+		}
+		
+		// remove query string from URI
+		if (FALSE !== $query = strpos($uri, '?'))
+			list ($uri, $query) = explode('?', $uri, 2);
+
+		// remove front router (index.php) if it exists in URI
+		if (FALSE !== $pos = strpos($uri, 'index.php'))
+			$uri = substr($uri, $pos + strlen('index.php'));
+
+		// remove leading and trailing slashes if not root
+		return trim($uri, '/');
 
 	}
 
 	// for simple redirects
-	public static function redirect($url = '/') {
+	public static function redirect($uri = '/') {
 
-		header('Location: '.$url);
+		header('Location: '.$uri);
 		exit;
 
 	}
 
+	// simple autoloader, could easily add a vendor dir
 	public static function autoloader($class) {
 
 		// return if class already exists
 		if (class_exists($class, FALSE))
 			return TRUE;
 
-		// controller
-		if (FALSE !== $pos = strpos($class, '_controller')) { 
-			
-			// strip _controller suffix
-			$class = substr($class, 0, $pos);
-			
-			// try the controllers folder
-			if (file_exists(APP_PATH.'controllers/'.$class.'.php')) {
+		// well, try the libraries folder already
+		if (file_exists(APP_PATH.'libraries/'.$class.'.php')) {
 
-				require_once(APP_PATH.'controllers/'.$class.'.php');
-				return TRUE;
-				
-			}
-
-		// try the libraries folder
-		} elseif (file_exists(APP_PATH.'libraries/'.$class.'.php')) {
-
-			require_once(APP_PATH.'libraries/'.$class.'.php');
+			require_once APP_PATH.'libraries/'.$class.'.php';
 			return TRUE;
 
 		} 
 
-		// couldn't find the file
+		// couldn't find the class
 		return FALSE;
 	}
 }

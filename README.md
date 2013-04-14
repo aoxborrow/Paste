@@ -3,7 +3,7 @@
 **REWRITE 2013 TODO:**
 
 - separate core and a sample site for this repo, move personal portfolio stuff to separate repo
-- make autoloader PSR-0 compatible and package it for composer?
+- use namespacing, make autoloader PSR-0 compatible and package it for composer?
 - use newer composer pkg of Mustache. look into new filesystem loader for partials and cache
 - does a file based site really need a file cache? -- use memcache if anything. benchmark cache vs. no cache
 - ditch _controller extension.. change templates to just .html
@@ -14,6 +14,7 @@
 - combine content and template controller?
 - consider dumping the router and controllers completely -- maybe use defined Larvel-style callback routes
 - simplify as much as possible. too much code for what it's supposed to be
+- make a Pre lib!
 
 
 

@@ -12,11 +12,20 @@ $cache_path = 'cache';
 // set cache lifetime in seconds. 0 or FALSE disables cache
 $cache_time = 0;
 
-// define routing rules, longest first
-// generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
+// define routing callbacks
+// 'route regex' => any valid callback
+// matched tokens from the regex will be passed as parameters
+// e.g. 'blog/post/([A-Za-z0-9]+)' => 'Class::method',
+
 $routes = array(
-	'debug' => 'debug', // temporary
-	'_default' => 'content', // default content controller
+	'page/([A-Za-z0-9-_]+)' => array('Debug', 'page'),
+
+	// default content controller
+	'_default' => function($uri) { 
+		
+		echo 'Called _default route callback from URI: '.$uri;
+		
+	}, 
 );
 
 // location of this file, index.php

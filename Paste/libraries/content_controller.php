@@ -59,6 +59,9 @@ class content_controller {
 	}
 
 	public function __call($method, $arguments) {
+		
+		// init Content database
+		// Content::init();
 
 		// check for cached content before executing
 		if ($this->_valid_cache())

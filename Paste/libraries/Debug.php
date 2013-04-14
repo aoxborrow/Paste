@@ -1,20 +1,23 @@
 <?php
 
-// debug controller for testing and benchmarking
-class debug_controller {
+// debug lib for testing and benchmarking
+class Debug {
 
 	public $benchmark_start;
 
-	public function __construct() {
-
-		echo '<pre>';
-
+	public static function page($slug = NULL) {
+		
+		echo 'called Debug::page('.$slug.')';
+		die();
+		
 	}
 
-	public function index() {
+	public function bench() {
 
 		// start benchmark
 		$this->benchmark_start = microtime(TRUE);
+		
+		echo '<pre>';
 
 
 		for ($i = 0; $i < 1000; $i++) {
@@ -33,16 +36,11 @@ class debug_controller {
 			clearstatcache();
 
 		}
-
-	}
-
-	public function _render() {
-
+		
 		echo '</pre>';
 
 		// stop benchmark, get execution time
 		echo number_format(microtime(TRUE) - $this->benchmark_start, 4);
 
 	}
-
 }
