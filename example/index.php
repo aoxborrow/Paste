@@ -8,7 +8,7 @@ ini_set('display_errors', TRUE);
 version_compare(PHP_VERSION, '5.3', '<') and exit('Paste requires PHP 5.3 or newer.');
 
 // need this one
-require 'Paste/Paste.php';
+require '../Paste/Paste.php';
 
 // user defined routing
 // 'route regex' => any valid callback
