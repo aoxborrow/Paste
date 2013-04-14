@@ -8,7 +8,24 @@
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
+// two useful constants for formatting text
+define('TAB', "\t"); 
+define('EOL', "\n");
+
+// the main drag
 class Paste {
+
+	// full path to where index.php resides
+	public static $APP_PATH;
+
+	// full path to content directory
+	public static $CONTENT_PATH;
+
+	// full path to template directory
+	public static $TEMPLATE_PATH;
+
+	// full path to cache directory (must be writeable)
+	public static $CACHE_PATH;
 
 	// configured routes
 	public static $routes = array();
@@ -22,8 +39,68 @@ class Paste {
 	// routed callback params
 	public static $routed_parameters = array();
 
+	// benchmark execution
+	public static $execution_start;
+	public static $execution_time;
+
+	// init Paste, setup paths and execute router
+	public static function run() {
+		
+		// start benchmark
+		self::$execution_start = microtime(TRUE);
+		
+		// register autoloader
+		spl_autoload_register(array('Paste', 'autoloader'));
+		
+		// location of index.php
+		if (! self::$APP_PATH)
+			self::$APP_PATH = getcwd();
+		
+		// ensure trailing slash
+		self::$APP_PATH = rtrim(self::$APP_PATH, '/').'/';
+
+		// directory where content files are stored
+		if (! self::$CONTENT_PATH)
+			self::$CONTENT_PATH = realpath(self::$APP_PATH.'content');
+
+		// directory where templates are stored
+		if (! self::$TEMPLATE_PATH)
+			self::$TEMPLATE_PATH = realpath(self::$APP_PATH.'templates');
+
+		// directory for cache (must be writeable)
+		if (! self::$CACHE_PATH)
+			self::$CACHE_PATH = realpath(self::$APP_PATH.'cache');
+
+		// setup cache directory
+		Cache::$directory = self::$CACHE_PATH;
+
+		// cache lifetime in seconds. 0 or FALSE disables cache
+		Cache::$lifetime = 0;
+		
+		// merge user defined routes over defaults
+		self::$routes = array_merge(array(
+	
+			// default content controller
+			'_default' => function() { 
+		
+				echo "Called _default route, URI: ".Paste::$uri."<br/>";
+				
+			}), self::$routes);
+
+		// match routes and execute glorious vision
+		self::router();
+
+		// stop benchmark, get execution time
+		self::$execution_time = number_format(microtime(TRUE) - self::$execution_start, 4);
+
+		// add benchmark time to end of HTML
+		// echo EOL.EOL.'<!-- Execution Time: '.self::$execution_time.', Included Files: '.count(get_included_files()).' -->';
+		echo EOL.'<br/>Execution Time: '.self::$execution_time.', Included Files: '.count(get_included_files());
+
+	}
+
 	// simple router, takes uri and maps arguments to 
-	public static function run($uri = FALSE) {
+	public static function router($uri = FALSE) {
 		
 		// no uri supplied, detect it
 		if ($uri === FALSE)
@@ -100,9 +177,9 @@ class Paste {
 			return TRUE;
 
 		// well, try the libraries folder already
-		if (file_exists(APP_PATH.'libraries/'.$class.'.php')) {
+		if (file_exists(__DIR__."/$class.php")) {
 
-			require_once APP_PATH.'libraries/'.$class.'.php';
+			require_once __DIR__."/$class.php";
 			return TRUE;
 
 		} 

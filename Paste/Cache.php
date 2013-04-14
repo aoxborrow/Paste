@@ -16,7 +16,7 @@ class Cache {
 
 	// Default lifetime of caches in seconds. Specific lifetime can also be set when creating a new cache.
 	// Setting this to 0 or FALSE will disable cache.
-	public static $lifetime = 3600;
+	public static $lifetime = 0;
 
 	// Number of cache requests that will be processed before all expired caches are deleted. This is commonly referred to as "garbage collection".
 	// Setting this to 0 or a negative number will disable automatic garbage collection.
