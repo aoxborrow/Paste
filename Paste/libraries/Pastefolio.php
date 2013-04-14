@@ -8,27 +8,6 @@
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-/*
-Pastefolio is a simple portfolio CMS that uses static HTML files instead of a database.
-It uses OOP and the MVC pattern and requires PHP5. It uses Mustache for ultra dumb templates.
-
-Site Design Goals:
-- barebones micro MVC pattern
-- simple routing
-- only load classes i'll be using
-- super thin controllers
-- robust view models
-- mustache for ultra dumb templates
-- experiment with various new techs
-- use history API for loading project content: http://html5demos.com/history/
-- abstract a separate "pastefolio" core system into submodule on github, create demo app with basic template
-
-TODO: create lab notes tumblr and post some sample entries with code and syntax highlighting
-TODO: update project images
-TODO: rounded & matted image styles
-*/
-
-
 class Pastefolio {
 
 	// configured routes
@@ -59,7 +38,7 @@ class Pastefolio {
 		if (self::$instance === NULL) {
 
 			try {
-
+				
 				// start validation of the controller
 				$class = new ReflectionClass(self::$controller.'_controller');
 
@@ -78,18 +57,13 @@ class Pastefolio {
 				// load the controller method
 				$method = $class->getMethod(self::$method);
 
-				// method exists
-				if (self::$method[0] === '_') {
-
-					// do not allow access to hidden methods
+				// do not allow access to hidden methods
+				if (self::$method[0] === '_')
 					return self::execute('_default');
-				}
 
-				if ($method->isProtected() or $method->isPrivate()) {
-
-					// do not attempt to invoke protected methods
+				// do not attempt to invoke protected methods
+				if ($method->isProtected() or $method->isPrivate())
 					return self::execute('_default');
-				}
 
 				// default arguments
 				$arguments = self::$arguments;
@@ -169,7 +143,7 @@ class Pastefolio {
 
 		// remaining arguments
 		self::$arguments = array_slice($segments, 2);
-
+		
 		// instatiate controller
 		self::instance();
 
@@ -186,15 +160,22 @@ class Pastefolio {
 	public static function autoloader($class) {
 
 		// return if class already exists
-		if (class_exists($class, FALSE)) {
+		if (class_exists($class, FALSE))
 			return TRUE;
-		}
 
-		// try the controllers folder
-		if (file_exists(APP_PATH.'controllers/'.$class.'.php')) {
+		// controller
+		if (FALSE !== $pos = strpos($class, '_controller')) { 
+			
+			// strip _controller suffix
+			$class = substr($class, 0, $pos);
+			
+			// try the controllers folder
+			if (file_exists(APP_PATH.'controllers/'.$class.'.php')) {
 
-			require_once(APP_PATH.'controllers/'.$class.'.php');
-			return TRUE;
+				require_once(APP_PATH.'controllers/'.$class.'.php');
+				return TRUE;
+				
+			}
 
 		// try the libraries folder
 		} elseif (file_exists(APP_PATH.'libraries/'.$class.'.php')) {

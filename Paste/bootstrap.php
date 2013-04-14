@@ -77,4 +77,4 @@ if (method_exists(Pastefolio::$instance, '_render'))
 $benchmark_time = number_format(microtime(TRUE) - $benchmark_start, 4);
 
 // add benchmark time to end of HTML
-echo '<!-- Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).' -->';
+echo 'Execution Time: '.$benchmark_time.', Included Files: '.count(get_included_files()).'';

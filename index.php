@@ -16,10 +16,6 @@ $cache_time = 0;
 // generally uses Kohana routing conventions: http://docs.kohanaphp.com/general/routing
 $routes = array(
 	'debug' => 'debug', // temporary
-	'notes' => 'blog', // default blog page
-	'notes/archive' => 'blog/archive', // blog archive
-	'notes/page/([A-Za-z0-9]+)' => 'blog/page/$1', // blog pages
-	'notes/post/([A-Za-z0-9]+)' => 'blog/post/$1', // blog post
 	'_default' => 'content', // default content controller
 );
 

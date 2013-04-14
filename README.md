@@ -1,15 +1,18 @@
-## Paste (2013 rewrite)
+## Paste
 
 **REWRITE 2013 TODO:**
 
 - separate core and a sample site for this repo, move personal portfolio stuff to separate repo
+- make autoloader PSR-0 compatible and package it for composer?
+- use newer composer pkg of Mustache. look into new filesystem loader for partials and cache
 - does a file based site really need a file cache? -- use memcache if anything. benchmark cache vs. no cache
 - ditch _controller extension.. change templates to just .html
 - probably ditch tumblr... either write a file based blog driver.. Markdown? or just link to a tumblr
 - redo the section control as suggested in Page.php L75
 - more unique syntax for page vars
-- use class const instead of global constants.. e.g Paste::APP_DIR
-- consider dumping the router and controllers completely -- it's not a framework. instead use defined Larvel-style callback routes.
+- use class const instead of global constants/config.. e.g Paste::APP_DIR
+- combine content and template controller?
+- consider dumping the router and controllers completely -- maybe use defined Larvel-style callback routes
 - simplify as much as possible. too much code for what it's supposed to be
 
 
