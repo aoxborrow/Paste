@@ -1,0 +1,20 @@
+{
+	"name": "paste/paste",
+	"license": "MIT",
+	"description": "Paste is a super simple \"CMS\" built around static files and folders.",
+	"authors": [
+		{
+			"name": "Aaron Oxborrow",
+			"email": "aaron@pastelabs.com",
+			"homepage": "http://pastelabs.com/",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0",
+		"mustache/mustache": "2.1.*"
+	},
+	"autoload": {
+		"files": ["paste/Paste.php"]
+	}
+}
