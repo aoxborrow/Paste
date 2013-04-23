@@ -72,7 +72,7 @@ class Page extends Mustache{
 		$parents = array_reverse(explode('/', $parents, -1));
 
 		// filter parent sections for base names
-		$page->parents = array_map(array('Content', 'base_name'), $parents);
+		$page->parents = array_map('Paste\Content::base_name', $parents);
 
 		// TODO: consider changing structure to create is_section files that don't have content, only section vars
 		// sections are represented by their index file

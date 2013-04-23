@@ -52,7 +52,7 @@ class Paste {
 		self::$execution_start = microtime(TRUE);
 		
 		// register autoloader
-		// spl_autoload_register(array('Paste', 'autoloader'));
+		spl_autoload_register('Paste\Paste::autoloader');
 		
 		// location of index.php
 		if (! self::$APP_PATH)
@@ -174,12 +174,26 @@ class Paste {
 
 	}
 
-	// simple autoloader, could easily add a vendor dir
+	// simple autoloader
 	public static function autoloader($class) {
+		
+		// remove prefixed slash
+		if ($class[0] === '\\') {
+			$class = substr($class, 1);
+		}
+
+		// only try to autoload Paste classes here
+		if (strpos($class, 'Paste') !== 0) {
+			return;
+		}
+		
+		// remove namespace
+		$class = explode('\\', $class);
+		$class = array_pop($class);
 
 		// return if class already exists
-		if (class_exists($class, FALSE))
-			return TRUE;
+		// if (class_exists($class, FALSE))
+		//	return TRUE;
 
 		// well, try the libraries folder already
 		if (file_exists(__DIR__."/$class.php")) {

@@ -188,7 +188,7 @@ class Mustache {
 		try {
 			$result = $this->render();
 			return $result;
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			return "Error rendering mustache: " . $e->getMessage();
 		}
 	}
@@ -775,7 +775,7 @@ class Mustache {
  *
  * @extends Exception
  */
-class MustacheException extends Exception {
+class MustacheException extends \Exception {
 
 	// An UNKNOWN_VARIABLE exception is thrown when a {{variable}} is not found
 	// in the current context.
