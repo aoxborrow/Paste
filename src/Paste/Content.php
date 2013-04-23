@@ -23,7 +23,7 @@ class Content {
 		if (empty(self::$db)) {
 
 			// traverse content directory and load all content
-			self::$db = self::load_section(Paste::$CONTENT_PATH);
+			self::$db = self::load_section(Paste::$content_path);
 			
 			// store content database in cache
 			// Cache::instance()->set('__cache__', self::$db);
@@ -164,7 +164,7 @@ class Content {
 		$db_hash = self::db_hash();
 
 		// create hash from list of current content files
-		$content_hash = self::content_hash(CONTENT_PATH);
+		$content_hash = self::content_hash(Paste::$content_path);
 
 		// compare db hash to current content directory
 		if ($db_hash !== $content_hash) {

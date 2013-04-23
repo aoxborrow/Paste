@@ -51,7 +51,7 @@ class Template {
 		if (! isset(self::$cache[$template])) {
 
 			// load template file and add to cache
-			self::$cache[$template] = file_get_contents(realpath(TEMPLATE_PATH.$template));
+			self::$cache[$template] = file_get_contents(realpath(Paste::$template_path.$template));
 
 		}
 

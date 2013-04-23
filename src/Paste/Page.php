@@ -23,7 +23,7 @@ class Page extends Mustache{
 	// page content
 	public $content;
 
-	// mustache template relative to TEMPLATE_PATH
+	// mustache template relative to template_path
 	public $template;
 
 	// partial mustache template, gets folded into parent section template
@@ -66,7 +66,7 @@ class Page extends Mustache{
 		$page->path = rtrim($path, '/');
 
 		// strip content path off to get parent sections
-		$parents = substr($page->path, strlen(Paste::$CONTENT_PATH));
+		$parents = substr($page->path, strlen(Paste::$content_path));
 
 		// parents array is all enclosing sections
 		$parents = array_reverse(explode('/', $parents, -1));
