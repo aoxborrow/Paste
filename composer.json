@@ -2,6 +2,7 @@
 	"name": "paste/paste",
 	"license": "MIT",
 	"description": "Paste is a super simple \"CMS\" built around static files and folders.",
+    "type": "library",
 	"authors": [
 		{
 			"name": "Aaron Oxborrow",
@@ -15,6 +16,6 @@
 		"mustache/mustache": "2.1.*"
 	},
 	"autoload": {
-		"files": ["Paste/Paste.php"]
+		"psr-0": {"Paste": "src/"}
 	}
 }
