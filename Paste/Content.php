@@ -4,27 +4,27 @@
 class Content {
 
 	// content database
-	protected static $db;
+	public static $db;
 
 	// content file extension
 	public static $ext = '.html';
 
 	// init cached content or load content database
 	public static function init() {
-
+		
 		// check cache for content database
-		self::$db = Cache::instance()->get('__cache__');
+		// self::$db = Cache::instance()->get('__cache__');
 
 		// validate content directory against cached version
-		self::validate_cache();
+		// self::validate_cache();
 
 		if (empty(self::$db)) {
 
 			// traverse content directory and load all content
-			self::$db = self::load_section(CONTENT_PATH);
-
+			self::$db = self::load_section(Paste::$CONTENT_PATH);
+			
 			// store content database in cache
-			Cache::instance()->set('__cache__', self::$db);
+			// Cache::instance()->set('__cache__', self::$db);
 
 		}
 	}
@@ -90,16 +90,20 @@ class Content {
 		$pages = array();
 
 		foreach (self::list_path($path) as $file) {
-
+			
 			// sub directory
 			if (is_dir($path.$file))
 				$pages = array_merge($pages, self::load_section($path.$file.'/'));
 
+
+			echo $path.$file.'<br/>';
+
 			// content file with proper extension
 			if (is_file($path.$file) AND strpos($file, self::$ext))
 				$pages[] = Page::factory($path.$file);
-		}
 
+		}
+		
 		return $pages;
 
 	}

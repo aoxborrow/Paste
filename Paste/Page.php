@@ -64,7 +64,7 @@ class Page extends Mustache{
 		$page->path = rtrim($path, '/');
 
 		// strip content path off to get parent sections
-		$parents = substr($page->path, strlen(CONTENT_PATH));
+		$parents = substr($page->path, strlen(Paste::$CONTENT_PATH));
 
 		// parents array is all enclosing sections
 		$parents = array_reverse(explode('/', $parents, -1));

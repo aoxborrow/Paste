@@ -61,15 +61,15 @@ class Paste {
 
 		// directory where content files are stored
 		if (! self::$CONTENT_PATH)
-			self::$CONTENT_PATH = realpath(self::$APP_PATH.'content');
+			self::$CONTENT_PATH = realpath(self::$APP_PATH.'content').'/';
 
 		// directory where templates are stored
 		if (! self::$TEMPLATE_PATH)
-			self::$TEMPLATE_PATH = realpath(self::$APP_PATH.'templates');
+			self::$TEMPLATE_PATH = realpath(self::$APP_PATH.'templates').'/';
 
 		// directory for cache (must be writeable)
 		if (! self::$CACHE_PATH)
-			self::$CACHE_PATH = realpath(self::$APP_PATH.'cache');
+			self::$CACHE_PATH = realpath(self::$APP_PATH.'cache').'/';
 
 		// setup cache directory
 		Cache::$directory = self::$CACHE_PATH;
@@ -85,6 +85,8 @@ class Paste {
 		
 				echo "Called _default route, URI: ".Paste::$uri."<br/>";
 				
+				Content::init();
+				
 			}), self::$routes);
 
 		// match routes and execute glorious vision
@@ -95,7 +97,8 @@ class Paste {
 
 		// add benchmark time to end of HTML
 		// echo EOL.EOL.'<!-- Execution Time: '.self::$execution_time.', Included Files: '.count(get_included_files()).' -->';
-		echo EOL.'<br/>Execution Time: '.self::$execution_time.', Included Files: '.count(get_included_files());
+		$_mem_usage = memory_get_usage(TRUE);
+		echo EOL.'<br/>Execution Time: '.self::$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB';
 
 	}
 

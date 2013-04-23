@@ -11,6 +11,8 @@
 - just link to tumblr instead of using Tumblr blog driver
 - redo the section control as suggested in Page.php L75
 - more unique syntax for page vars
+- render $menu separately to remove invisible pages
+- consider only loading structure on demand (e.g. menu()), and then only loading page vars
 - simplify as much as possible. too much code for what it's supposed to be
 - make a Pre lib!
 
