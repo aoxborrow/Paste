@@ -12,7 +12,7 @@ class Template {
 	protected static $cache = array();
 
 	// template file extension
-	protected static $ext = '.mustache';
+	protected static $ext = '.stache';
 
 	// factory for method chaining. supply optional template name
 	public static function factory($template = NULL) {
