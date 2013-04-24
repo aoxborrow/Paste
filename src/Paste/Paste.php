@@ -58,7 +58,7 @@ class Paste {
 		$this->execution_start = microtime(TRUE);
 		
 		// register autoloader
-		spl_autoload_register(array($this, 'autoloader'));
+		// spl_autoload_register('Paste::autoloader');
 		
 		// location of index.php
 		if (! self::$app_path)
@@ -199,7 +199,7 @@ class Paste {
 	}
 
 	// simple autoloader
-	public function autoloader($class) {
+	public static function autoloader($class) {
 		
 		// remove prefixed slash
 		if ($class[0] === '\\') {

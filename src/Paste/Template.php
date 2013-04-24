@@ -90,12 +90,15 @@ class Template {
 
 		}
 		
+	
+		// TODO: instantiate engine in constructor, use FilesystemLoader
 		$mustache = new \Mustache_Engine(array(
-			'loader' => new \Mustache_Loader_FilesystemLoader(Paste::$content_path, array('extension' => ".stache")),
+			// 'loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => ".stache")),
+			'loader' => new \Mustache_Loader_StringLoader,
 		));
 		
-		// $tpl = $mustache->loadTemplate($this->_template);
-		$tpl = $mustache->loadTemplate($page_template);
+		$tpl = $mustache->loadTemplate($this->_template);
+		// $tpl = $mustache->loadTemplate($page_template);
 		echo $tpl->render($page);
 		
 

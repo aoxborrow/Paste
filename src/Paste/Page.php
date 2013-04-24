@@ -3,7 +3,7 @@
 namespace Paste;
 
 // page model
-class Page extends Mustache {
+class Page {
 
 	// page name and link id
 	public $name;
