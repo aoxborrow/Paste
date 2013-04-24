@@ -44,7 +44,7 @@ class Template {
 		if (empty($template))
 			return;
 
-		// ensure .mustache file extension
+		// ensure correct file extension
 		$template = (strstr($template, self::$ext)) ? $template : $template.self::$ext;
 
 		// check template cache
@@ -89,9 +89,18 @@ class Template {
 				$this->partial($page_partial);
 
 		}
+		
+		$mustache = new \Mustache_Engine(array(
+			'loader' => new \Mustache_Loader_FilesystemLoader(Paste::$content_path, array('extension' => ".stache")),
+		));
+		
+		// $tpl = $mustache->loadTemplate($this->_template);
+		$tpl = $mustache->loadTemplate($page_template);
+		echo $tpl->render($page);
+		
 
 		// instantiate Mustache view and render template
-		return (string) new Mustache($this->_template, $page);
+		// return (string) new Mustache($this->_template, $page);
 
 	}
 
