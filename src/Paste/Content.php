@@ -5,35 +5,24 @@ namespace Paste;
 // content library
 class Content {
 
-	// content database
+	// content "database"
 	public static $db;
 
 	// content file extension
 	public static $ext = '.html';
 
-	// init cached content or load content database
-	public static function init() {
-		
-		// check cache for content database
-		// self::$db = Cache::instance()->get('__cache__');
+	// load content database
+	public static function load() {
 
-		// validate content directory against cached version
-		// self::validate_cache();
-
-		if (empty(self::$db)) {
-
-			// traverse content directory and load all content
+		// traverse content directory and load all content
+		if (empty(self::$db))
 			self::$db = self::load_section(Paste::$content_path);
-			
-			// store content database in cache
-			// Cache::instance()->set('__cache__', self::$db);
-
-		}
+		
 	}
 
 	// retrieve single page by properties
 	public static function find($terms) {
-
+		
 		$pages = self::find_all($terms);
 
 		return (empty($pages)) ? FALSE : current($pages);
@@ -42,6 +31,9 @@ class Content {
 
 	// filter and return pages by properties
 	public static function find_all($terms) {
+		
+		// ensure we have content loaded
+		self::load();
 
 		$pages = array();
 
@@ -97,9 +89,6 @@ class Content {
 			if (is_dir($path.$file))
 				$pages = array_merge($pages, self::load_section($path.$file.'/'));
 
-
-			echo $path.$file.'<br/>';
-
 			// content file with proper extension
 			if (is_file($path.$file) AND strpos($file, self::$ext))
 				$pages[] = Page::factory($path.$file);
@@ -149,63 +138,6 @@ class Content {
 
 		// strip prefix and return cleaned name
 		return ($prefix) ? substr($name, $prefix + 1) : $name;
-
-	}
-
-	// TODO: cache the results of this method so it only checks once per hour or so
-	// validate cache against content directory, delete if content is newer
-	public static function validate_cache() {
-
-		// no cached db to validate
-		if (empty(self::$db))
-			return;
-
-		// create hash from cached content
-		$db_hash = self::db_hash();
-
-		// create hash from list of current content files
-		$content_hash = self::content_hash(Paste::$content_path);
-
-		// compare db hash to current content directory
-		if ($db_hash !== $content_hash) {
-
-			// clear cached db
-			self::$db = NULL;
-
-			// delete all cache files
-			Cache::instance()->delete_all();
-
-		}
-
-	}
-
-	// generate hash from content database
-	public static function db_hash($files = '') {
-
-		foreach (self::$db as $file) {
-			$files .= $file->path.'.'.$file->mtime.',';
-		}
-
-		return md5(substr($files, 0, -1));
-
-	}
-
-	// generate hash from content directory files and their mtimes
-	public static function content_hash($path, $hash = TRUE, $files = '') {
-
-		foreach (self::list_path($path) as $file) {
-
-			// sub directory
-			if (is_dir($path.$file))
-				$files .= self::content_hash($path.$file.'/', FALSE);
-
-			// content file with proper extension
-			if (is_file($path.$file) AND strpos($file, self::$ext))
-				$files .= $path.$file.'.'.filemtime($path.$file).',';
-		}
-
-		// hash list of files if not recursive
-		return ($hash) ? md5(substr($files, 0, -1)) : $files;
 
 	}
 

@@ -22,9 +22,6 @@ class Paste {
 	// full path to template directory
 	public static $template_path;
 
-	// full path to cache directory (must be writeable)
-	public static $cache_path;
-
 	// configured routes
 	public $routes = array();
 
@@ -36,13 +33,16 @@ class Paste {
 
 	// routed callback params
 	public $routed_parameters = array();
-
+	
+	// controller instance
+	public static $controller;
+		
+	// singleton instance
+	private static $instance;
+	
 	// benchmark execution
 	public $execution_start;
 	public $execution_time;
-	
-	// singleton instance
-	private static $instance;
 	
 	// instantiate singleton
 	public function __construct() {
@@ -75,23 +75,13 @@ class Paste {
 		if (! self::$template_path)
 			self::$template_path = self::$app_path.'templates/';
 
-		// directory for cache (must be writeable)
-		if (! self::$cache_path)
-			self::$cache_path = self::$app_path.'cache/';
-
-		// setup cache directory
-		// Cache::$directory = self::$cache_path;
-
-		// cache lifetime in seconds. 0 or FALSE disables cache
-		// Cache::$lifetime = 0;
-		
 		// add default route for content controller
 		$this->route('_default', function() { 
 		
-			echo "Called _default route, URI: ".Paste::instance()->uri."<br/>";
+			Controller::instance()->run();
 			
-			Content::init();
-				
+			echo "<br/>Called _default route, URI: ".Paste::instance()->uri."<br/>";
+			
 		});
 
 	}

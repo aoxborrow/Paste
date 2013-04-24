@@ -3,13 +3,16 @@
 namespace Paste;
 
 // page model
-class Page extends Mustache{
+class Page extends Mustache {
 
 	// page name and link id
 	public $name;
 
 	// path to page content
 	public $path;
+	
+	// page successfully loaded
+	public $loaded = FALSE;
 
 	// modified time (unix mtime)
 	public $mtime;
@@ -72,7 +75,7 @@ class Page extends Mustache{
 		$parents = array_reverse(explode('/', $parents, -1));
 
 		// filter parent sections for base names
-		$page->parents = array_map('Paste\Content::base_name', $parents);
+		$page->parents = array_map(array('Paste\\Content', 'base_name'), $parents);
 
 		// TODO: consider changing structure to create is_section files that don't have content, only section vars
 		// sections are represented by their index file
@@ -137,16 +140,30 @@ class Page extends Mustache{
 	public function current_old() {
 
 		// if current page URL matches request url
-		return ltrim($this->url(), '/') == Pastefolio::$current_uri;
+		return ltrim($this->url(), '/') == Paste::instance()->$uri;
 
 	}
 
 	// check if current page or section
 	public function current() {
 
+		/*
+		// get current URI, trim slashes
+		$uri = trim(Paste::instance()->uri, '/');
+		
+		// decipher content request
+		$request = empty($uri) ? array('index') : explode('/', $uri);
+
+		// current section is 2nd to last argument (ie. parent2/parent1/section/page) or NULL if root section
+		$current_section = (count($request) < 2) ? NULL : $request[count($request) - 2];
+
+		// current page is always last argument of request
+		$current_page = end($request);
+		*/
+
 		// get current page and section from controller
-		$current_page = Pastefolio::instance()->current_page;
-		$current_section = Pastefolio::instance()->current_section;
+		$current_page = Controller::instance()->current_page;
+		$current_section = Controller::instance()->current_section;
 
 		return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
 		// return ($this->name == $current_page AND $this->section == $current_section);
@@ -203,6 +220,9 @@ class Page extends Mustache{
 
 			// add page variables for debugging
 			// $this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
+			
+			// page is loaded
+			$this->loaded = TRUE;
 
 		}
 	}
