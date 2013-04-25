@@ -2,23 +2,21 @@
 
 **REWRITE 2013 TODO:**
 
-- use newer composer pkg of Mustache. look into Mustache filesystem loader for partials and cache
+- use newer composer pkg of Mustache. use filesystem loader for partials and cache
 - Combine Page & Template
 - Combine Controller & Content
-
-- redo the section control as suggested in Page.php L75
+- redo the section control as suggested in Page.php L75?
 - render menu() separately to remove invisible pages
 - more unique syntax for page vars
 - make a Pre lib!
-
-X change mustache templates to just .stache
-X just link to tumblr instead of using Tumblr blog driver
-X consider only loading structure on demand (e.g. menu()), and then only loading page vars
-X does a file based site really need a file cache? -- use memcache if anything. benchmark cache vs. no cache
-X use namespacing, make autoloader PSR-0 compatible and package it for composer
-X Paste::route() syntax for user defined routes
-X separate core and a sample site for this repo, move personal portfolio stuff to separate repo
-X simplify as much as possible. too much code for what it's supposed to be
+- X change mustache templates to just .stache
+- X just link to tumblr instead of using Tumblr blog driver
+- X consider only loading structure on demand (e.g. menu()), and then only loading page vars
+- X does a file based site really need a file cache? -- use memcache if anything. benchmark cache vs. no cache
+- X use namespacing, make autoloader PSR-0 compatible and package it for composer
+- X Paste::route() syntax for user defined routes
+- X separate core and a sample site for this repo, move personal portfolio stuff to separate repo
+- X simplify as much as possible. too much code for what it's supposed to be
 
 
 
