@@ -2,9 +2,10 @@
 
 **REWRITE 2013 TODO:**
 
-- use newer composer pkg of Mustache. use filesystem loader for partials and cache
 - Combine Page & Template
 - Combine Controller & Content
+- return Paste to all static class?
+- use newer composer pkg of Mustache. use filesystem loader for partials and cache
 - redo the section control as suggested in Page.php L75?
 - render menu() separately to remove invisible pages
 - more unique syntax for page vars
