@@ -2,7 +2,7 @@
 
 **REWRITE TODOs:**
 
-- Combine Page & Template classes (+ Content?)
+- Combine Content into Page
 - use newer composer pkg of Mustache. use filesystem loader for partials and cache
 - redo the section control as suggested in Page.php L75?
 - render menu() separately to remove invisible pages
@@ -11,6 +11,7 @@
 - make a Pre lib!
 - X return Paste to all static class
 - X Combine Controller & Content
+- X Combine Page & Template classes
 - X change mustache templates to just .stache
 - X just link to tumblr instead of using Tumblr blog driver
 - X consider only loading structure on demand (e.g. menu()), and then only loading page vars

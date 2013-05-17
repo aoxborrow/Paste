@@ -26,7 +26,7 @@ class Page {
 	// page content
 	public $content;
 
-	// mustache template relative to template_path
+	// mustache template name
 	public $template;
 
 	// partial mustache template, gets folded into parent section template
@@ -52,6 +52,19 @@ class Page {
 
 	// these vars cascade down through child pages
 	// public $_inherit = array('template', 'partial');
+	
+	// template contents
+	public $_template;
+
+	// cache templates when possible
+	public static $template_cache = array();
+
+	// template file extension
+	public static $template_ext = '.stache';
+	
+	// template directory relative to app path
+	public static $template_dir = 'templates';
+	
 
 	// takes a content file path and returns a Page model
 	public static function factory($path) {
@@ -402,5 +415,74 @@ class Page {
 		// otherwise return false
 		return FALSE;
 	}
+	
+	// get template file contents
+	public function load_template($template) {
+
+		// no template set
+		if (empty($template))
+			return;
+
+		// ensure correct file extension
+		$template = (strstr($template, self::$template_ext)) ? $template : $template.self::$template_ext;
+
+		// check template cache
+		if (! isset(self::$template_cache[$template])) {
+			
+			// directory where content files are stored
+			$template_path = Paste::$path.self::$template_dir.'/';
+
+			// load template file and add to cache
+			self::$template_cache[$template] = file_get_contents(realpath($template_path.$template));
+
+		}
+
+		return self::$template_cache[$template];
+
+	}
+
+	// TODO: make this an array of partials that gets combined on render
+	// merge one template into another via the {{{content}}} string
+	public function load_partial($partial) {
+
+		$partial = $this->load_template($partial);
+
+		$this->_template = str_replace('{{{content}}}', $partial, $this->_template);
+
+	}
+
+	// render the template with supplied page model
+	public function render() {
+
+		// get defined page template, inherited from parent if necessary
+		$page_template = $this->template();
+
+		// load template
+		$this->_template = $this->load_template($page_template);
+
+		// get defined page partial if available
+		$page_partial = $this->partial();
+
+		// combine templates if partial defined
+		if (! empty($page_partial))
+			$this->load_partial($page_partial);
+
+			// TODO: instantiate engine in constructor, use FilesystemLoader
+		$mustache = new \Mustache_Engine(array(
+			// 'loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => ".stache")),
+			'loader' => new \Mustache_Loader_StringLoader,
+		));
+		
+		$tpl = $mustache->loadTemplate($this->_template);
+		// $tpl = $mustache->loadTemplate($page_template);
+		return $tpl->render($this);
+		
+
+		// instantiate Mustache view and render template
+		// return (string) new Mustache($this->_template, $page);
+
+	}
+	
+	
 
 }

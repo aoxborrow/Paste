@@ -35,9 +35,6 @@ class Content {
 		// get requested page from content database
 		self::$page = self::find(array('section' => $section, 'name' => $page));
 		
-		// setup template instance
-		$template = new Template;
-
 		// no page found
 		if (self::$page === FALSE) {
 
@@ -73,7 +70,7 @@ class Content {
 			die(print_r(self::$page));
 		
 		// render the template 
-		echo $template->render(self::$page);
+		echo self::$page->render();
 		
 	}
 	
