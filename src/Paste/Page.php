@@ -69,7 +69,7 @@ class Page {
 		$page->path = rtrim($path, '/');
 
 		// strip content path off to get parent sections
-		$parents = substr($page->path, strlen(Paste::$content_path));
+		$parents = substr($page->path, strlen(Paste::$path.Content::$dir.'/'));
 
 		// parents array is all enclosing sections
 		$parents = array_reverse(explode('/', $parents, -1));
@@ -133,14 +133,6 @@ class Page {
 			return $base.$this->name;
 
 		}
-
-	}
-
-	// check if current page or section
-	public function current_old() {
-
-		// if current page URL matches request url
-		return ltrim($this->url(), '/') == Paste::instance()->$uri;
 
 	}
 

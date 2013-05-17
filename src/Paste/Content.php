@@ -11,14 +11,17 @@ class Content {
 	// content file extension
 	public static $ext = '.html';
 	
+	// content directory relative to app path
+	public static $dir = 'content';
+	
 	// current page data model
 	public static $page;
 
 	// decipher request and render content page
-	public static function render() {
+	public static function render($uri = NULL) {
 		
-		// get current URI, trim slashes
-		$uri = trim(Paste::instance()->uri, '/');
+		// trim slashes
+		$uri = trim($uri, '/');
 		
 		// decipher content request
 		$request = empty($uri) ? array('index') : explode('/', $uri);
@@ -77,10 +80,17 @@ class Content {
 
 	// load content database
 	public static function load() {
-
+		
 		// traverse content directory and load all content
-		if (empty(self::$db))
-			self::$db = self::load_section(Paste::$content_path);
+		if (empty(self::$db)) {
+			
+			// directory where content files are stored
+			$content_path = Paste::$path.Content::$dir.'/';
+			
+			// load root and all child sections
+			self::$db = self::load_section($content_path);
+			
+		}
 		
 	}
 

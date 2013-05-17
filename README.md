@@ -1,15 +1,15 @@
-## Paste
+## Paste (2013)
 
-**REWRITE 2013 TODO:**
+**REWRITE TODOs:**
 
-- Combine Page & Template classes
+- Combine Page & Template classes (+ Content?)
 - use newer composer pkg of Mustache. use filesystem loader for partials and cache
 - redo the section control as suggested in Page.php L75?
 - render menu() separately to remove invisible pages
-- update Page->current() and add Page->section()?
-- return Paste to all static class?
+- update Page->current() and add Page->section()
 - more unique syntax for page vars
 - make a Pre lib!
+- X return Paste to all static class
 - X Combine Controller & Content
 - X change mustache templates to just .stache
 - X just link to tumblr instead of using Tumblr blog driver

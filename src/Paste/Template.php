@@ -13,6 +13,9 @@ class Template {
 
 	// template file extension
 	protected static $ext = '.stache';
+	
+	// template directory relative to app path
+	public static $dir = 'templates';
 
 	// factory for method chaining. supply optional template name
 	public static function factory($template = NULL) {
@@ -49,9 +52,12 @@ class Template {
 
 		// check template cache
 		if (! isset(self::$cache[$template])) {
+			
+			// directory where content files are stored
+			$template_path = Paste::$path.Template::$dir.'/';
 
 			// load template file and add to cache
-			self::$cache[$template] = file_get_contents(realpath(Paste::$template_path.$template));
+			self::$cache[$template] = file_get_contents(realpath($template_path.$template));
 
 		}
 
