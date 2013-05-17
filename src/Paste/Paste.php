@@ -78,7 +78,7 @@ class Paste {
 		// add default route for content controller
 		$this->route('_default', function() { 
 		
-			Controller::instance()->run();
+			Content::render();
 			
 			echo "<br/>Called _default route, URI: ".Paste::instance()->uri."<br/>";
 			
@@ -202,19 +202,17 @@ class Paste {
 	public static function autoloader($class) {
 		
 		// remove prefixed slash
-		if ($class[0] === '\\') {
+		if ($class[0] === "\\")
 			$class = substr($class, 1);
-		}
 
 		// only try to autoload Paste classes here
-		if (strpos($class, 'Paste') !== 0) {
+		if (strpos($class, 'Paste') !== 0)
 			return;
-		}
 		
 		// remove namespace
 		$class = explode('\\', $class);
 		$class = array_pop($class);
-
+		
 		// just load classes from this dir
 		if (is_file(__DIR__."/$class.php"))
 			require __DIR__."/$class.php";

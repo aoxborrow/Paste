@@ -162,11 +162,24 @@ class Page {
 		*/
 
 		// get current page and section from controller
-		$current_page = Controller::instance()->current_page;
-		$current_section = Controller::instance()->current_section;
+		// $current_page = Controller::instance()->current_page;
+		// $current_section = Controller::instance()->current_section;
+		
+		$current_page = Content::$page->name;
+		$current_section = Content::$page->section;
+		
+		// echo 'current_page: '.$current_page."<br>";
+		// echo 'current_section: '.$current_section."<br>";
+		
+		if (Content::$page->is_section) {
+			// if a section, don't allow parent section to be current()
+			return ($this->name == $current_page AND $this->section == $current_section);
+		} else {
+			// if a regular page, allow parent section to be current() 
+			// TODO:: change this in template to check for section() or parent()->name
+			return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+		}
 
-		return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
-		// return ($this->name == $current_page AND $this->section == $current_section);
 
 	}
 
