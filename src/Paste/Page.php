@@ -29,9 +29,6 @@ class Page {
 	// mustache template name
 	public $template;
 
-	// partial mustache template, gets folded into parent section template
-	public $partial;
-
 	// redirect URL for creating aliases
 	public $redirect;
 
@@ -45,27 +42,20 @@ class Page {
 	public $is_section = FALSE;
 
 	// visible in menu
-	public $is_visible = TRUE;
+	public $visible = TRUE;
 
 	// all parent sections
 	public $parents = array();
-
-	// these vars cascade down through child pages
-	// public $_inherit = array('template', 'partial');
-	
-	// template contents
-	public $_template;
 
 	// cache templates when possible
 	public static $template_cache = array();
 
 	// template file extension
 	public static $template_ext = '.stache';
-	
+
 	// template directory relative to app path
 	public static $template_dir = 'templates';
-	
-	
+
 	// content "database"
 	public static $db;
 
@@ -160,17 +150,18 @@ class Page {
 		// filter parent sections for base names
 		$page->parents = array_map(array('Paste\\Page', 'base_name'), $parents);
 
-		// TODO: consider changing structure to create is_section files that don't have content, only section vars
 		// sections are represented by their index file
 		if ($page->name == 'index') {
 
 			$page->is_section = TRUE;
 
 			// if deeper than root section (root section remains index)
-			if (! empty($page->parents))
-
+			if (! empty($page->parents)) {
+				
 				// change name from index to section name and remove section from parents array
 				$page->name = array_shift($page->parents);
+
+			}
 
 		}
 
@@ -258,36 +249,6 @@ class Page {
 
 	}
 
-	public function template() {
-
-		return $this->_inherit('template');
-
-	}
-
-	public function partial() {
-
-		return $this->_inherit('partial');
-
-	}
-
-	// get property from parent section
-	public function _inherit($var) {
-
-		if (empty($this->$var)) {
-
-			// get parent section
-			$parent = $this->parent();
-
-			// assign parent property to current page
-			$this->$var = $parent->_inherit($var);
-
-		}
-
-		return $this->$var;
-
-	}
-
-
 	// load individual content page, process variables
 	public function load() {
 
@@ -365,12 +326,11 @@ class Page {
 
 	}
 
-
-	// get root section
-	public function root() {
-
-		return Page::find_section(NULL);
-
+	public static function debug() {
+		
+		echo 'Debug:<br>';
+		print_r(Page::find_section(NULL));
+		
 	}
 
 	// get parent section
@@ -378,6 +338,7 @@ class Page {
 
 		// root section parent is 'index', rest are section name
 		$parent = ($this->section == NULL) ? 'index' : $this->section;
+		// $parent = $this->section;
 
 		return Page::find(array('name' => $parent));
 
@@ -387,7 +348,7 @@ class Page {
 	public function children($terms = array()) {
 
 		// add optional search terms
-		$terms = array_merge($terms, array('section' => $this->name, 'is_visible' => TRUE));
+		$terms = array_merge($terms, array('section' => $this->name, 'visible' => TRUE));
 
 		return Page::find_all($terms);
 
@@ -417,7 +378,7 @@ class Page {
 	public function siblings($terms = array()) {
 
 		// add optional search terms
-		$terms = array_merge($terms, array('section' => $this->section, 'is_visible' => TRUE));
+		$terms = array_merge($terms, array('section' => $this->section, 'visible' => TRUE));
 
 		return Page::find_all($terms);
 
@@ -466,7 +427,7 @@ class Page {
 	public function _relative_page($offset = 0) {
 
 		// create page map from current section
-		$section = Page::find_names(array('section' => $this->section, 'is_visible' => TRUE));
+		$section = Page::find_names(array('section' => $this->section, 'visible' => TRUE));
 
 		// find current key
 		$current_page_index = array_search($this->name, $section);
@@ -486,8 +447,37 @@ class Page {
 		return FALSE;
 	}
 	
+	// get property from parent section
+	// TODO: use _inheritable array
+	public function _inherit($var) {
+
+		if (empty($this->$var)) {
+
+			// get parent section
+			$parent = $this->parent();
+
+			// assign parent property to current page
+			$this->$var = $parent->_inherit($var);
+
+		}
+
+		return $this->$var;
+
+	}
+	
+	public function template() {
+		
+		// no parents and no template set, use base_template
+		// if (empty($this->parents) AND empty($this->template))
+			// return self::$base_template;
+
+		// return $this->template;
+		return $this->_inherit('template');
+
+	}
+	
 	// get template file contents
-	public function load_template($template) {
+	public static function load_template($template) {
 
 		// no template set
 		if (empty($template))
@@ -510,47 +500,70 @@ class Page {
 		return self::$template_cache[$template];
 
 	}
+	
+	public function menu() {
 
-	// TODO: make this an array of partials that gets combined on render
-	// merge one template into another via the {{{content}}} string
-	public function load_partial($partial) {
-
-		$partial = $this->load_template($partial);
-
-		$this->_template = str_replace('{{{content}}}', $partial, $this->_template);
-
+		return Page::find_section(NULL);
+		
 	}
 
-	// render the template with supplied page model
+	// render the page with templates
 	public function render() {
+		
+		// directory where content files are stored
+		$template_path = Paste::$path.self::$template_dir.'/';
+		
+		// TODO: instantiate engine in constructor, use FilesystemLoader
+		$mustache = new \Mustache_Engine(array(
+			'loader' => new \Mustache_Loader_StringLoader,
+			'partials_loader' => new \Mustache_Loader_FilesystemLoader($template_path, array('extension' => ".stache")),
+		));
 
 		// get defined page template, inherited from parent if necessary
 		$page_template = $this->template();
-
-		// load template
-		$this->_template = $this->load_template($page_template);
-
-		// get defined page partial if available
-		$page_partial = $this->partial();
-
-		// combine templates if partial defined
-		if (! empty($page_partial))
-			$this->load_partial($page_partial);
-
-			// TODO: instantiate engine in constructor, use FilesystemLoader
-		$mustache = new \Mustache_Engine(array(
-			// 'loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => ".stache")),
-			'loader' => new \Mustache_Loader_StringLoader,
-		));
 		
-		$tpl = $mustache->loadTemplate($this->_template);
-		// $tpl = $mustache->loadTemplate($page_template);
-		return $tpl->render($this);
+		// echo 'page_template: '.$page_template.'<br>';
+
+		// page has a template
+		if (! empty($page_template)) {
+
+			// load template
+			$template = self::load_template($page_template);
 		
+			$tpl = $mustache->loadTemplate($template);
+			$content = $tpl->render($this);
+			
+			$this->content = $content;
+			
+		}
 
-		// instantiate Mustache view and render template
-		// return (string) new Mustache($this->_template, $page);
+		// get parent section
+		$parent = $this->parent();
+		
+		
+		if ($parent) {
+			
+			$parent = $parent->parent();
+			// echo 'parent: '.$parent->name.'<br>';
 
+			$parent_template = $parent->template();
+		}
+		
+		$parent_template = $parent->template();
+		// echo 'parent_template: '.$parent_template.'<br>';
+		
+		if (! empty($parent_template) AND $parent_template !== $page_template) {
+		
+			$parent_template = self::load_template($parent_template);
+			
+			$tpl = $mustache->loadTemplate($parent_template);
+			return $tpl->render($this);
+		
+		} else {
+			
+			return $this->content;
+			
+		}
 	}
 	
 

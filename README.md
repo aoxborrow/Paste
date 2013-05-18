@@ -4,11 +4,11 @@
 
 - refactor Page lib
 - use Mustache filesystem loader for partials and cache
-- redo the section control as suggested in Page->factory?
 - render menu() separately to remove invisible pages
 - update Page->is_current() and add Page->is\_section()
 - more unique syntax for page/section vars
 - make a Pre lib!
+- X redo the section control as suggested in Page->factory? no
 - X return Paste to all static class
 - X Combine Content into Page
 - X Combine Controller & Content
