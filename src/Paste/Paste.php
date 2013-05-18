@@ -42,8 +42,8 @@ class Paste {
 		if (! self::$uri)
 			self::$uri = self::uri();
 
-		// add catch-all default route for Content controller
-		self::route('(.*)', 'Paste\Content::render');
+		// add catch-all default route for Page controller
+		self::route('(.*)', 'Paste\Page::get');
 		
 		// execute routing 
 		if ($route = self::routing()) {
@@ -54,7 +54,7 @@ class Paste {
 		} else {
 		
 			// something went sideways -- no matched route -- try 404
-			Content::render('404');
+			Page::get('404');
 			
 		}
 		

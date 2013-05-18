@@ -65,6 +65,76 @@ class Page {
 	// template directory relative to app path
 	public static $template_dir = 'templates';
 	
+	
+	// content "database"
+	public static $db;
+
+	// content file extension
+	public static $content_ext = '.html';
+	
+	// content directory relative to app path
+	public static $content_dir = 'content';
+	
+	// current page data model
+	public static $current_page;
+	
+	// decipher request and render content page
+	public static function get($uri = NULL) {
+		
+		// trim slashes
+		$uri = trim($uri, '/');
+		
+		// decipher content request
+		$request = empty($uri) ? array('index') : explode('/', $uri);
+
+		// current section is 2nd to last argument (ie. parent2/parent1/section/page) or NULL if root section
+		$section = (count($request) < 2) ? NULL : $request[count($request) - 2];
+
+		// current page is always last argument of request
+		$page = end($request);
+		
+		// get requested page from content database
+		self::$current_page = self::find(array('section' => $section, 'name' => $page));
+		
+		// no page found
+		if (self::$current_page === FALSE) {
+
+			// send 404 header
+			header('HTTP/1.1 404 File Not Found');
+
+			// draw 404 content if available
+			self::$current_page = self::find(array('name' => '404'));
+			
+			// if no 404 content available, do somethin' sensible
+			if (self::$current_page === FALSE) {
+
+				// simple 404 page
+				self::$current_page = new Page;
+				self::$current_page->title = 'Error 404 - File Not Found';
+				self::$current_page->content = '<h1>Error 404 - File Not Found</h1>';
+				
+			}
+
+		// page redirect configured
+		} elseif (! empty(self::$current_page->redirect)) {
+
+			// redirect to url
+			return Paste::redirect(self::$current_page->url());
+
+		}
+		
+		// send text/html UTF-8 header
+		header('Content-Type: text/html; charset=UTF-8');
+		
+		// page wasn't loaded
+		if (! self::$current_page->loaded)
+			die(print_r(self::$current_page));
+		
+		// render the template 
+		echo self::$current_page->render();
+		
+	}
+	
 
 	// takes a content file path and returns a Page model
 	public static function factory($path) {
@@ -73,7 +143,7 @@ class Page {
 		$page = new Page;
 
 		// file name without prefix or extension
-		$page->name = Content::base_name($path);
+		$page->name = self::base_name($path);
 
 		// file modified time
 		$page->mtime = filemtime($path);
@@ -82,13 +152,13 @@ class Page {
 		$page->path = rtrim($path, '/');
 
 		// strip content path off to get parent sections
-		$parents = substr($page->path, strlen(Paste::$path.Content::$dir.'/'));
+		$parents = substr($page->path, strlen(Paste::$path.self::$content_dir.'/'));
 
 		// parents array is all enclosing sections
 		$parents = array_reverse(explode('/', $parents, -1));
 
 		// filter parent sections for base names
-		$page->parents = array_map(array('Paste\\Content', 'base_name'), $parents);
+		$page->parents = array_map(array('Paste\\Page', 'base_name'), $parents);
 
 		// TODO: consider changing structure to create is_section files that don't have content, only section vars
 		// sections are represented by their index file
@@ -150,7 +220,7 @@ class Page {
 	}
 
 	// check if current page or section
-	public function current() {
+	public function is_current() {
 
 		/*
 		// get current URI, trim slashes
@@ -170,13 +240,13 @@ class Page {
 		// $current_page = Controller::instance()->current_page;
 		// $current_section = Controller::instance()->current_section;
 		
-		$current_page = Content::$page->name;
-		$current_section = Content::$page->section;
+		$current_page = Page::$current_page->name;
+		$current_section = Page::$current_page->section;
 		
 		// echo 'current_page: '.$current_page."<br>";
 		// echo 'current_section: '.$current_section."<br>";
 		
-		if (Content::$page->is_section) {
+		if (Page::$current_page->is_section) {
 			// if a section, don't allow parent section to be current()
 			return ($this->name == $current_page AND $this->section == $current_section);
 		} else {
@@ -299,7 +369,7 @@ class Page {
 	// get root section
 	public function root() {
 
-		return Content::section(NULL);
+		return Page::find_section(NULL);
 
 	}
 
@@ -309,7 +379,7 @@ class Page {
 		// root section parent is 'index', rest are section name
 		$parent = ($this->section == NULL) ? 'index' : $this->section;
 
-		return Content::find(array('name' => $parent));
+		return Page::find(array('name' => $parent));
 
 	}
 
@@ -319,7 +389,7 @@ class Page {
 		// add optional search terms
 		$terms = array_merge($terms, array('section' => $this->name, 'is_visible' => TRUE));
 
-		return Content::find_all($terms);
+		return Page::find_all($terms);
 
 	}
 
@@ -349,7 +419,7 @@ class Page {
 		// add optional search terms
 		$terms = array_merge($terms, array('section' => $this->section, 'is_visible' => TRUE));
 
-		return Content::find_all($terms);
+		return Page::find_all($terms);
 
 	}
 
@@ -396,7 +466,7 @@ class Page {
 	public function _relative_page($offset = 0) {
 
 		// create page map from current section
-		$section = Content::find_names(array('section' => $this->section, 'is_visible' => TRUE));
+		$section = Page::find_names(array('section' => $this->section, 'is_visible' => TRUE));
 
 		// find current key
 		$current_page_index = array_search($this->name, $section);
@@ -408,7 +478,7 @@ class Page {
 			$relative_page = $section[$current_page_index + $offset];
 
 			// return relative page model
-			return Content::find(array('name' => $relative_page));
+			return Page::find(array('name' => $relative_page));
 
 		}
 
@@ -482,6 +552,145 @@ class Page {
 		// return (string) new Mustache($this->_template, $page);
 
 	}
+	
+
+	// load content database
+	public static function content_load() {
+		
+		// traverse content directory and load all content
+		if (empty(self::$db)) {
+			
+			// directory where content files are stored
+			$content_path = Paste::$path.self::$content_dir.'/';
+			
+			// load root and all child sections
+			self::$db = self::load_section($content_path);
+			
+		}
+		
+	}
+
+	// retrieve single page by properties
+	public static function find($terms) {
+		
+		$pages = self::find_all($terms);
+
+		return (empty($pages)) ? FALSE : current($pages);
+
+	}
+
+	// filter and return pages by properties
+	public static function find_all($terms) {
+		
+		// ensure we have content loaded
+		self::content_load();
+
+		$pages = array();
+
+		foreach (self::$db as $page) {
+
+			foreach ($terms as $property => $value) {
+
+				if ($page->$property !== $value)
+					// skip to next page if property doesn't match
+					continue 2;
+
+			}
+
+			// clone the page object so we don't alter original
+			$pages[] = clone $page;
+
+		}
+
+		return $pages;
+
+	}
+
+	// returns page names in a flat array
+	public static function find_names($terms) {
+
+		$pages = array();
+
+		foreach (self::find_all($terms) as $page) {
+
+			$pages[] = $page->name;
+
+		}
+
+		return $pages;
+
+	}
+
+	// get section child pages
+	public static function find_section($section) {
+
+		return self::find_all(array('section' => $section));
+
+	}
+
+	// recursively load sections of content
+	public static function load_section($path) {
+
+		$pages = array();
+
+		foreach (self::list_path($path) as $file) {
+			
+			// sub directory
+			if (is_dir($path.$file))
+				$pages = array_merge($pages, self::load_section($path.$file.'/'));
+
+			// content file with proper extension
+			if (is_file($path.$file) AND strpos($file, self::$content_ext))
+				$pages[] = Page::factory($path.$file);
+
+		}
+		
+		return $pages;
+
+	}
+
+	// return directory list
+	public static function list_path($path) {
+
+		$files = array();
+
+		if (($handle = opendir($path)) === FALSE)
+			return $files;
+
+		while (($file = readdir($handle)) !== FALSE) {
+
+			// ignore dot dirs and paths prefixed with an underscore or period
+			if ($file != '.' AND $file != '..' AND $file[0] !== '_' AND $file[0] !== '.') {
+
+				$files[] = $file;
+
+			}
+		}
+
+		closedir($handle);
+
+		// sort files via natural text comparison, similar to OSX Finder
+		usort($files, 'strnatcasecmp');
+
+		// return sorted array (filenames => basenames)
+		return $files;
+
+	}
+
+	// get base filename without sorting prefix or extension
+	public static function base_name($file) {
+
+		// get file name without content extension
+		$name = basename($file, self::$content_ext);
+
+		// base name is everything after intial period if one exists
+		$prefix = strpos($name, '.');
+
+		// strip prefix and return cleaned name
+		return ($prefix) ? substr($name, $prefix + 1) : $name;
+
+	}
+	
 	
 	
 
