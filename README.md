@@ -2,14 +2,15 @@
 
 **REWRITE TODOs:**
 
-- Combine Content into Page
-- use newer composer pkg of Mustache. use filesystem loader for partials and cache
-- redo the section control as suggested in Page.php L75?
+- refactor Page lib
+- use Mustache filesystem loader for partials and cache
+- redo the section control as suggested in Page->factory?
 - render menu() separately to remove invisible pages
-- update Page->current() and add Page->section()
-- more unique syntax for page vars
+- update Page->is_current() and add Page->is\_section()
+- more unique syntax for page/section vars
 - make a Pre lib!
 - X return Paste to all static class
+- X Combine Content into Page
 - X Combine Controller & Content
 - X Combine Page & Template classes
 - X change mustache templates to just .stache
