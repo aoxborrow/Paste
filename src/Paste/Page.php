@@ -5,18 +5,15 @@ namespace Paste;
 // page model
 class Page {
 
+	// page successfully loaded
+	public $loaded = FALSE;
+
 	// page name and link id
 	public $name;
 
 	// path to page content
 	public $path;
 	
-	// page successfully loaded
-	public $loaded = FALSE;
-
-	// modified time (unix mtime)
-	public $mtime;
-
 	// page title, used in menu
 	public $title;
 
@@ -46,7 +43,7 @@ class Page {
 
 	// all parent sections
 	public $parents = array();
-
+	
 	// cache templates when possible
 	public static $template_cache = array();
 
@@ -87,7 +84,7 @@ class Page {
 		self::$current_page = self::find(array('section' => $section, 'name' => $page));
 		
 		// no page found
-		if (self::$current_page === FALSE) {
+		if (self::$current_page === FALSE OR ! self::$current_page->loaded) {
 
 			// send 404 header
 			header('HTTP/1.1 404 File Not Found');
@@ -116,13 +113,9 @@ class Page {
 		// send text/html UTF-8 header
 		header('Content-Type: text/html; charset=UTF-8');
 		
-		// page wasn't loaded
-		if (! self::$current_page->loaded)
-			die(print_r(self::$current_page));
-		
 		// render the template 
 		echo self::$current_page->render();
-		
+
 	}
 	
 
@@ -136,7 +129,7 @@ class Page {
 		$page->name = self::base_name($path);
 
 		// file modified time
-		$page->mtime = filemtime($path);
+		// $page->mtime = filemtime($path);
 
 		// path without trailing slash
 		$page->path = rtrim($path, '/');
@@ -231,13 +224,13 @@ class Page {
 		// $current_page = Controller::instance()->current_page;
 		// $current_section = Controller::instance()->current_section;
 		
-		$current_page = Page::$current_page->name;
-		$current_section = Page::$current_page->section;
+		$current_page = self::$current_page->name;
+		$current_section = self::$current_page->section;
 		
 		// echo 'current_page: '.$current_page."<br>";
 		// echo 'current_section: '.$current_section."<br>";
 		
-		if (Page::$current_page->is_section) {
+		if (self::$current_page->is_section) {
 			// if a section, don't allow parent section to be current()
 			return ($this->name == $current_page AND $this->section == $current_section);
 		} else {
@@ -329,18 +322,50 @@ class Page {
 	public static function debug() {
 		
 		echo 'Debug:<br>';
-		print_r(Page::find_section(NULL));
+		print_r(self::find_section(NULL));
 		
 	}
 
 	// get parent section
 	public function parent() {
 
-		// root section parent is 'index', rest are section name
-		$parent = ($this->section == NULL) ? 'index' : $this->section;
-		// $parent = $this->section;
+		// the root section has no parents! like batman
+		if ($this->name == 'index')
+			return FALSE;
 
-		return Page::find(array('name' => $parent));
+		// root section parent is named 'index', rest are renamed to section name
+		$parent = ($this->section == NULL) ? 'index' : $this->section;
+
+		return self::find(array('name' => $parent));
+
+	}
+	
+	// get all parent sections in an array
+	public function parents() {
+
+		// init
+		$parents = array();
+
+		// start the loop
+		$parent = $this;
+		
+		// add parents while possible
+		while (TRUE) {
+			
+			// get parent
+			$parent = $parent->parent();
+			
+			// no parent to add
+			if (empty($parent))
+				break;
+
+			// add to list
+			$parents[] = $parent;
+
+		}
+		
+		// reverse list of parents and return
+		return array_reverse($parents);
 
 	}
 
@@ -350,7 +375,7 @@ class Page {
 		// add optional search terms
 		$terms = array_merge($terms, array('section' => $this->name, 'visible' => TRUE));
 
-		return Page::find_all($terms);
+		return self::find_all($terms);
 
 	}
 
@@ -380,7 +405,7 @@ class Page {
 		// add optional search terms
 		$terms = array_merge($terms, array('section' => $this->section, 'visible' => TRUE));
 
-		return Page::find_all($terms);
+		return self::find_all($terms);
 
 	}
 
@@ -427,7 +452,7 @@ class Page {
 	public function _relative_page($offset = 0) {
 
 		// create page map from current section
-		$section = Page::find_names(array('section' => $this->section, 'visible' => TRUE));
+		$section = self::find_names(array('section' => $this->section, 'visible' => TRUE));
 
 		// find current key
 		$current_page_index = array_search($this->name, $section);
@@ -439,7 +464,7 @@ class Page {
 			$relative_page = $section[$current_page_index + $offset];
 
 			// return relative page model
-			return Page::find(array('name' => $relative_page));
+			return self::find(array('name' => $relative_page));
 
 		}
 
@@ -447,32 +472,27 @@ class Page {
 		return FALSE;
 	}
 	
-	// get property from parent section
-	// TODO: use _inheritable array
-	public function _inherit($var) {
+	// return array of cascading templates
+	public function templates() {
 
-		if (empty($this->$var)) {
+		// init array
+		$templates = array();
 
-			// get parent section
-			$parent = $this->parent();
-
-			// assign parent property to current page
-			$this->$var = $parent->_inherit($var);
+		// iterate over containing parents
+		foreach ($this->parents() as $parent) {
+			
+			// add parent template if any
+			if (! empty($parent->template))
+				$templates[] = $parent->template;
 
 		}
-
-		return $this->$var;
-
-	}
-	
-	public function template() {
 		
-		// no parents and no template set, use base_template
-		// if (empty($this->parents) AND empty($this->template))
-			// return self::$base_template;
-
-		// return $this->template;
-		return $this->_inherit('template');
+		// add page template -- order from parents is already reversed, so this is last
+		if (! empty($this->template))
+			$templates[] = $this->template;
+		
+		// remove any duplicates and return array
+		return array_unique($templates);
 
 	}
 	
@@ -483,17 +503,14 @@ class Page {
 		if (empty($template))
 			return;
 
-		// ensure correct file extension
-		$template = (strstr($template, self::$template_ext)) ? $template : $template.self::$template_ext;
-
 		// check template cache
 		if (! isset(self::$template_cache[$template])) {
 			
-			// directory where content files are stored
-			$template_path = Paste::$path.self::$template_dir.'/';
+			// directory where template files are stored - template name - file extension
+			$template_path = Paste::$path.self::$template_dir.'/'.$template.self::$template_ext;
 
 			// load template file and add to cache
-			self::$template_cache[$template] = file_get_contents(realpath($template_path.$template));
+			self::$template_cache[$template] = file_get_contents(realpath($template_path));
 
 		}
 
@@ -503,7 +520,7 @@ class Page {
 	
 	public function menu() {
 
-		return Page::find_section(NULL);
+		return self::find_section(NULL);
 		
 	}
 
@@ -511,59 +528,29 @@ class Page {
 	public function render() {
 		
 		// directory where content files are stored
-		$template_path = Paste::$path.self::$template_dir.'/';
+		$templates_path = Paste::$path.self::$template_dir.'/';
 		
 		// TODO: instantiate engine in constructor, use FilesystemLoader
 		$mustache = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_StringLoader,
-			'partials_loader' => new \Mustache_Loader_FilesystemLoader($template_path, array('extension' => ".stache")),
+			'partials_loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => ".stache")),
 		));
 
-		// get defined page template, inherited from parent if necessary
-		$page_template = $this->template();
-		
-		// echo 'page_template: '.$page_template.'<br>';
+		// placeholder
+		$template = '{{{content}}}';
 
-		// page has a template
-		if (! empty($page_template)) {
-
-			// load template
-			$template = self::load_template($page_template);
-		
-			$tpl = $mustache->loadTemplate($template);
-			$content = $tpl->render($this);
+		// iterate over templates and merge together
+		foreach ($this->templates() as $parent_template) {
 			
-			$this->content = $content;
-			
-		}
-
-		// get parent section
-		$parent = $this->parent();
-		
-		
-		if ($parent) {
-			
-			$parent = $parent->parent();
-			// echo 'parent: '.$parent->name.'<br>';
-
-			$parent_template = $parent->template();
-		}
-		
-		$parent_template = $parent->template();
-		// echo 'parent_template: '.$parent_template.'<br>';
-		
-		if (! empty($parent_template) AND $parent_template !== $page_template) {
-		
+			// merge one template into another via the {{{content}}} string
 			$parent_template = self::load_template($parent_template);
-			
-			$tpl = $mustache->loadTemplate($parent_template);
-			return $tpl->render($this);
-		
-		} else {
-			
-			return $this->content;
-			
+			$template = str_replace('{{{content}}}', $parent_template, $template);
+
 		}
+		
+		$template = $mustache->loadTemplate($template);
+		return $template->render($this);
+
 	}
 	
 
@@ -600,7 +587,7 @@ class Page {
 
 		$pages = array();
 
-		foreach (self::$db as $page) {
+		foreach (self::$db as &$page) {
 
 			foreach ($terms as $property => $value) {
 
@@ -611,7 +598,7 @@ class Page {
 			}
 
 			// clone the page object so we don't alter original
-			$pages[] = clone $page;
+			$pages[] = $page;
 
 		}
 
@@ -654,7 +641,7 @@ class Page {
 
 			// content file with proper extension
 			if (is_file($path.$file) AND strpos($file, self::$content_ext))
-				$pages[] = Page::factory($path.$file);
+				$pages[] = self::factory($path.$file);
 
 		}
 		

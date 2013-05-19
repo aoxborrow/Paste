@@ -8,6 +8,7 @@
 - update Page->is_current() and add Page->is\_section()
 - more unique syntax for page/section vars
 - make a Pre lib!
+- X proper cascading templates
 - X redo the section control as suggested in Page->factory? no
 - X return Paste to all static class
 - X Combine Content into Page
