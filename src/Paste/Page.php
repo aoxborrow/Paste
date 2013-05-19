@@ -17,9 +17,6 @@ class Page {
 	// page title, used in menu
 	public $title;
 
-	// optional page description
-	public $description;
-
 	// page content
 	public $content;
 
@@ -29,14 +26,11 @@ class Page {
 	// redirect URL for creating aliases
 	public $redirect;
 
-	// thumbnail for gallery display
-	public $thumb;
-
 	// parent section
-	public $section;
+	public $parent;
 
 	// page is a section index
-	public $is_section = FALSE;
+	public $is_parent = FALSE;
 
 	// visible in menu
 	public $visible = TRUE;
@@ -44,9 +38,6 @@ class Page {
 	// all parent sections
 	public $parents = array();
 	
-	// cache templates when possible
-	public static $template_cache = array();
-
 	// template file extension
 	public static $template_ext = '.stache';
 
@@ -74,14 +65,14 @@ class Page {
 		// decipher content request
 		$request = empty($uri) ? array('index') : explode('/', $uri);
 
-		// current section is 2nd to last argument (ie. parent2/parent1/section/page) or NULL if root section
-		$section = (count($request) < 2) ? NULL : $request[count($request) - 2];
+		// current section is 2nd to last argument (ie. parent3/parent2/parent/page) or NULL if root section
+		$parent = (count($request) < 2) ? NULL : $request[count($request) - 2];
 
 		// current page is always last argument of request
 		$page = end($request);
 		
 		// get requested page from content database
-		self::$current_page = self::find(array('section' => $section, 'name' => $page));
+		self::$current_page = self::find(array('parent' => $parent, 'name' => $page));
 		
 		// no page found
 		if (self::$current_page === FALSE OR ! self::$current_page->loaded) {
@@ -134,7 +125,7 @@ class Page {
 		// path without trailing slash
 		$page->path = rtrim($path, '/');
 
-		// strip content path off to get parent sections
+		// strip content path off to get parents
 		$parents = substr($page->path, strlen(Paste::$path.self::$content_dir.'/'));
 
 		// parents array is all enclosing sections
@@ -143,23 +134,23 @@ class Page {
 		// filter parent sections for base names
 		$page->parents = array_map(array('Paste\\Page', 'base_name'), $parents);
 
-		// sections are represented by their index file
+		// parents are represented by their index file
 		if ($page->name == 'index') {
 
-			$page->is_section = TRUE;
+			$page->is_parent = TRUE;
 
-			// if deeper than root section (root section remains index)
+			// if deeper than root (root section remains index)
 			if (! empty($page->parents)) {
 				
-				// change name from index to section name and remove section from parents array
+				// change name from index to parent name and remove from parents array
 				$page->name = array_shift($page->parents);
 
 			}
 
 		}
 
-		// set section from parents array if deeper than root
-		$page->section = (empty($page->parents)) ? NULL : $page->parents[0];
+		// set parent from parents array if deeper than root
+		$page->parent = (empty($page->parents[0])) ? NULL : $page->parents[0];
 
 		// setup parent1, parent2, etc. properties for use in templates
 		foreach ($page->parents as $num => $parent)
@@ -173,11 +164,11 @@ class Page {
 
 	}
 
-	// build full URL based on parent sections, or use defined redirect
+	// build full URL based on parents, or use defined redirect
 	public function url($base = '/') {
 
-		// section page configured to redirect to first child
-		if ($this->is_section AND $this->redirect == 'first_child') {
+		// parent configured to redirect to first child
+		if ($this->is_parent AND $this->redirect == 'first_child') {
 
 			// get first child page name
 			$first = $this->first_child();
@@ -192,7 +183,7 @@ class Page {
 
 		} else {
 
-			// iterate parent sections in reverse
+			// iterate parents in reverse
 			foreach (array_reverse($this->parents) as $parent)
 				$base .= $parent.'/';
 
@@ -203,40 +194,19 @@ class Page {
 
 	}
 
-	// check if current page or section
+	// check if current page
 	public function is_current() {
 
-		/*
-		// get current URI, trim slashes
-		$uri = trim(Paste::instance()->uri, '/');
-		
-		// decipher content request
-		$request = empty($uri) ? array('index') : explode('/', $uri);
-
-		// current section is 2nd to last argument (ie. parent2/parent1/section/page) or NULL if root section
-		$current_section = (count($request) < 2) ? NULL : $request[count($request) - 2];
-
-		// current page is always last argument of request
-		$current_page = end($request);
-		*/
-
-		// get current page and section from controller
-		// $current_page = Controller::instance()->current_page;
-		// $current_section = Controller::instance()->current_section;
-		
 		$current_page = self::$current_page->name;
-		$current_section = self::$current_page->section;
+		$current_parent = self::$current_page->parent;
 		
-		// echo 'current_page: '.$current_page."<br>";
-		// echo 'current_section: '.$current_section."<br>";
-		
-		if (self::$current_page->is_section) {
-			// if a section, don't allow parent section to be current()
-			return ($this->name == $current_page AND $this->section == $current_section);
+		if (self::$current_page->is_parent) {
+			// if a parent, don't allow parent to be current()
+			return ($this->name == $current_page AND $this->parent == $current_parent);
 		} else {
-			// if a regular page, allow parent section to be current() 
+			// if a regular page, allow parent to be current() 
 			// TODO:: change this in template to check for section() or parent()->name
-			return (($this->name == $current_page AND $this->section == $current_section) OR ($this->is_section AND $this->name == $current_section));
+			return (($this->name == $current_page AND $this->parent == $current_parent) OR ($this->is_parent AND $this->name == $current_parent));
 		}
 
 
@@ -322,7 +292,13 @@ class Page {
 	public static function debug() {
 		
 		echo 'Debug:<br>';
-		print_r(self::find_section(NULL));
+		print_r(self::find_children(NULL));
+		
+	}
+	
+	public function menu() {
+
+		return self::find_children(NULL);
 		
 	}
 
@@ -333,14 +309,14 @@ class Page {
 		if ($this->name == 'index')
 			return FALSE;
 
-		// root section parent is named 'index', rest are renamed to section name
-		$parent = ($this->section == NULL) ? 'index' : $this->section;
+		// root parent is named 'index', rest are renamed to section name
+		$parent = ($this->parent == NULL) ? 'index' : $this->parent;
 
 		return self::find(array('name' => $parent));
 
 	}
 	
-	// get all parent sections in an array
+	// get all parents in an array
 	public function parents() {
 
 		// init
@@ -373,7 +349,7 @@ class Page {
 	public function children($terms = array()) {
 
 		// add optional search terms
-		$terms = array_merge($terms, array('section' => $this->name, 'visible' => TRUE));
+		$terms = array_merge($terms, array('parent' => $this->name, 'visible' => TRUE));
 
 		return self::find_all($terms);
 
@@ -403,7 +379,7 @@ class Page {
 	public function siblings($terms = array()) {
 
 		// add optional search terms
-		$terms = array_merge($terms, array('section' => $this->section, 'visible' => TRUE));
+		$terms = array_merge($terms, array('parent' => $this->parent, 'visible' => TRUE));
 
 		return self::find_all($terms);
 
@@ -452,16 +428,16 @@ class Page {
 	public function _relative_page($offset = 0) {
 
 		// create page map from current section
-		$section = self::find_names(array('section' => $this->section, 'visible' => TRUE));
+		$parent = self::find_names(array('parent' => $this->parent, 'visible' => TRUE));
 
 		// find current key
-		$current_page_index = array_search($this->name, $section);
+		$current_page_index = array_search($this->name, $parent);
 
 		// check desired offset
-		if (isset($section[$current_page_index + $offset])) {
+		if (isset($parent[$current_page_index + $offset])) {
 
 			// get relative page name
-			$relative_page = $section[$current_page_index + $offset];
+			$relative_page = $parent[$current_page_index + $offset];
 
 			// return relative page model
 			return self::find(array('name' => $relative_page));
@@ -496,34 +472,6 @@ class Page {
 
 	}
 	
-	// get template file contents
-	public static function load_template($template) {
-
-		// no template set
-		if (empty($template))
-			return;
-
-		// check template cache
-		if (! isset(self::$template_cache[$template])) {
-			
-			// directory where template files are stored - template name - file extension
-			$template_path = Paste::$path.self::$template_dir.'/'.$template.self::$template_ext;
-
-			// load template file and add to cache
-			self::$template_cache[$template] = file_get_contents(realpath($template_path));
-
-		}
-
-		return self::$template_cache[$template];
-
-	}
-	
-	public function menu() {
-
-		return self::find_section(NULL);
-		
-	}
-
 	// render the page with templates
 	public function render() {
 		
@@ -531,9 +479,11 @@ class Page {
 		$templates_path = Paste::$path.self::$template_dir.'/';
 		
 		// TODO: instantiate engine in constructor, use FilesystemLoader
+		// TODO: setup cache folder in Paste
 		$mustache = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_StringLoader,
 			'partials_loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => ".stache")),
+			// 'cache' => Paste::$path.'cache',
 		));
 
 		// placeholder
@@ -542,8 +492,13 @@ class Page {
 		// iterate over templates and merge together
 		foreach ($this->templates() as $parent_template) {
 			
+			// directory where template files are stored - template name - file extension
+			$template_path = Paste::$path.self::$template_dir.'/'.$parent_template.self::$template_ext;
+
+			// load template file 
+			$parent_template = file_get_contents(realpath($template_path));
+			
 			// merge one template into another via the {{{content}}} string
-			$parent_template = self::load_template($parent_template);
 			$template = str_replace('{{{content}}}', $parent_template, $template);
 
 		}
@@ -621,10 +576,10 @@ class Page {
 
 	}
 
-	// get section child pages
-	public static function find_section($section) {
-
-		return self::find_all(array('section' => $section));
+	// get child pages of a parent
+	public static function find_children($parent) {
+		
+		return self::find_all(array('parent' => $parent));
 
 	}
 

@@ -3,9 +3,11 @@
 **REWRITE TODOs:**
 
 - refactor Page lib
+	- render menu() separately to remove invisible pages
+	- consolidate nav stuff to next() and prev(), remove unused
+	- update Page->is_current() and add Page->is\_section()
+	- X remove section in favor of parent
 - use Mustache filesystem loader for partials and cache
-- render menu() separately to remove invisible pages
-- update Page->is_current() and add Page->is\_section()
 - more unique syntax for page/section vars
 - make a Pre lib!
 - X proper cascading templates
