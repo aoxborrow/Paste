@@ -4,7 +4,19 @@ namespace Paste;
 
 // page model
 class Page {
+	
+	// content file extension
+	public static $content_ext = '.html';
+	
+	// content directory relative to app path
+	public static $content_dir = 'content';
+	
+	// template file extension
+	public static $template_ext = '.stache';
 
+	// template directory relative to app path
+	public static $template_dir = 'templates';
+	
 	// page successfully loaded
 	public $loaded = FALSE;
 
@@ -32,38 +44,23 @@ class Page {
 	// page is a section index
 	public $is_parent = FALSE;
 
+	// the currently selected page
+	public $is_current = FALSE;
+
 	// visible in menu
 	public $visible = TRUE;
-
-	// template file extension
-	public static $template_ext = '.stache';
-
-	// template directory relative to app path
-	public static $template_dir = 'templates';
-
-	// content file extension
-	public static $content_ext = '.html';
-	
-	// content directory relative to app path
-	public static $content_dir = 'content';
-	
-	// current page data model
-	public static $current;
 	
 	// content "database"
 	public static $db;
-	
-	// placeholder for now
-	public function __construct() {} 
-	
+
 	// decipher request and render content page
-	public static function get($uri = NULL) {
+	public static function get($url = NULL) {
 		
 		// trim slashes
-		$uri = trim($uri, '/');
+		$url = trim($url, '/');
 		
 		// decipher content request
-		if (empty($uri)) {
+		if (empty($url)) {
 			
 			// root section
 			$parent = FALSE;
@@ -72,7 +69,7 @@ class Page {
 		} else {
 			
 			// split up request
-			$request = explode('/', $uri);
+			$request = explode('/', $url);
 
 			// current section is 2nd to last argument (ie. parent3/parent2/parent/page) or 'index' if root section
 			$parent = (count($request) <= 1) ? 'index' : $request[count($request) - 2];
@@ -83,178 +80,106 @@ class Page {
 		}
 		
 		// get requested page from content database
-		self::$current = self::page(array('parent' => $parent, 'name' => $page));
+		$current = self::page(array('parent' => $parent, 'name' => $page));
 		
 		// no page found
-		if (self::$current === FALSE OR self::$current->loaded === FALSE) {
+		if ($current === FALSE OR $current->loaded === FALSE) {
 
 			// send 404 header
 			header('HTTP/1.1 404 File Not Found');
 
 			// draw 404 content if available
-			self::$current = self::page(array('name' => '404'));
+			$current = self::page(array('name' => '404'));
 			
 			// if no 404 content available, do somethin' sensible
-			if (self::$current === FALSE) {
+			if ($current === FALSE) {
 
 				// simple 404 page
-				self::$current = new Page;
-				self::$current->title = 'Error 404 - File Not Found';
-				self::$current->content = '<h1>Error 404 - File Not Found</h1>';
+				$current = new Page;
+				$current->title = 'Error 404 - File Not Found';
+				$current->content = '<h1>Error 404 - File Not Found</h1>';
 				
 			}
 
 		// page redirect configured
-		} elseif (! empty(self::$current->redirect)) {
+		} elseif (! empty($current->redirect)) {
 
 			// redirect to url
-			return Paste::redirect(self::$current->url());
+			return Paste::redirect($current->url());
 
+		}
+		
+		// set page to current
+		$current->is_current = TRUE;
+		
+		// if not a parent, set parent section to current too
+		if (! $current->is_parent) {
+			
+			// get parents
+			$parents = $current->parents();
+			
+			$parent = end($parents);
+			
+			$parent->is_current = TRUE;
+			
 		}
 		
 		// send text/html UTF-8 header
 		header('Content-Type: text/html; charset=UTF-8');
 		
 		// render the template 
-		echo self::$current->render();
+		echo $current->render();
 
 	}
 	
-
-	// takes a content file path and returns a Page model
-	public static function factory($path) {
+	// instantiate Page model -- takes a content file path and builds object
+	public function __construct($path = NULL) {
 		
-		// instantiate Page model
-		$page = new Page;
+		// trim trailing slash
+		$this->path = rtrim($path, '/');
 		
-		// path without trailing slash
-		$page->path = rtrim($path, '/');
-
-		// file name without prefix or extension
-		$page->name = self::base_name($page->path);
-
 		// strip content path off to get URL
-		$url = substr($page->path, strlen(Paste::$path.self::$content_dir.'/'));
+		$url = substr($this->path, strlen(Paste::$path.self::$content_dir.'/'));
 
 		// parents array is all enclosing sections
-		$parents = explode('/', $url, -1);
-		
-		// filter parent sections for base names
-		$parents = array_map('Paste\Page::base_name', $parents);
+		$parents = array();
+		foreach (explode('/', $url) as $part)
+			$parents[] = self::base_name($part);
+			
+		// file name is last part of path without prefix or extension
+		$this->name = array_pop($parents);
 		
 		// parent sections are represented by their index file
-		$page->is_parent = ($page->name == 'index');
+		$this->is_parent = ($this->name == 'index');
 
-		// change name from index to parent name and remove from parents array
-		if ($page->is_parent AND ! empty($parents))
-			$page->name = array_pop($parents);
+		// for everything but root index, change name from index to parent name and remove from parents array
+		if ($this->is_parent AND ! empty($parents))
+			$this->name = array_pop($parents);
 
 		// set parent for non-index pages, for root content it's "index"
-		$page->parent = empty($parents) ? 'index' : end($parents);
+		$this->parent = empty($parents) ? 'index' : end($parents);
 		
 		// the root section has no parents! like batman
-		if ($page->name == 'index')
-			$page->parent = FALSE;
+		if ($this->name == 'index')
+			$this->parent = FALSE;
 		
-		// build URL
-		$page->url = '/';
+		// build actual URL
+		$this->url = '/';
 				
 		// add parents to URL
-		if (! empty($parents)) 
+		// if (! empty($parents)) 
 			// iterate parents in reverse
 			foreach ($parents as $parent)
-				$page->url .= $parent.'/';
+				$this->url .= $parent.'/';
 		
 		// add page name to URL
-		$page->url .= $page->name;
+		$this->url .= $this->name;
 
 		// load file content into model
-		$page->load();
-
-		// return loaded page model
-		return $page;
+		$this->load();
 
 	}
-	
-	
 
-	// load individual content page, process variables
-	public function load() {
-
-		if (($html = @file_get_contents(realpath($this->path))) !== FALSE) {
-
-			// process variables
-			$vars = $this->_variables($html);
-
-			// assign vars to current model
-			foreach ($vars as $key => $value)
-				$this->$key = $value;
-
-			// set title to name if not set otherwise
-			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
-
-			// assign entire html to content property
-			$this->content = $html;
-
-			// add page variables for debugging
-			// $this->content .= "<pre>".htmlentities(print_r($vars, TRUE)).'</pre>';
-			
-			// page is loaded
-			$this->loaded = TRUE;
-
-		}
-	}
-
-	// process content for embedded variables
-	public function _variables($html) {
-
-		// credit to Ben Blank: http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
-		$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
-		preg_match_all($regexp, $html, $comments);
-
-		// split comments on newline
-		$lines = array();
-		foreach ($comments[1] as $comment) {
-			$var_lines = explode("\n", trim($comment));
-			$lines = array_merge($lines, $var_lines);
-		}
-
-		// split lines on colon and assign to key/value
-		$vars = array();
-		foreach ($lines as $line) {
-			$parts = explode(":", $line, 2);
-			if (count($parts) == 2) {
-				$vars[trim($parts[0])] = trim($parts[1]);
-			}
-		}
-
-		// assign variables in content
-		foreach ($vars as $key => $value) {
-
-			// convert booleans to native
-			if (strtolower($value) === "false" OR $value === '0') {
-
-				$value = FALSE;
-
-			// convert booleans to native
-			} elseif (strtolower($value) === "true" OR $value === '1') {
-
-				$value = TRUE;
-
-			// strip any comments from	variables, except redirect
-			} elseif ($key !== 'redirect' AND strpos($value, '//')) {
-
-				$value = substr($value, 0, strpos($value, '//'));
-
-			}
-
-			$vars[$key] = $value;
-		}
-
-		return $vars;
-
-	}
-	
 	// static function that gets the root index menu
 	public static function index() {
 
@@ -278,7 +203,7 @@ class Page {
 		$menu_item = array(
 			'url' => $this->url(),
 			'title' => $this->title,
-			'current' => $this->current(),
+			'current' => $this->is_current,
 			'parent' => $this->is_parent,
 			'children' => FALSE,
 		);
@@ -319,26 +244,6 @@ class Page {
 
 	}
 	
-	// check if current page
-	public function current() {
-		
-		// no current page?!
-		if (empty(self::$current))
-			return FALSE;
-
-		// simple enough -- the current page
-		if ($this === self::$current)
-			return TRUE;
-		
-		// this is the current section parent! (and the current page is not a section, ie. don't highlight two sections)
-		if (! self::$current->is_parent AND $this->name === self::$current->parent)
-			return TRUE;
-		
-		// no go
-		return FALSE;
-		
-	}
-
 	// get all parents in an array
 	public function parents() {
 
@@ -506,7 +411,7 @@ class Page {
 			$content_path = Paste::$path.self::$content_dir.'/';
 			
 			// traverse content directory and load all content
-			self::$db = self::load_section($content_path);
+			self::$db = self::load_path($content_path);
 			
 		}
 
@@ -531,21 +436,90 @@ class Page {
 		return empty($pages) ? FALSE : $pages;
 
 	}
+	
+	// load individual content page, process variables
+	public function load() {
+
+		if (($html = file_get_contents(realpath($this->path))) !== FALSE) {
+
+			// process variables
+			$vars = self::process($html);
+
+			// assign vars to current model
+			foreach ($vars as $key => $value)
+				$this->$key = $value;
+
+			// set title to name if not set otherwise
+			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
+
+			// assign entire html to content property
+			$this->content = $html;
+
+			// page is loaded
+			$this->loaded = TRUE;
+
+		}
+	}
+
+	// process content for embedded variables
+	public static function process($html) {
+
+		// credit to Ben Blank: http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
+		$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
+		preg_match_all($regexp, $html, $comments, PREG_OFFSET_CAPTURE);
+
+		// split comments on newline
+		$lines = array();
+		$offsets = array();
+		foreach ($comments[1] as $comment) {
+			$lines = array_merge($lines, explode("\n", trim($comment[0])));
+			$offsets[] = $comment[1]; // the offset of the comment line if we want to delete them later
+		}
+		// $offsets = X chars to first var, X chars to start of next var, etc...
+
+		// split lines on colon and assign to key/value
+		$vars = array();
+		foreach ($lines as $line) {
+			$parts = explode(":", $line, 2);
+			if (count($parts) == 2)
+				$vars[trim($parts[0])] = trim($parts[1]);
+		}
+
+		// convert some values, strip comments
+		foreach ($vars as $key => &$value) {
+			// convert booleans to native
+			if (strtolower($value) === "false" OR $value === '0') {
+				$value = FALSE;
+
+			// convert booleans to native
+			} elseif (strtolower($value) === "true" OR $value === '1') {
+				$value = TRUE;
+
+			// strip any comments from	variables, except redirect
+			} elseif ($key !== 'redirect' AND strpos($value, '//')) {
+				$value = substr($value, 0, strpos($value, '//'));
+			}
+		}
+
+		return $vars;
+	}
+	
 
 	// recursively load sections of content
-	public static function load_section($path) {
+	public static function load_path($path) {
 
 		$pages = array();
 
+		// iterate over content dir
 		foreach (self::list_path($path) as $file) {
 			
 			// sub directory
 			if (is_dir($path.$file))
-				$pages = array_merge($pages, self::load_section($path.$file.'/'));
+				$pages = array_merge($pages, self::load_path($path.$file.'/'));
 
 			// content file with proper extension
 			if (is_file($path.$file) AND strpos($file, self::$content_ext))
-				$pages[] = self::factory($path.$file);
+				$pages[] = new Page($path.$file);
 
 		}
 		
@@ -553,24 +527,22 @@ class Page {
 
 	}
 
-	// return directory list
+	// list directory in natural sort order
 	public static function list_path($path) {
 
 		$files = array();
 
+		// open content path for reading
 		if (($handle = opendir($path)) === FALSE)
 			return $files;
 
-		while (($file = readdir($handle)) !== FALSE) {
-
+		// iterate content path
+		while (($file = readdir($handle)) !== FALSE)
 			// ignore dot dirs and paths prefixed with an underscore or period
-			if ($file != '.' AND $file != '..' AND $file[0] !== '_' AND $file[0] !== '.') {
-
+			if ($file != '.' AND $file != '..' AND $file[0] !== '_' AND $file[0] !== '.')
 				$files[] = $file;
-
-			}
-		}
-
+		
+		// close handle
 		closedir($handle);
 
 		// sort files via natural text comparison, similar to OSX Finder
