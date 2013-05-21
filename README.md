@@ -3,9 +3,9 @@
 **REWRITE TODOs:**
 
 - refactor Page lib
-	- consolidate nav stuff to next() and prev(), remove unused
 	- update Page->is_current() and add Page->is\_parent
-	- Constructor for virtual pages -- change factory to Page::from_path()
+	- Page Constructor -- change factory to Page::from_path()
+	- X consolidate nav stuff to next() and prev(), remove unused
 	- X change page->parents to something like parent_paths
 	- X simplify find and find_all, etc.
 	- X render menu() separately to remove invisible pages

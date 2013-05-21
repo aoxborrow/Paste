@@ -83,7 +83,7 @@ class Page {
 		self::$current_page = self::find(array('parent' => $parent, 'name' => $page), TRUE);
 		
 		// no page found
-		if (self::$current_page === FALSE OR ! self::$current_page->loaded) {
+		if (self::$current_page === FALSE OR self::$current_page->loaded === FALSE) {
 
 			// send 404 header
 			header('HTTP/1.1 404 File Not Found');
@@ -139,16 +139,6 @@ class Page {
 		// filter parent sections for base names
 		$parents = array_map('Paste\Page::base_name', $parents);
 		
-		// build URL
-		$page->url = '/';
-		
-		// add parents to URL
-		if (! empty($parents)) {
-			// iterate parents in reverse
-			foreach ($parents as $parent)
-				$page->url .= $parent.'/';
-		}
-				
 		// reverse array
 		$parents = array_reverse($parents);
 
@@ -177,6 +167,19 @@ class Page {
 		// set parent for non-index pages, for root content it's "index"
 		if ($page->parent !== FALSE)
 			$page->parent = empty($parents) ? 'index' : $parents[0];
+		
+		// build URL
+		$page->url = '/';
+				
+		// add parents to URL
+		if (! empty($parents)) 
+			// iterate parents in reverse
+			foreach ($parents as $parent)
+				$page->url .= $parent.'/';
+		
+		// if not a parent itself, add page name to URL
+		if (! $page->is_parent) 
+			$page->url .= $page->name;
 
 		// load file content into model
 		$page->load();
@@ -184,51 +187,6 @@ class Page {
 		// return loaded page model
 		return $page;
 
-	}
-
-	// build full URL based on parents, or use defined redirect
-	public function url($base = '/') {
-
-		// parent configured to redirect to first child
-		if ($this->is_parent AND $this->redirect == 'first_child') {
-
-			// get first child page name
-			$first = $this->first_child();
-
-			// return first child url
-			return $first->url();
-
-		// redirect configured
-		} elseif (! empty($this->redirect)) {
-
-			return $this->redirect;
-
-		} else {
-
-			// use default, set in constructor. if not a parent, add page name
-			return ($this->is_parent) ? $this->url : $this->url.$this->name;
-
-		}
-
-	}
-
-	// check if current page
-	public function is_current() {
-		
-		if (empty(self::$current_page))
-			return FALSE;
-
-		$current_page = self::$current_page->name;
-		$current_parent = self::$current_page->parent;
-		
-		if (self::$current_page->is_parent) {
-			// if a parent, don't allow parent to be current()
-			return ($this->name == $current_page AND $this->parent == $current_parent);
-		} else {
-			// if a regular page, allow parent to be current() 
-			// TODO:: change this in template to check for section() or parent()->name
-			return (($this->name == $current_page AND $this->parent == $current_parent) OR ($this->is_parent AND $this->name == $current_parent));
-		}
 	}
 
 	// load individual content page, process variables
@@ -307,29 +265,53 @@ class Page {
 		return $vars;
 
 	}
+	
+	// build full URL based on parents, or use defined redirect
+	public function url() {
 
-	public static function debug() {
-		
-		echo 'Debug:<br>';
-		
-		$root = self::find(array('parent' => FALSE), TRUE);
-		
-		echo '<pre>';
-		print_r($root->menu());
-		echo '</pre>';
-		
+		// no redirect configured, use URL set in constructor
+		if (empty($this->redirect))
+			return $this->url;
+			
+		// parent configured to redirect to first child
+		if ($this->is_parent AND $this->redirect == 'first_child')
+			// get first child page URL
+			return $this->_relative('first', $this->name)->url();
+			
+		// otherwise just a URL redirect
+		return $this->redirect;
+
 	}
 	
-	public static function root_menu() {
-
-		// get root section
-		$root = self::find(array('parent' => FALSE), TRUE);
+	// check if current page
+	public function is_current() {
 		
-		// build full menu from root section
-		$root_menu = $root->menu();
+		if (empty(self::$current_page))
+			return FALSE;
+
+		$current_page = self::$current_page->name;
+		$current_parent = self::$current_page->parent;
+		
+		if (self::$current_page->is_parent) {
+			// if a parent, don't allow parent to be current()
+			return ($this->name == $current_page AND $this->parent == $current_parent);
+		} else {
+			// if a regular page, allow parent to be current() 
+			// TODO:: change this in template to check for section() or parent()->name
+			return (($this->name == $current_page AND $this->parent == $current_parent) OR ($this->is_parent AND $this->name == $current_parent));
+		}
+	}
+
+	public static function index_menu() {
+
+		// get index section
+		$index = self::find(array('parent' => FALSE), TRUE);
+		
+		// build full menu from index section
+		$menu = $index->menu();
 		
 		// if visible show root index page in menu, otherwise just return children
-		return ($root->visible) ? $root_menu : $root_menu['children'];
+		return ($index->visible) ? $menu : $menu['children'];
 
 	}
 	
@@ -353,8 +335,11 @@ class Page {
 			// add to children key
 			$menu_item['children'] = array();
 			
+			// get all visible child pages who call this one mommy
+			$children = self::find(array('parent' => $this->name, 'visible' => TRUE));
+
 			// add child menu items recursively
-			foreach ($this->children() as $child)
+			foreach ($children as $child)
 				$menu_item['children'][] = $child->menu();
 		}
 
@@ -363,38 +348,21 @@ class Page {
 
 	}
 
-	// get parent section
-	public function parent() {
-
-		// the root section has no parents! like batman
-		if ($this->name == 'index')
-			return FALSE;
-
-		// root parent is named 'index', rest are renamed to section name
-		$parent = ($this->parent == NULL) ? 'index' : $this->parent;
-
-		return self::find(array('name' => $parent), TRUE);
-
-	}
-	
 	// get all parents in an array
+	// the root section has no parents! like batman
 	public function parents() {
+
+		// start the recursion
+		$parent = $this;
 
 		// init
 		$parents = array();
 
-		// start the loop
-		$parent = $this;
-		
 		// add parents while possible
-		while (TRUE) {
+		while ($parent) {
 			
-			// get parent
-			$parent = $parent->parent();
-			
-			// no parent to add
-			if (empty($parent))
-				break;
+			// get parent page
+			$parent = self::find(array('name' => $parent->parent), TRUE);
 
 			// add to list
 			$parents[] = $parent;
@@ -406,109 +374,64 @@ class Page {
 
 	}
 
-	// return all visible child pages
-	public function children() {
-
-		return self::find(array('parent' => $this->name, 'visible' => TRUE));
-
-	}
-
-	public function first_child() {
-
-		// get visible child pages
-		$children = $this->children();
-
-		// get first of child pages
-		return array_shift($children);
-
-	}
-
-	public function last_child() {
-
-		// get visible child pages
-		$children = $this->children();
-
-		// get first of child pages
-		return array_shift($children);
-
-	}
-
-	// return all visible siblings
-	public function siblings($terms = array()) {
-
-		// add optional search terms
-		$terms = array_merge($terms, array('parent' => $this->parent, 'visible' => TRUE));
-
-		return self::find($terms);
-
-	}
-
-	public function first_sibling() {
-
-		// get visible siblings
-		$siblings = $this->siblings();
-
-		// get first sibling in section
-		return array_shift($siblings);
-
-	}
-
-	public function last_sibling() {
-
-		// get visible siblings
-		$siblings = $this->siblings();
-
-		// get last sibling in section
-		return array_pop($siblings);
-
-	}
-
-	public function next_sibling() {
+	public function next() {
 
 		// get next page in section
-		$next = $this->_relative_page(1);
+		$next = $this->_relative(1);
 
 		// cycle to first page if last in section
-		return ($next === FALSE) ? $this->first_sibling()->url() : $next->url();
+		return ($next === FALSE) ? $this->_relative('first')->url() : $next->url();
 
 	}
 
-	public function prev_sibling() {
+	public function prev() {
 
 		// get previous page in section
-		$prev = $this->_relative_page(-1);
+		$prev = $this->_relative(-1);
 
 		// cycle to last page if first in section
-		return ($prev === FALSE) ? $this->last_sibling()->url() : $prev->url();
+		return ($prev === FALSE) ? $this->_relative('last')->url() : $prev->url();
 	}
 
-	// returns page relative to current
-	public function _relative_page($offset = 0) {
+	// returns relative page, uses current section by default
+	public function _relative($offset = 0, $parent = NULL) {
+		
+		// use current section if not supplied
+		if ($parent === NULL)
+			$parent = $this->parent;
 
 		// create page map from current section
-		$section = self::find(array('parent' => $this->parent, 'visible' => TRUE));
+		$section = self::find(array('parent' => $parent, 'visible' => TRUE));
 		
 		// build simple array of names
 		$siblings = array();
 		foreach ($section as $sibling)
 			$siblings[] = $sibling->name;
+		
+		// numeric offset
+		if (is_numeric($offset)) {
+		
+			// find current key
+			$current_index = array_search($this->name, $siblings);
+
+			// desired offset exists, use that
+			$relative_page = isset($siblings[$current_index + $offset]) ? $siblings[$current_index + $offset] : FALSE;
+
+		// first sibling
+		} elseif ($offset == 'first') {
 			
-		// find current key
-		$current_page_index = array_search($this->name, $siblings);
-
-		// check desired offset
-		if (isset($siblings[$current_page_index + $offset])) {
-
-			// get relative page name
-			$relative_page = $siblings[$current_page_index + $offset];
-
-			// return relative page model
-			return self::find(array('name' => $relative_page), TRUE);
+			$relative_page = array_shift($siblings);
+			
+		// last sibling	
+		} elseif ($offset == 'last') {
+			
+			$relative_page = array_pop($siblings);
 
 		}
+		
+		// return relative page model or FALSE if it doesn't exist
+		return empty($relative_page) ? FALSE : self::find(array('name' => $relative_page), TRUE);
 
-		// otherwise return false
-		return FALSE;
 	}
 	
 	// return array of cascading templates
@@ -602,10 +525,10 @@ class Page {
 			$result[] = $page;
 
 		}
-
+		
 		// return FALSE if no pages found
 		// only return single result if ($first)
-		return empty($result) ? FALSE : ($first) ? array_shift($result) : $result;
+		return empty($result) ? FALSE : ($first ? array_shift($result) : $result);
 
 	}
 
@@ -672,7 +595,17 @@ class Page {
 
 	}
 	
-	
+	public static function debug() {
+		
+		echo 'Debug:<br>';
+		
+		$root = self::find(array('parent' => FALSE), TRUE);
+		
+		echo '<pre>';
+		print_r($root->menu());
+		echo '</pre>';
+		
+	}
 	
 
 }
