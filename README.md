@@ -3,11 +3,15 @@
 **REWRITE TODOs:**
 
 - refactor Page lib
-	- render menu() separately to remove invisible pages
 	- consolidate nav stuff to next() and prev(), remove unused
-	- update Page->is_current() and add Page->is\_section()
+	- update Page->is_current() and add Page->is\_parent
+	- Constructor for virtual pages -- change factory to Page::from_path()
+	- X change page->parents to something like parent_paths
+	- X simplify find and find_all, etc.
+	- X render menu() separately to remove invisible pages
 	- X remove section in favor of parent
 - use Mustache filesystem loader for partials and cache
+- make Menu mustache partial resursive for infinite depth
 - more unique syntax for page/section vars
 - make a Pre lib!
 - X proper cascading templates

@@ -35,17 +35,11 @@ class Page {
 	// visible in menu
 	public $visible = TRUE;
 
-	// all parent sections
-	public $parents = array();
-	
 	// template file extension
 	public static $template_ext = '.stache';
 
 	// template directory relative to app path
 	public static $template_dir = 'templates';
-
-	// content "database"
-	public static $db;
 
 	// content file extension
 	public static $content_ext = '.html';
@@ -56,6 +50,9 @@ class Page {
 	// current page data model
 	public static $current_page;
 	
+	// content "database"
+	public static $db;
+	
 	// decipher request and render content page
 	public static function get($uri = NULL) {
 		
@@ -63,16 +60,27 @@ class Page {
 		$uri = trim($uri, '/');
 		
 		// decipher content request
-		$request = empty($uri) ? array('index') : explode('/', $uri);
+		if (empty($uri)) {
+			
+			// root section
+			$parent = FALSE;
+			$page = 'index';
+			
+		} else {
+			
+			// split up request
+			$request = explode('/', $uri);
 
-		// current section is 2nd to last argument (ie. parent3/parent2/parent/page) or NULL if root section
-		$parent = (count($request) < 2) ? NULL : $request[count($request) - 2];
+			// current section is 2nd to last argument (ie. parent3/parent2/parent/page) or 'index' if root section
+			$parent = (count($request) <= 1) ? 'index' : $request[count($request) - 2];
 
-		// current page is always last argument of request
-		$page = end($request);
+			// current page is always last argument of request
+			$page = end($request);
+			
+		}
 		
 		// get requested page from content database
-		self::$current_page = self::find(array('parent' => $parent, 'name' => $page));
+		self::$current_page = self::find(array('parent' => $parent, 'name' => $page), TRUE);
 		
 		// no page found
 		if (self::$current_page === FALSE OR ! self::$current_page->loaded) {
@@ -81,7 +89,7 @@ class Page {
 			header('HTTP/1.1 404 File Not Found');
 
 			// draw 404 content if available
-			self::$current_page = self::find(array('name' => '404'));
+			self::$current_page = self::find(array('name' => '404'), TRUE);
 			
 			// if no 404 content available, do somethin' sensible
 			if (self::$current_page === FALSE) {
@@ -112,49 +120,63 @@ class Page {
 
 	// takes a content file path and returns a Page model
 	public static function factory($path) {
-
+		
 		// instantiate Page model
 		$page = new Page;
-
-		// file name without prefix or extension
-		$page->name = self::base_name($path);
-
-		// file modified time
-		// $page->mtime = filemtime($path);
-
+		
 		// path without trailing slash
 		$page->path = rtrim($path, '/');
 
-		// strip content path off to get parents
-		$parents = substr($page->path, strlen(Paste::$path.self::$content_dir.'/'));
+		// file name without prefix or extension
+		$page->name = self::base_name($page->path);
+
+		// strip content path off to get URL
+		$url = substr($page->path, strlen(Paste::$path.self::$content_dir.'/'));
 
 		// parents array is all enclosing sections
-		$parents = array_reverse(explode('/', $parents, -1));
-
+		$parents = explode('/', $url, -1);
+		
 		// filter parent sections for base names
-		$page->parents = array_map(array('Paste\\Page', 'base_name'), $parents);
+		$parents = array_map('Paste\Page::base_name', $parents);
+		
+		// build URL
+		$page->url = '/';
+		
+		// add parents to URL
+		if (! empty($parents)) {
+			// iterate parents in reverse
+			foreach ($parents as $parent)
+				$page->url .= $parent.'/';
+		}
+				
+		// reverse array
+		$parents = array_reverse($parents);
 
 		// parents are represented by their index file
 		if ($page->name == 'index') {
 
+			// parent section
 			$page->is_parent = TRUE;
 
+			// root section
+			if (empty($parents)) {
+				
+				// no parent for root section
+				$page->parent = FALSE;
+				
 			// if deeper than root (root section remains index)
-			if (! empty($page->parents)) {
+			} else {
 				
 				// change name from index to parent name and remove from parents array
-				$page->name = array_shift($page->parents);
+				$page->name = array_shift($parents);
 
 			}
 
 		}
 
-		// set parent from parents array if deeper than root
-		$page->parent = (empty($page->parents[0])) ? NULL : $page->parents[0];
-
-		// setup parent1, parent2, etc. properties for use in templates
-		foreach ($page->parents as $num => $parent)
-			$page->{'parent'.$num} = $parent;
+		// set parent for non-index pages, for root content it's "index"
+		if ($page->parent !== FALSE)
+			$page->parent = empty($parents) ? 'index' : $parents[0];
 
 		// load file content into model
 		$page->load();
@@ -183,12 +205,8 @@ class Page {
 
 		} else {
 
-			// iterate parents in reverse
-			foreach (array_reverse($this->parents) as $parent)
-				$base .= $parent.'/';
-
-			// add page name
-			return $base.$this->name;
+			// use default, set in constructor. if not a parent, add page name
+			return ($this->is_parent) ? $this->url : $this->url.$this->name;
 
 		}
 
@@ -196,6 +214,9 @@ class Page {
 
 	// check if current page
 	public function is_current() {
+		
+		if (empty(self::$current_page))
+			return FALSE;
 
 		$current_page = self::$current_page->name;
 		$current_parent = self::$current_page->parent;
@@ -208,8 +229,6 @@ class Page {
 			// TODO:: change this in template to check for section() or parent()->name
 			return (($this->name == $current_page AND $this->parent == $current_parent) OR ($this->is_parent AND $this->name == $current_parent));
 		}
-
-
 	}
 
 	// load individual content page, process variables
@@ -292,14 +311,56 @@ class Page {
 	public static function debug() {
 		
 		echo 'Debug:<br>';
-		print_r(self::find_children(NULL));
+		
+		$root = self::find(array('parent' => FALSE), TRUE);
+		
+		echo '<pre>';
+		print_r($root->menu());
+		echo '</pre>';
 		
 	}
 	
-	public function menu() {
+	public static function root_menu() {
 
-		return self::find_children(NULL);
+		// get root section
+		$root = self::find(array('parent' => FALSE), TRUE);
 		
+		// build full menu from root section
+		$root_menu = $root->menu();
+		
+		// if visible show root index page in menu, otherwise just return children
+		return ($root->visible) ? $root_menu : $root_menu['children'];
+
+	}
+	
+	// menu items relative to current page
+	// returns simple menu heirarchy with:
+	// url, title, current, parent, children
+	public function menu() {
+		
+		// build menu basics
+		$menu_item = array(
+			'url' => $this->url(),
+			'title' => $this->title,
+			'current' => $this->is_current(),
+			'parent' => $this->is_parent,
+			'children' => FALSE,
+		);
+		
+		// add child menu items
+		if ($this->is_parent) {
+			
+			// add to children key
+			$menu_item['children'] = array();
+			
+			// add child menu items recursively
+			foreach ($this->children() as $child)
+				$menu_item['children'][] = $child->menu();
+		}
+
+		// return 
+		return $menu_item;
+
 	}
 
 	// get parent section
@@ -312,7 +373,7 @@ class Page {
 		// root parent is named 'index', rest are renamed to section name
 		$parent = ($this->parent == NULL) ? 'index' : $this->parent;
 
-		return self::find(array('name' => $parent));
+		return self::find(array('name' => $parent), TRUE);
 
 	}
 	
@@ -346,12 +407,9 @@ class Page {
 	}
 
 	// return all visible child pages
-	public function children($terms = array()) {
+	public function children() {
 
-		// add optional search terms
-		$terms = array_merge($terms, array('parent' => $this->name, 'visible' => TRUE));
-
-		return self::find_all($terms);
+		return self::find(array('parent' => $this->name, 'visible' => TRUE));
 
 	}
 
@@ -381,7 +439,7 @@ class Page {
 		// add optional search terms
 		$terms = array_merge($terms, array('parent' => $this->parent, 'visible' => TRUE));
 
-		return self::find_all($terms);
+		return self::find($terms);
 
 	}
 
@@ -428,19 +486,24 @@ class Page {
 	public function _relative_page($offset = 0) {
 
 		// create page map from current section
-		$parent = self::find_names(array('parent' => $this->parent, 'visible' => TRUE));
-
+		$section = self::find(array('parent' => $this->parent, 'visible' => TRUE));
+		
+		// build simple array of names
+		$siblings = array();
+		foreach ($section as $sibling)
+			$siblings[] = $sibling->name;
+			
 		// find current key
-		$current_page_index = array_search($this->name, $parent);
+		$current_page_index = array_search($this->name, $siblings);
 
 		// check desired offset
-		if (isset($parent[$current_page_index + $offset])) {
+		if (isset($siblings[$current_page_index + $offset])) {
 
 			// get relative page name
-			$relative_page = $parent[$current_page_index + $offset];
+			$relative_page = $siblings[$current_page_index + $offset];
 
 			// return relative page model
-			return self::find(array('name' => $relative_page));
+			return self::find(array('name' => $relative_page), TRUE);
 
 		}
 
@@ -508,78 +571,41 @@ class Page {
 
 	}
 	
-
-	// load content database
-	public static function content_load() {
+	// filter and return pages by properties
+	// when $first, only return first result, not in an array
+	public static function find($terms, $first = FALSE) {
 		
-		// traverse content directory and load all content
+		// ensure we have content DB loaded
 		if (empty(self::$db)) {
 			
 			// directory where content files are stored
 			$content_path = Paste::$path.self::$content_dir.'/';
 			
-			// load root and all child sections
+			// traverse content directory and load all content
 			self::$db = self::load_section($content_path);
 			
 		}
-		
-	}
 
-	// retrieve single page by properties
-	public static function find($terms) {
-		
-		$pages = self::find_all($terms);
+		// store pages here
+		$result = array();
 
-		return (empty($pages)) ? FALSE : current($pages);
-
-	}
-
-	// filter and return pages by properties
-	public static function find_all($terms) {
-		
-		// ensure we have content loaded
-		self::content_load();
-
-		$pages = array();
-
+		// iterage pages, return by reference
 		foreach (self::$db as &$page) {
 
-			foreach ($terms as $property => $value) {
-
+			// iterate over search terms
+			foreach ($terms as $property => $value)
+				// skip to next page if property doesn't match
 				if ($page->$property !== $value)
-					// skip to next page if property doesn't match
 					continue 2;
 
-			}
-
-			// clone the page object so we don't alter original
-			$pages[] = $page;
+			// add to pages
+			$result[] = $page;
 
 		}
 
-		return $pages;
-
-	}
-
-	// returns page names in a flat array
-	public static function find_names($terms) {
-
-		$pages = array();
-
-		foreach (self::find_all($terms) as $page) {
-
-			$pages[] = $page->name;
-
-		}
-
-		return $pages;
-
-	}
-
-	// get child pages of a parent
-	public static function find_children($parent) {
-		
-		return self::find_all(array('parent' => $parent));
+		// return FALSE if no pages found
+		// only return single result if ($first)
+		return empty($result) ? FALSE : ($first) ? array_shift($result) : $result;
 
 	}
 
