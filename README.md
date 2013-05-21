@@ -3,8 +3,8 @@
 **REWRITE TODOs:**
 
 - refactor Page lib
-	- update Page->is_current() and add Page->is\_parent
 	- Page Constructor -- change factory to Page::from_path()
+	- X update Page->is_current() and Page->is\_parent
 	- X consolidate nav stuff to next() and prev(), remove unused
 	- X change page->parents to something like parent_paths
 	- X simplify find and find_all, etc.
