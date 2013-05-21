@@ -56,79 +56,48 @@ class Page {
 	// decipher request and render content page
 	public static function get($url = NULL) {
 		
-		// trim slashes
-		$url = trim($url, '/');
-		
-		// decipher content request
-		if (empty($url)) {
-			
-			// root section
-			$parent = FALSE;
-			$page = 'index';
-			
-		} else {
-			
-			// split up request
-			$request = explode('/', $url);
-
-			// current section is 2nd to last argument (ie. parent3/parent2/parent/page) or 'index' if root section
-			$parent = (count($request) <= 1) ? 'index' : $request[count($request) - 2];
-
-			// current page is always last argument of request
-			$page = end($request);
-			
-		}
-		
-		// get requested page from content database
-		$current = self::page(array('parent' => $parent, 'name' => $page));
+		// instantiate new page based on URL
+		$page = Page::from_url($url);
 		
 		// no page found
-		if ($current === FALSE OR $current->loaded === FALSE) {
+		if ($page === FALSE OR ! $page->loaded) {
 
 			// send 404 header
 			header('HTTP/1.1 404 File Not Found');
 
 			// draw 404 content if available
-			$current = self::page(array('name' => '404'));
+			$page = self::page(array('name' => '404'));
 			
 			// if no 404 content available, do somethin' sensible
-			if ($current === FALSE) {
+			if ($page === FALSE) {
 
 				// simple 404 page
-				$current = new Page;
-				$current->title = 'Error 404 - File Not Found';
-				$current->content = '<h1>Error 404 - File Not Found</h1>';
+				$page = new Page;
+				$page->title = 'Error 404 - File Not Found';
+				$page->content = '<h1>Error 404 - File Not Found</h1>';
 				
 			}
 
 		// page redirect configured
-		} elseif (! empty($current->redirect)) {
+		} elseif (! empty($page->redirect)) {
 
 			// redirect to url
-			return Paste::redirect($current->url());
+			return Paste::redirect($page->url());
 
 		}
 		
 		// set page to current
-		$current->is_current = TRUE;
+		$page->is_current = TRUE;
 		
 		// if not a parent, set parent section to current too
-		if (! $current->is_parent) {
-			
-			// get parents
-			$parents = $current->parents();
-			
-			$parent = end($parents);
-			
-			$parent->is_current = TRUE;
-			
-		}
-		
+		if (! $page->is_parent)
+			$page->parent()->is_current = TRUE;
+
 		// send text/html UTF-8 header
 		header('Content-Type: text/html; charset=UTF-8');
 		
-		// render the template 
-		echo $current->render();
+		// render the page
+		echo $page->render();
 
 	}
 	
@@ -165,18 +134,47 @@ class Page {
 		
 		// build actual URL
 		$this->url = '/';
-				
-		// add parents to URL
-		// if (! empty($parents)) 
-			// iterate parents in reverse
-			foreach ($parents as $parent)
-				$this->url .= $parent.'/';
+
+		// iterate parents in reverse
+		foreach ($parents as $parent)
+			$this->url .= $parent.'/';
 		
 		// add page name to URL
 		$this->url .= $this->name;
 
 		// load file content into model
 		$this->load();
+
+	}
+	
+	// decipher URL request and return Page model from DB
+	public static function from_url($url = NULL) {
+		
+		// trim slashes
+		$url = trim($url, '/');
+		
+		// decipher content request
+		if (empty($url)) {
+			
+			// root section
+			$page = 'index';
+			$parent = FALSE;
+
+		} else {
+			
+			// split up request
+			$request = explode('/', $url);
+
+			// current section is 2nd to last argument (ie. parent3/parent2/parent/page) or 'index' if root section
+			$parent = (count($request) <= 1) ? 'index' : $request[count($request) - 2];
+
+			// current page is always last argument of request
+			$page = end($request);
+			
+		}
+		
+		// get requested page from content database
+		return self::page(array('parent' => $parent, 'name' => $page));
 
 	}
 
@@ -244,31 +242,7 @@ class Page {
 
 	}
 	
-	// get all parents in an array
-	public function parents() {
-
-		// start the recursion
-		$parent = $this;
-
-		// init
-		$parents = array();
-
-		// add parents while possible
-		while ($parent) {
-			
-			// get parent page
-			$parent = self::page(array('name' => $parent->parent));
-
-			// add to list
-			$parents[] = $parent;
-
-		}
-		
-		// reverse list of parents and return
-		return array_reverse($parents);
-
-	}
-
+	// next sibling page, or cycle to first page
 	public function next() {
 
 		// get next page in section
@@ -279,6 +253,7 @@ class Page {
 
 	}
 
+	// previous sibling page, or cycle to last page
 	public function prev() {
 
 		// get previous page in section
@@ -329,6 +304,42 @@ class Page {
 
 	}
 	
+	// get the immediate parent object
+	public function parent() {
+		
+		// get parents
+		$parents = $this->parents();
+		
+		// return last parent
+		return end($parents);
+		
+	}
+	
+	// get all parents in an array
+	public function parents() {
+
+		// start the recursion
+		$parent = $this;
+
+		// init
+		$parents = array();
+
+		// add parents while possible
+		while ($parent) {
+			
+			// get parent page
+			$parent = self::page(array('name' => $parent->parent, 'is_parent' => TRUE));
+
+			// add to list
+			$parents[] = $parent;
+
+		}
+		
+		// reverse list of parents and return
+		return array_reverse($parents);
+
+	}
+	
 	// return array of cascading templates
 	public function templates() {
 
@@ -359,11 +370,10 @@ class Page {
 		// directory where content files are stored
 		$templates_path = Paste::$path.self::$template_dir.'/';
 		
-		// TODO: instantiate engine in constructor, use FilesystemLoader
-		// TODO: setup cache folder in Paste
+		// TODO: instantiate engine and cache in Paste?
 		$mustache = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_StringLoader,
-			'partials_loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => ".stache")),
+			'partials_loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => self::$template_ext)),
 			// 'cache' => Paste::$path.'cache',
 		));
 
@@ -374,7 +384,7 @@ class Page {
 		foreach ($this->templates() as $parent_template) {
 			
 			// directory where template files are stored - template name - file extension
-			$template_path = Paste::$path.self::$template_dir.'/'.$parent_template.self::$template_ext;
+			$template_path = $templates_path.$parent_template.self::$template_ext;
 
 			// load template file 
 			$parent_template = file_get_contents(realpath($template_path));
@@ -383,7 +393,7 @@ class Page {
 			$template = str_replace('{{{content}}}', $parent_template, $template);
 
 		}
-		
+
 		$template = $mustache->loadTemplate($template);
 		return $template->render($this);
 
@@ -566,13 +576,16 @@ class Page {
 	
 	public static function debug() {
 		
-		echo 'Debug:<br>';
+		// simple 404 page
+		$page = new Page;
+		$page->title = 'Error 404 - File Not Found';
+		$page->content = '<h1>Error 404 - File Not Found</h1>';
 		
-		$root = self::page(array('parent' => FALSE));
+		// send text/html UTF-8 header
+		header('Content-Type: text/html; charset=UTF-8');
 		
-		echo '<pre>';
-		print_r($root->menu());
-		echo '</pre>';
+		// render the page
+		echo $page->render();
 		
 	}
 	
