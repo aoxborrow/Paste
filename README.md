@@ -11,8 +11,8 @@
 	- X render menu() separately to remove invisible pages
 	- X remove section in favor of parent
 - use Mustache filesystem loader for partials and cache
-- make Menu mustache partial resursive for infinite depth -- fix CSS
 - make a Pre lib!
+- X make Menu mustache partial resursive for infinite depth -- fix CSS
 - X more unique syntax for page/section vars
 - X proper cascading templates
 - X redo the section control as suggested in Page->factory? no

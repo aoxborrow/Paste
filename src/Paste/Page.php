@@ -187,7 +187,8 @@ class Page {
 			'label' => $this->label, // -- label in menu
 			'title' => $this->title, // -- page title -- used for <a> title
 			'current' => $this->is_current,
-			'parent' => $this->is_parent,
+			'parent' => ($this->is_parent OR $this->parent == 'index'), // top pages get section styling
+			'parents' => count($this->parents()) - 1, // a simple depth count for the menu.stache
 			'children' => FALSE,
 		);
 		
