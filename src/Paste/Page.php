@@ -19,18 +19,24 @@ class Page {
 	
 	// page successfully loaded
 	public $loaded = FALSE;
-
-	// page name and link id
-	public $name;
-
-	// path to page content
-	public $path;
 	
-	// page title, used in menu
+	// visible in menu
+	public $visible = TRUE;
+
+	// page name and link slug
+	public $name;
+	
+	// page title
 	public $title;
+
+	// label in menu
+	public $label;
 
 	// page content
 	public $content;
+
+	// path to page content
+	public $path;
 
 	// mustache template name
 	public $template;
@@ -47,9 +53,6 @@ class Page {
 	// the currently selected page
 	public $is_current = FALSE;
 
-	// visible in menu
-	public $visible = TRUE;
-	
 	// content "database"
 	public static $db;
 
@@ -154,11 +157,10 @@ class Page {
 		$url = trim($url, '/');
 		
 		// decipher content request
-		if (empty($url)) {
+		if (empty($url) OR $url == 'index') {
 			
-			// root section
-			$page = 'index';
-			$parent = FALSE;
+			// get root section
+			return self::page(array('parent' => FALSE, 'name' => 'index'));
 
 		} else {
 			
@@ -169,29 +171,11 @@ class Page {
 			$parent = (count($request) <= 1) ? 'index' : $request[count($request) - 2];
 
 			// current page is always last argument of request
-			$page = end($request);
+			return self::page(array('parent' => $parent, 'name' => end($request)));
 			
 		}
-		
-		// get requested page from content database
-		return self::page(array('parent' => $parent, 'name' => $page));
-
 	}
 
-	// static function that gets the root index menu
-	public static function index() {
-
-		// get index section
-		$index = self::page(array('parent' => FALSE));
-		
-		// build full menu from index section
-		$menu = $index->menu();
-		
-		// if visible show root index page in menu, otherwise just return children
-		return ($index->visible) ? $menu : $menu['children'];
-
-	}
-	
 	// menu items relative to current page
 	// returns simple menu heirarchy with:
 	// url, title, current, parent, children
@@ -200,7 +184,8 @@ class Page {
 		// build menu basics
 		$menu_item = array(
 			'url' => $this->url(),
-			'title' => $this->title,
+			'label' => $this->label, // -- label in menu
+			'title' => $this->title, // -- page title -- used for <a> title
 			'current' => $this->is_current,
 			'parent' => $this->is_parent,
 			'children' => FALSE,
@@ -222,6 +207,20 @@ class Page {
 
 		// return 
 		return $menu_item;
+
+	}
+	
+	// static function that gets the root index menu
+	public static function index_menu() {
+
+		// get index section
+		$index = self::page(array('parent' => FALSE));
+		
+		// build full menu from index section
+		$menu = $index->menu();
+
+		// if visible show root index page in menu, otherwise just return children
+		return ($index->visible) ? $menu : $menu['children'];
 
 	}
 	
@@ -461,6 +460,10 @@ class Page {
 
 			// set title to name if not set otherwise
 			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
+			
+			// use title for menu label
+			if (empty($this->label))
+				$this->label = $this->title;
 
 			// assign entire html to content property
 			$this->content = $html;
@@ -474,7 +477,9 @@ class Page {
 	// process content for embedded variables
 	public static function process($html) {
 
-		// credit to Ben Blank: http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
+		// match HTML comments that look like
+		// <!-- @key: value -->
+		// http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
 		$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
 		preg_match_all($regexp, $html, $comments, PREG_OFFSET_CAPTURE);
 
@@ -490,9 +495,11 @@ class Page {
 		// split lines on colon and assign to key/value
 		$vars = array();
 		foreach ($lines as $line) {
-			$parts = explode(":", $line, 2);
-			if (count($parts) == 2)
-				$vars[trim($parts[0])] = trim($parts[1]);
+			if (stristr($line, '@') AND stristr($line, ':')) {
+				$parts = explode(":", $line, 2);
+				if (count($parts) == 2)
+					$vars[trim(str_replace('@', '', $parts[0]))] = trim($parts[1]);
+			}
 		}
 
 		// convert some values, strip comments

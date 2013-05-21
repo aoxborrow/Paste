@@ -2,8 +2,8 @@
 
 **REWRITE TODOs:**
 
-- refactor Page lib
-	- Page Constructor -- change factory to Page::from_path()
+- X refactor Page lib
+	- X Page Constructor -- change factory to Page::from_path()
 	- X update Page->is_current() and Page->is\_parent
 	- X consolidate nav stuff to next() and prev(), remove unused
 	- X change page->parents to something like parent_paths
@@ -11,9 +11,9 @@
 	- X render menu() separately to remove invisible pages
 	- X remove section in favor of parent
 - use Mustache filesystem loader for partials and cache
-- make Menu mustache partial resursive for infinite depth
-- more unique syntax for page/section vars
+- make Menu mustache partial resursive for infinite depth -- fix CSS
 - make a Pre lib!
+- X more unique syntax for page/section vars
 - X proper cascading templates
 - X redo the section control as suggested in Page->factory? no
 - X return Paste to all static class
@@ -37,7 +37,7 @@
 - It aims to be super fast and easy to maintain. It takes some cues from [http://www.staceyapp.com/](Stacey App).
 - Pastefolio takes the structure of the /content/ folder and builds the menu and heirarchy. 
 - Each html file represents a page in the menu, each folder represents a section, to infinite depth.
-- Variables can be set within the HTML source, like so: <!-- template: master -->. Variables cascade through the child sections.
+- Variables can be set within the HTML source, like so: <!-- @template: master -->. Variables cascade through the child sections.
 - Mustache.php is used for templating including partials.
 - It uses OOP and the MVC pattern and requires PHP5.
 
