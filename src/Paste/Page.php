@@ -365,7 +365,42 @@ class Page {
 	}
 	
 	// render the page with templates
+	// -- this version only uses the first two possible templates, everything else must be partials
 	public function render() {
+		
+		// directory where content files are stored
+		$templates_path = Paste::$path.self::$template_dir.'/';
+		
+		// TODO: instantiate engine and cache in Paste?
+		$mustache = new \Mustache_Engine(array(
+			'loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => self::$template_ext)),
+			// 'cache' => Paste::$path.'cache',
+		));
+		
+		// this allows dynamic partials
+		// https://github.com/bobthecow/mustache.php/pull/101
+		$mustache->addHelper('partial_render', function($text, $mustache) {
+			return "{{>".$mustache->render($text).'}}';
+		});
+
+		// get all the templates
+		$templates = $this->templates();
+		
+		// load the main template
+		$template = $mustache->loadTemplate($templates[0]);
+
+		// set next template as partial
+		if (! empty($templates[1]))
+			$this->partial = $templates[1];
+		
+		// render template
+		return $template->render($this);
+
+	}
+	
+	// render the page with templates
+	// -- this version uses string manip to combine all possible templates before rendering
+	public function render_cascade() {
 		
 		// directory where content files are stored
 		$templates_path = Paste::$path.self::$template_dir.'/';
@@ -376,7 +411,7 @@ class Page {
 			'partials_loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => self::$template_ext)),
 			// 'cache' => Paste::$path.'cache',
 		));
-
+		
 		// placeholder
 		$template = '{{{content}}}';
 
@@ -398,6 +433,7 @@ class Page {
 		return $template->render($this);
 
 	}
+	
 	
 	// find a single page by properties
 	public static function page($terms) {
