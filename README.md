@@ -2,7 +2,9 @@
 
 **REWRITE TODOs:**
 
-- make a Pre lib!
+- make example site more generic, add dummy text and illustrative CSS for menu heirarchy
+- write new description and a quick usage guide w/ screenshots
+
 - X refactor Page lib
 	- X Page Constructor -- change factory to Page::from_path()
 	- X update Page->is_current() and Page->is\_parent

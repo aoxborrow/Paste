@@ -128,7 +128,7 @@ class Paste {
 		}
 	}
 	
-	// find URI from CLI or PHP_SELF
+	// find URI from REQUEST_URI or CLI
 	public static function uri() {
 
 		// get requested URI, or from command line argument if running from CLI
