@@ -620,16 +620,14 @@ class Page {
 	
 	public static function debug() {
 		
-		// simple 404 page
-		$page = new Page;
-		$page->title = 'Error 404 - File Not Found';
-		$page->content = '<h1>Error 404 - File Not Found</h1>';
+		// get index section
+		$index = self::page(array('parent' => FALSE));
 		
-		// send text/html UTF-8 header
-		header('Content-Type: text/html; charset=UTF-8');
+		// build full menu from index section
+		$menu = $index->menu();
 		
-		// render the page
-		echo $page->render();
+		echo Utils::pre($menu);
+
 		
 	}
 	
