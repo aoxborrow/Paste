@@ -626,7 +626,11 @@ class Page {
 		// build full menu from index section
 		$menu = $index->menu();
 		
-		echo Utils::pre($menu);
+		echo Utils::url();
+		
+		echo '<br>';
+		
+		echo Pre::render($menu);
 
 		
 	}
