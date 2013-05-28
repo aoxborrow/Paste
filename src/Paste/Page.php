@@ -55,6 +55,9 @@ class Page {
 	// the currently selected page
 	public $is_current = FALSE;
 
+	// the parent of the selected page
+	public $is_current_parent = FALSE;
+
 	// takes content details and builds Page object
 	public static function create($content = NULL) {
 		
@@ -133,6 +136,7 @@ class Page {
 			'label' => $this->label, // -- label in menu
 			'title' => $this->title, // -- page title -- used for <a> title
 			'current' => $this->is_current,
+			'current_parent' => ($this->is_current_parent AND $this->name !== 'index'), // don't set root section as selected
 			'parent' => ($this->is_parent OR $this->parent == 'index'), // top pages get section styling
 			'parents' => count($this->parents()) - 1, // a simple depth count for the menu.stache
 			'children' => FALSE,

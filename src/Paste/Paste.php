@@ -91,7 +91,7 @@ class Paste {
 		$execution_time = number_format(microtime(TRUE) - $execution_start, 4);
 
 		// add benchmark time to end of HTML
-		echo PHP_EOL.'<br/>Execution Time: '.$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB';
+		echo PHP_EOL.'<br/><div class="benchmark">Execution Time: '.$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB</div>';
 		
 
 	}
@@ -243,7 +243,7 @@ class Paste {
 		
 		// if not a parent, set parent section to current too
 		if (! $page->is_parent)
-			$page->parent()->is_current = TRUE;
+			$page->parent()->is_current_parent = TRUE;
 
 		// send text/html UTF-8 header
 		header('Content-Type: text/html; charset=UTF-8');
