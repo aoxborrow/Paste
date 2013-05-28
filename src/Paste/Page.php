@@ -1,4 +1,12 @@
-<?php
+<?php 
+/**
+ * Paste - a super simple "CMS" built around static files and folders.
+ *
+ * @author     Aaron Oxborrow <aaron@pastelabs.com>
+ * @link       http://github.com/paste/Paste
+ * @copyright  (c) 2013 Aaron Oxborrow
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ */
 
 namespace Paste;
 

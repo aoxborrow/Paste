@@ -49,10 +49,6 @@ class Paste {
 		// start benchmark
 		$execution_start = microtime(TRUE);
 
-		// two useful constants for formatting text
-		define('TAB', "\t"); 
-		define('EOL', "\n");
-
 		// full path to where index.php resides, with trailing slash
 		self::$app_path = rtrim(getcwd(), '/').'/';
 		
@@ -86,8 +82,7 @@ class Paste {
 		$execution_time = number_format(microtime(TRUE) - $execution_start, 4);
 
 		// add benchmark time to end of HTML
-		// echo EOL.EOL.'<!-- Execution Time: '.self::$execution_time.', Included Files: '.count(get_included_files()).' -->';
-		echo EOL.'<br/>Execution Time: '.$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB';
+		echo PHP_EOL.'<br/>Execution Time: '.$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB';
 		
 
 	}
