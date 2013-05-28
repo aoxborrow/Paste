@@ -201,59 +201,142 @@ class Page {
 	// next sibling page, or cycle to first page
 	public function next() {
 
-		// get next page in section
-		$next = $this->_relative(1);
+		// get next page in section, will cycle to first page if needed
+		$next = $this->_relative('next', $this->parent, FALSE);
 
-		// cycle to first page if last in section
-		return ($next === FALSE) ? $this->_relative('first')->url() : $next->url();
+		// couldn't get next page?
+		return ($next === FALSE) ? '#' : $next->url();
 
 	}
 
 	// previous sibling page, or cycle to last page
 	public function prev() {
 
-		// get previous page in section
-		$prev = $this->_relative(-1);
+		// get previous page in section, will cycle to last page if needed
+		$prev = $this->_relative('prev', $this->parent, FALSE);
 
 		// cycle to last page if first in section
-		return ($prev === FALSE) ? $this->_relative('last')->url() : $prev->url();
+		return ($prev === FALSE) ? '#': $prev->url();
 	}
 
-	// returns relative page, uses current section by default
-	public function _relative($offset = 0, $parent = NULL) {
+	// returns relative page, based on supplied context. defaults to looping within current section
+	public function _relative($offset, $orig_context, $restrict = TRUE) {
 		
-		// use current section if not supplied
-		if ($parent === NULL)
-			$parent = $this->parent;
+		// create page map from supplied parent
+		$siblings = Paste::content_query(array('parent' => $orig_context, 'visible' => TRUE));
 
-		// create page map from current section
-		$section = Paste::content_query(array('parent' => $parent, 'visible' => TRUE));
+		// build simple array of sibling names
+		$context = array();
+		foreach ($siblings as $sibling)
+			$context[] = $sibling->name;
 		
-		// build simple array of names
-		$siblings = array();
-		foreach ($section as $sibling)
-			$siblings[] = $sibling->name;
+		// find current position
+		$current_index = array_search($this->name, $context);
 		
-		// numeric offset
-		if (is_numeric($offset)) {
-		
-			// find current key
-			$current_index = array_search($this->name, $siblings);
+		// if we're not restricted to siblings, need to map out the parent section too
+		if (! $restrict) {
+			
+			// if this page is a parent, then its children will be next
+			if ($this->is_parent) {
+				
+				// get any children
+				$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
+				
+				// we have children
+				if (! empty($children)) {
+					
+					// build simple array of child names
+					$children_context = array();
+					foreach ($children as $child)
+						$children_context[] = $child->name;
+					
+					// splice in children context at current_index
+					// all the siblings before the current index
+					$before_index = array_slice($context, 0, $current_index+1);
 
-			// desired offset exists, use that
-			$relative_page = isset($siblings[$current_index + $offset]) ? $siblings[$current_index + $offset] : FALSE;
+					// all the sibling after the current index
+					$after_index = array_slice($context, $current_index+1);
+				
+					// merge the sibling onto the start and end of children context
+					$context = array_merge($before_index, $children_context, $after_index);
+				}
+			}
+			
+			// get immediate parent
+			$parent = $this->parent();
+			
+			// not at the top section yet
+			if (! empty($parent)) {
+			
+				// get flat array of parent's siblings
+				$parent_siblings = Paste::content_query(array('parent' => $parent->parent, 'visible' => TRUE));
+				
+				// build simple array of parent's sibling names
+				$parent_context = array();
+				foreach ($parent_siblings as $uncle)
+					$parent_context[] = $uncle->name;
+				
+				// find parent's current position
+				$parent_index = array_search($parent->name, $parent_context);
+				
+				// splice in sibling context at parent_index
+				// all the uncles before the current index
+				$before_index = array_slice($parent_context, 0, $parent_index+1);
+				
+				// all the uncles after the current index
+				$after_index = array_slice($parent_context, $parent_index+1);
+	
+				// merge the parents onto the start and end of context
+				$context = array_merge($before_index, $context, $after_index);
+				
+			}
+			
+			// find current position
+			$current_index = array_search($this->name, $context);
+			
+			$search = array(
+				'offset' => $offset,
+				'orig_context' => $orig_context,
+				'context' => $context,
+				'current_index' => $current_index,
+			);
+
+			Pre::add($search, '_relative');
+		}
+		
+		
+		
+		// previous sibling
+		if ($offset == 'prev') {
+			// previous sibling exists use it
+			if (isset($context[$current_index - 1])) {
+				// previous sibling
+				$relative_page = $context[$current_index - 1];
+			 } else {
+				 // cycle to last sibling
+				$offset = 'last';
+			}
+		}
+		
+		// next sibling
+		if ($offset == 'next') {
+			// next sibling exists use it
+			if (isset($context[$current_index + 1])) {
+				// next sibling
+				$relative_page = $context[$current_index + 1];
+			 } else {
+				 // cycle to first sibling
+				$offset = 'first';
+			}
+		}
 
 		// first sibling
-		} elseif ($offset == 'first') {
-			
-			$relative_page = array_shift($siblings);
+		if ($offset == 'first')
+			$relative_page = array_shift($context);
 			
 		// last sibling	
-		} elseif ($offset == 'last') {
-			
-			$relative_page = array_pop($siblings);
-
-		}
+		if ($offset == 'last')
+			$relative_page = array_pop($context);
 		
 		// return relative page model or FALSE if it doesn't exist
 		return empty($relative_page) ? FALSE : self::find(array('name' => $relative_page));

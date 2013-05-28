@@ -86,6 +86,9 @@ class Paste {
 			
 		}
 		
+		echo "<br><br>\n\n";
+		echo Pre::render();
+		
 		// DEBUG INFOS
 		// stop benchmark, get execution time
 		$execution_time = number_format(microtime(TRUE) - $execution_start, 4);
