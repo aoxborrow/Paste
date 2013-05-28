@@ -91,7 +91,7 @@ class Paste {
 		$execution_time = number_format(microtime(TRUE) - $execution_start, 4);
 
 		// add benchmark time to end of HTML
-		echo PHP_EOL.'<br/><div class="benchmark">Execution Time: '.$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB</div>';
+		echo PHP_EOL.'<div class="benchmark">Execution Time: '.$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB</div>';
 		
 
 	}
