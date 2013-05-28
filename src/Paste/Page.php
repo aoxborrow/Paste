@@ -55,8 +55,8 @@ class Page {
 	// the currently selected page
 	public $is_current = FALSE;
 
-	//  takes content details and builds Page object
-	public static function from_content($content = NULL) {
+	// takes content details and builds Page object
+	public static function create($content = NULL) {
 		
 		// instantiate Page model
 		$page = new Page;
@@ -79,7 +79,7 @@ class Page {
 				$parts = array_slice($parts, 0, -1);
 			
 		} 
-
+		
 		// URL is all the parts put back together
 		$page->url .= implode('/', $parts);
 
@@ -90,8 +90,10 @@ class Page {
 		$page->parent = empty($parts) ? 'index' : end($parts);
 		
 		// the root section has no parents! like Batman...
-		if ($page->name == 'index')
+		if ($page->name == 'index') {
 			$page->parent = FALSE;
+			$page->url = '/';
+		}
 		
 		// set title to name if not set otherwise
 		if (empty($page->title))
@@ -138,13 +140,13 @@ class Page {
 		
 		// add child menu items
 		if ($this->is_parent) {
+
+			// get all visible child pages who call this one mommy
+			$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
 			
 			// add to children key
 			$menu_item['children'] = array();
-			
-			// get all visible child pages who call this one mommy
-			$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
-
+		
 			// add child menu items recursively
 			foreach ($children as $child)
 				$menu_item['children'][] = $child->menu();
@@ -156,7 +158,7 @@ class Page {
 	}
 	
 	// static function that gets the root index menu
-	public static function index_menu() {
+	public static function index() {
 
 		// get index section
 		$index = self::find(array('parent' => FALSE));
@@ -173,9 +175,15 @@ class Page {
 	public function url() {
 
 		// parent configured to redirect to first child
-		if ($this->is_parent AND $this->redirect == 'first_child')
+		if ($this->is_parent AND $this->redirect == 'first_child') {
+			
 			// get first child page URL
-			return $this->_relative('first', $this->name)->url();
+			$first_child = $this->_relative('first', $this->name);
+			
+			// has a visible child
+			return empty($first_child) ? $this->parent()->url() : $first_child->url();
+			
+		}
 			
 		// URL redirect configured
 		if (! empty($this->redirect))

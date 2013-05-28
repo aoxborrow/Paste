@@ -282,8 +282,8 @@ class Paste {
 
 		}
 		
-		// return FALSE if no pages found
-		return empty($pages) ? FALSE : $pages;
+		// return result
+		return $pages;
 
 	}
 	
@@ -366,7 +366,7 @@ class Paste {
 					$content['content'] = $html;
 
 					// instantiate Page object and add to cache
-					$pages[] = Page::from_content($content);
+					$pages[] = Page::create($content);
 
 				}
 			}
