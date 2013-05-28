@@ -386,7 +386,7 @@ class Page {
 		$mustache = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_StringLoader,
 			'partials_loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => Paste::$template_ext)),
-			// 'cache' => Paste::$app_path.'cache',
+			'cache' => Paste::$cache_path,
 		));
 
 		// load the compiled template via StringLoader

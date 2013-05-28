@@ -26,7 +26,7 @@ class Paste {
 	public static $content_ext = '.html';
 	
 	// content "database"
-	public static $content_cache;
+	public static $content_db;
 
 	// full path to mustache templates
 	public static $template_path;
@@ -36,6 +36,12 @@ class Paste {
 
 	// template file extension
 	public static $template_ext = '.stache';
+
+	// full path to cache for mustache
+	public static $cache_path;
+
+	// cache directory relative to app path
+	public static $cache_dir = 'cache';
 
 	// request uri
 	public static $request_uri;
@@ -58,7 +64,10 @@ class Paste {
 		// full path to mustache templates
 		self::$template_path = self::$app_path.self::$template_dir.'/';
 
-		// detect URI
+		// full path to cache for mustache
+		self::$cache_path = self::$app_path.self::$cache_dir.'/';
+
+		// detect request URI
 		self::$request_uri = self::uri();
 
 		// add catch-all default route for Page controller
@@ -249,10 +258,10 @@ class Paste {
 	public static function content_query($terms) {
 		
 		// ensure we have content "DB" loaded
-		if (empty(self::$content_cache)) {
+		if (empty(self::$content_db)) {
 			
 			// traverse content directory and load all content
-			self::$content_cache = self::content_load(self::$content_path);
+			self::$content_db = self::content_load(self::$content_path);
 			
 		}
 
@@ -260,7 +269,7 @@ class Paste {
 		$pages = array();
 
 		// iterage pages, return by reference
-		foreach (self::$content_cache as &$page) {
+		foreach (self::$content_db as &$page) {
 
 			// iterate over search terms
 			foreach ($terms as $property => $value)
