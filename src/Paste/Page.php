@@ -5,18 +5,6 @@ namespace Paste;
 // page model
 class Page {
 	
-	// content file extension
-	public static $content_ext = '.html';
-	
-	// content directory relative to app path
-	public static $content_dir = 'content';
-	
-	// template file extension
-	public static $template_ext = '.stache';
-
-	// template directory relative to app path
-	public static $template_dir = 'templates';
-	
 	// page successfully loaded
 	public $loaded = FALSE;
 	
@@ -35,145 +23,93 @@ class Page {
 	// page content
 	public $content;
 
-	// path to page content
-	public $path;
-
 	// mustache template name
 	public $template;
+	
+	// mustache partial template
+	public $partial;
 
 	// redirect URL for creating aliases
 	public $redirect;
 
 	// parent section
 	public $parent;
-
+	
+	// path to page content
+	public $path;
+	
+	// url to page
+	public $url = '/';
+	
 	// page is a section index
 	public $is_parent = FALSE;
 
 	// the currently selected page
 	public $is_current = FALSE;
 
-	// content "database"
-	public static $db;
-
-	// decipher request and render content page
-	public static function get($url = NULL) {
+	//  takes content details and builds Page object
+	public static function from_content($content = NULL) {
 		
-		// instantiate new page based on URL
-		$page = Page::from_url($url);
+		// instantiate Page model
+		$page = new Page;
+
+		// assign content data to page model
+		foreach ($content as $key => $value)
+			$page->$key = $value;
 		
-		// no page found
-		if ($page === FALSE OR ! $page->loaded) {
-
-			// send 404 header
-			header('HTTP/1.1 404 File Not Found');
-
-			// draw 404 content if available
-			$page = self::page(array('name' => '404'));
+		// parts array is content path after stripping prefix and extensions from each part
+		$parts = array_map('Paste\Paste::content_name', explode('/', $page->path));
+		
+		// sections are represented by their index file
+		if (end($parts) === 'index') {
 			
-			// if no 404 content available, do somethin' sensible
-			if ($page === FALSE) {
+			// parent section
+			$page->is_parent = TRUE;
+			
+			// remove 'index' from parts if deeper than root
+			if (count($parts) > 1)
+				$parts = array_slice($parts, 0, -1);
+			
+		} 
 
-				// simple 404 page
-				$page = new Page;
-				$page->title = 'Error 404 - File Not Found';
-				$page->content = '<h1>Error 404 - File Not Found</h1>';
-				
-			}
+		// URL is all the parts put back together
+		$page->url .= implode('/', $parts);
 
-		// page redirect configured
-		} elseif (! empty($page->redirect)) {
-
-			// redirect to url
-			return Paste::redirect($page->url());
-
-		}
+		// page name is last part
+		$page->name = array_pop($parts);
+	
+		// parent is the next remaining part, or for root content it's "index"
+		$page->parent = empty($parts) ? 'index' : end($parts);
 		
-		// set page to current
-		$page->is_current = TRUE;
+		// the root section has no parents! like Batman...
+		if ($page->name == 'index')
+			$page->parent = FALSE;
 		
-		// if not a parent, set parent section to current too
-		if (! $page->is_parent)
-			$page->parent()->is_current = TRUE;
+		// set title to name if not set otherwise
+		if (empty($page->title))
+			$page->title = ucwords(str_replace('_', ' ', $page->name));
+		
+		// use title for menu label if not specified
+		if (empty($page->label))
+			$page->label = $page->title;
+		
+		// page is loaded
+		$page->loaded = TRUE;
 
-		// send text/html UTF-8 header
-		header('Content-Type: text/html; charset=UTF-8');
-		
-		// render the page
-		echo $page->render();
+		// return Page object
+		return $page;
 
 	}
 	
-	// instantiate Page model -- takes a content file path and builds object
-	public function __construct($path = NULL) {
+	// find a single page by properties
+	public static function find($terms) {
 		
-		// trim trailing slash
-		$this->path = rtrim($path, '/');
+		// get all pages that match
+		$pages = Paste::content_query($terms);
 		
-		// strip content path off to get URL
-		$url = substr($this->path, strlen(Paste::$path.self::$content_dir.'/'));
+		// only return single result
+		return empty($pages) ? FALSE : array_shift($pages);
 
-		// parents array is all enclosing sections
-		$parents = array();
-		foreach (explode('/', $url) as $part)
-			$parents[] = self::base_name($part);
-			
-		// file name is last part of path without prefix or extension
-		$this->name = array_pop($parents);
-		
-		// parent sections are represented by their index file
-		$this->is_parent = ($this->name == 'index');
-
-		// for everything but root index, change name from index to parent name and remove from parents array
-		if ($this->is_parent AND ! empty($parents))
-			$this->name = array_pop($parents);
-
-		// set parent for non-index pages, for root content it's "index"
-		$this->parent = empty($parents) ? 'index' : end($parents);
-		
-		// the root section has no parents! like batman
-		if ($this->name == 'index')
-			$this->parent = FALSE;
-		
-		// build actual URL
-		$this->url = '/';
-
-		// iterate parents in reverse
-		foreach ($parents as $parent)
-			$this->url .= $parent.'/';
-		
-		// add page name to URL
-		$this->url .= $this->name;
-
-		// load file content into model
-		$this->load();
-
-	}
-	
-	// decipher URL request and return Page model from DB
-	public static function from_url($url = NULL) {
-		
-		// trim slashes
-		$url = trim($url, '/');
-		
-		// decipher content request
-		if (empty($url) OR $url == 'index') {
-			
-			// get root section
-			return self::page(array('parent' => FALSE, 'name' => 'index'));
-
-		} else {
-			
-			// split up request
-			$request = explode('/', $url);
-
-			// current section is 2nd to last argument (ie. parent3/parent2/parent/page) or 'index' if root section
-			$parent = (count($request) <= 1) ? 'index' : $request[count($request) - 2];
-
-			// current page is always last argument of request
-			return self::page(array('parent' => $parent, 'name' => end($request)));
-			
-		}
 	}
 
 	// menu items relative to current page
@@ -199,7 +135,7 @@ class Page {
 			$menu_item['children'] = array();
 			
 			// get all visible child pages who call this one mommy
-			$children = self::pages(array('parent' => $this->name, 'visible' => TRUE));
+			$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
 
 			// add child menu items recursively
 			foreach ($children as $child)
@@ -215,7 +151,7 @@ class Page {
 	public static function index_menu() {
 
 		// get index section
-		$index = self::page(array('parent' => FALSE));
+		$index = self::find(array('parent' => FALSE));
 		
 		// build full menu from index section
 		$menu = $index->menu();
@@ -228,17 +164,17 @@ class Page {
 	// build full URL based on parents, or use defined redirect
 	public function url() {
 
-		// no redirect configured, use URL set in constructor
-		if (empty($this->redirect))
-			return $this->url;
-			
 		// parent configured to redirect to first child
 		if ($this->is_parent AND $this->redirect == 'first_child')
 			// get first child page URL
 			return $this->_relative('first', $this->name)->url();
 			
-		// otherwise just a URL redirect
-		return $this->redirect;
+		// URL redirect configured
+		if (! empty($this->redirect))
+			return $this->redirect;
+		
+		// no redirect configured, use URL set in constructor
+		return $this->url;
 
 	}
 	
@@ -271,7 +207,7 @@ class Page {
 			$parent = $this->parent;
 
 		// create page map from current section
-		$section = self::pages(array('parent' => $parent, 'visible' => TRUE));
+		$section = Paste::content_query(array('parent' => $parent, 'visible' => TRUE));
 		
 		// build simple array of names
 		$siblings = array();
@@ -300,7 +236,7 @@ class Page {
 		}
 		
 		// return relative page model or FALSE if it doesn't exist
-		return empty($relative_page) ? FALSE : self::page(array('name' => $relative_page));
+		return empty($relative_page) ? FALSE : self::find(array('name' => $relative_page));
 
 	}
 	
@@ -310,8 +246,8 @@ class Page {
 		// get parents
 		$parents = $this->parents();
 		
-		// return last parent
-		return end($parents);
+		// return first parent
+		return array_shift($parents);
 		
 	}
 	
@@ -328,53 +264,139 @@ class Page {
 		while ($parent) {
 			
 			// get parent page
-			$parent = self::page(array('name' => $parent->parent, 'is_parent' => TRUE));
+			$parent = self::find(array('name' => $parent->parent, 'is_parent' => TRUE));
 
 			// add to list
 			$parents[] = $parent;
 
 		}
 		
-		// reverse list of parents and return
-		return array_reverse($parents);
+		// return list of parents
+		return $parents;
 
 	}
 	
-	// return array of cascading templates
-	public function templates() {
-
-		// init array
-		$templates = array();
+	// return closest template in parent tree
+	public function template() {
+		
+		// if this page has a template, just return that
+		if (! empty($this->template))
+			return $this->template;
 
 		// iterate over containing parents
 		foreach ($this->parents() as $parent) {
 			
-			// add parent template if any
+			// return parent template if any
 			if (! empty($parent->template))
-				$templates[] = $parent->template;
+				return $parent->template;
 
 		}
 		
-		// add page template -- order from parents is already reversed, so this is last
-		if (! empty($this->template))
-			$templates[] = $this->template;
+		// no template
+		return NULL;
 		
+	}
+
+	// return array of cascading partials
+	public function partials() {
+		
+		// init array
+		$partials = array();
+		
+		// add page partial as first element
+		if (! empty($this->partial))
+			$partials[] = $this->partial;
+		
+		// only look at parent partials if this page doesn't have a template
+		if (empty($this->template)) {
+		
+			// iterate over containing parents
+			foreach ($this->parents() as $parent) {
+				
+				// add parent partial if any
+				if (! empty($parent->partial))
+					$partials[] = $parent->partial;
+			
+				// don't get any more partials beyond a template
+				if (! empty($parent->template))
+					break;
+			}
+		}
+
 		// remove any duplicates and return array
-		return array_unique($templates);
+		return array_unique($partials);
 
 	}
 	
-	// render the page with templates
-	// -- this version only uses the first two possible templates, everything else must be partials
+	// render the page with template and partials
+	// uses only one template, then cascading, compiled partials
 	public function render() {
 		
-		// directory where content files are stored
-		$templates_path = Paste::$path.self::$template_dir.'/';
+		// get the containing template, the closest defined in parent tree
+		$template = $this->template();
 		
-		// TODO: instantiate engine and cache in Paste?
+		// no template defined, use content placeholder
+		if (empty($template)) {
+			
+			// placeholder to swap partials or content into
+			$template = '{{{content}}}';
+			
+		// we have a template
+		} else {
+			
+			// templates_path - template name - file extension
+			$template_path = Paste::$template_path.$template.Paste::$template_ext;
+			
+			// load template file 
+			$template = file_get_contents(realpath($template_path));
+			
+		}
+		
+		// get any partials going up tree
+		$partials = $this->partials();
+		
+		// we have partials, fold them into each other
+		if (! empty($partials)) {
+			
+			// iterate over partials and merge into template
+			foreach ($partials as $partial_template) {
+			
+				// templates_path - partial name - file extension
+				$partial_path = Paste::$template_path.$partial_template.Paste::$template_ext;
+				
+				// load partial file 
+				$partial_template = file_get_contents(realpath($partial_path));
+			
+				// merge one partial into another via the {{{content}}} string
+				$template = str_replace('{{{content}}}', $partial_template, $template);
+			
+			}
+		}
+
+		// now we should have a template string that includes any/all partials folded into it
+		// we still support additional mustache partials via partial_loader
 		$mustache = new \Mustache_Engine(array(
-			'loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => self::$template_ext)),
-			// 'cache' => Paste::$path.'cache',
+			'loader' => new \Mustache_Loader_StringLoader,
+			'partials_loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => Paste::$template_ext)),
+			// 'cache' => Paste::$app_path.'cache',
+		));
+
+		// load the compiled template via StringLoader
+		$template = $mustache->loadTemplate($template);
+
+		// render the template with this context
+		return $template->render($this);
+
+	}
+
+	
+	// render the page with templates
+	// --  uses the first two possible templates, everything else must be partials
+	public function render_dynamic() {
+		
+		$mustache = new \Mustache_Engine(array(
+			'loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => Paste::$template_ext)),
+			// 'cache' => Paste::$app_path.'cache',
 		));
 		
 		// this allows dynamic partials
@@ -399,17 +421,14 @@ class Page {
 	}
 	
 	// render the page with templates
-	// -- this version uses string manip to combine all possible templates before rendering
+	// -- uses string manip to combine all possible templates before rendering
 	public function render_cascade() {
-		
-		// directory where content files are stored
-		$templates_path = Paste::$path.self::$template_dir.'/';
 		
 		// TODO: instantiate engine and cache in Paste?
 		$mustache = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_StringLoader,
-			'partials_loader' => new \Mustache_Loader_FilesystemLoader($templates_path, array('extension' => self::$template_ext)),
-			// 'cache' => Paste::$path.'cache',
+			'partials_loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => Paste::$template_ext)),
+			// 'cache' => Paste::$app_path.'cache',
 		));
 		
 		// placeholder
@@ -419,7 +438,7 @@ class Page {
 		foreach ($this->templates() as $parent_template) {
 			
 			// directory where template files are stored - template name - file extension
-			$template_path = $templates_path.$parent_template.self::$template_ext;
+			$template_path = Paste::$template_path.$parent_template.Paste::$template_ext;
 
 			// load template file 
 			$parent_template = file_get_contents(realpath($template_path));
@@ -433,207 +452,5 @@ class Page {
 		return $template->render($this);
 
 	}
-	
-	
-	// find a single page by properties
-	public static function page($terms) {
-		
-		// get all pages that match
-		$pages = self::pages($terms);
-		
-		// only return single result
-		return empty($pages) ? FALSE : array_shift($pages);
-
-	}
-	
-	// filter and return pages by properties
-	// when $first, only return first result, not in an array
-	public static function pages($terms) {
-		
-		// ensure we have content DB loaded
-		if (empty(self::$db)) {
-			
-			// directory where content files are stored
-			$content_path = Paste::$path.self::$content_dir.'/';
-			
-			// traverse content directory and load all content
-			self::$db = self::load_path($content_path);
-			
-		}
-
-		// store pages here
-		$pages = array();
-
-		// iterage pages, return by reference
-		foreach (self::$db as &$page) {
-
-			// iterate over search terms
-			foreach ($terms as $property => $value)
-				// skip to next page if property doesn't match
-				if ($page->$property !== $value)
-					continue 2;
-
-			// add to pages
-			$pages[] = $page;
-
-		}
-		
-		// return FALSE if no pages found
-		return empty($pages) ? FALSE : $pages;
-
-	}
-	
-	// load individual content page, process variables
-	public function load() {
-
-		if (($html = file_get_contents(realpath($this->path))) !== FALSE) {
-
-			// process variables
-			$vars = self::process($html);
-
-			// assign vars to current model
-			foreach ($vars as $key => $value)
-				$this->$key = $value;
-
-			// set title to name if not set otherwise
-			$this->title = (empty($this->title)) ? ucwords(str_replace('_', ' ', $this->name)) : $this->title;
-			
-			// use title for menu label
-			if (empty($this->label))
-				$this->label = $this->title;
-
-			// assign entire html to content property
-			$this->content = $html;
-
-			// page is loaded
-			$this->loaded = TRUE;
-
-		}
-	}
-
-	// process content for embedded variables
-	public static function process($html) {
-
-		// match HTML comments that look like
-		// <!-- @key: value -->
-		// http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
-		$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
-		preg_match_all($regexp, $html, $comments, PREG_OFFSET_CAPTURE);
-
-		// split comments on newline
-		$lines = array();
-		$offsets = array();
-		foreach ($comments[1] as $comment) {
-			$lines = array_merge($lines, explode("\n", trim($comment[0])));
-			$offsets[] = $comment[1]; // the offset of the comment line if we want to delete them later
-		}
-		// $offsets = X chars to first var, X chars to start of next var, etc...
-
-		// split lines on colon and assign to key/value
-		$vars = array();
-		foreach ($lines as $line) {
-			if (stristr($line, '@') AND stristr($line, ':')) {
-				$parts = explode(":", $line, 2);
-				if (count($parts) == 2)
-					$vars[trim(str_replace('@', '', $parts[0]))] = trim($parts[1]);
-			}
-		}
-
-		// convert some values, strip comments
-		foreach ($vars as $key => &$value) {
-			// convert booleans to native
-			if (strtolower($value) === "false" OR $value === '0') {
-				$value = FALSE;
-
-			// convert booleans to native
-			} elseif (strtolower($value) === "true" OR $value === '1') {
-				$value = TRUE;
-
-			// strip any comments from	variables, except redirect
-			} elseif ($key !== 'redirect' AND strpos($value, '//')) {
-				$value = substr($value, 0, strpos($value, '//'));
-			}
-		}
-
-		return $vars;
-	}
-	
-
-	// recursively load sections of content
-	public static function load_path($path) {
-
-		$pages = array();
-
-		// iterate over content dir
-		foreach (self::list_path($path) as $file) {
-			
-			// sub directory
-			if (is_dir($path.$file))
-				$pages = array_merge($pages, self::load_path($path.$file.'/'));
-
-			// content file with proper extension
-			if (is_file($path.$file) AND strpos($file, self::$content_ext))
-				$pages[] = new Page($path.$file);
-
-		}
-		
-		return $pages;
-
-	}
-
-	// list directory in natural sort order
-	public static function list_path($path) {
-
-		$files = array();
-
-		// open content path for reading
-		if (($handle = opendir($path)) === FALSE)
-			return $files;
-
-		// iterate content path
-		while (($file = readdir($handle)) !== FALSE)
-			// ignore dot dirs and paths prefixed with an underscore or period
-			if ($file != '.' AND $file != '..' AND $file[0] !== '_' AND $file[0] !== '.')
-				$files[] = $file;
-		
-		// close handle
-		closedir($handle);
-
-		// sort files via natural text comparison, similar to OSX Finder
-		usort($files, 'strnatcasecmp');
-
-		// return sorted array (filenames => basenames)
-		return $files;
-
-	}
-
-	// get base filename without sorting prefix or extension
-	public static function base_name($file) {
-
-		// get file name without content extension
-		$name = basename($file, self::$content_ext);
-
-		// base name is everything after intial period if one exists
-		return ($prefix = strpos($name, '.')) ? substr($name, $prefix + 1) : $name;
-
-	}
-	
-	public static function debug() {
-		
-		// get index section
-		$index = self::page(array('parent' => FALSE));
-		
-		// build full menu from index section
-		$menu = $index->menu();
-		
-		echo Utils::url();
-		
-		echo '<br>';
-		
-		echo Pre::render($menu);
-
-		
-	}
-	
 
 }
