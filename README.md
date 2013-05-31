@@ -1,11 +1,10 @@
 ## Paste
 
-- Paste is a super simple "CMS" that uses static files and folders instead of a database. 
-- Paste aims to be light, fast and easy to maintain. 
-- Paste indexes the `/content/` folder and builds a site tree and URL heirarchy. 
+- Paste is a super simple "CMS" that uses static files and folders instead of a database.
+- Paste aims to be light, fast and easy to maintain.
 - Each HTML file represents a page in the menu, each folder represents a section, to infinite depth.
 - [Mustache](http://mustache.github.io/) is used for logic-less templating including partials.
-- Configuration and templating cascade down through the heirarchy.
+- Variables and templating cascade down through the site heirarchy.
 - Configuration is defined within the HTML source, like so:
 
 ```
@@ -19,13 +18,13 @@
 ```
 
 #### Demo Site
-**Live:** http://paste-demo.pastelabs.com  
-**Source:** https://github.com/paste/paste-example  
+&nbsp;&nbsp;&nbsp;**Live:** http://paste-demo.pastelabs.com  
+&nbsp;&nbsp;&nbsp;**Source:** https://github.com/paste/paste-demo  
 
 
 #### Design Goals
 
-- use latest PHP tech like Composer
+- use latest PHP tech, e.g. Composer
 - simple routing with user-definable routes and closures
 - [Mustache](http://mustache.github.io/) for ultra dumb templating
 - flexible templates and cascading page partials
@@ -41,7 +40,7 @@
 
 ## Quick Start
 
-The easiest way is to just clone the [example site repo](https://github.com/paste/paste-example) and modify to taste!
+The fastest way is to just clone the [demo site](https://github.com/paste/paste-demo) and modify to taste!
 
 
 ## Installation
@@ -55,8 +54,8 @@ The easiest way is to just clone the [example site repo](https://github.com/past
 }
 ```
 
-Create an `index.php` file to act as the front router:
-[(or copy from the example site)](https://github.com/paste/paste-example/blob/master/index.php)
+Create an `index.php` file to be the front router:
+[(or copy from the demo site)](https://github.com/paste/paste-demo/blob/master/index.php)
 
 ```php
 <?php
@@ -78,7 +77,7 @@ Paste::run();
 ```
 Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder must be writeable by Apache. Your web root should end up looking something like this:
 
-<img src="https://raw.github.com/paste/paste-example/master/assets/images/content-example.png" align="right">
+<img src="https://raw.github.com/paste/paste-demo/master/assets/images/content-example.png" align="right" style="margin: 15px;">
 
 ```
 /cache/
@@ -95,10 +94,8 @@ composer.json
 Add the first content file, `content/index.html`:
 
 ```html
-<!-- 
-@title: Hello World
-@template: template
--->
+<!-- @title: Hello World -->
+<!-- @template: template -->
 <h3>Hello, world!</h3>
 ```
 
@@ -118,7 +115,7 @@ Add the first template, `templates/template.stache`:
 ```
 
 Create an `.htaccess` file to enable URL rewriting:
-[(or copy from the example site)](https://github.com/paste/paste-example/blob/master/.htaccess) 
+[(or copy from the demo site)](https://github.com/paste/paste-demo/blob/master/.htaccess) 
 
 ```apache
 # don't list directories
@@ -158,12 +155,12 @@ Now visit your Paste project in a web browser and take in the magic!
 
 
 
-## Content TK
+## Content
 - Structure
 - Variables
 - Sorting
 
-## Templates TK
+## Templates
 - Page Context
 - Page Templates
 - Page Partials
