@@ -5,18 +5,22 @@
 - Paste indexes the `/content/` folder and builds a site tree and URL heirarchy. 
 - Each HTML file represents a page in the menu, each folder represents a section, to infinite depth.
 - [Mustache](http://mustache.github.io/) is used for logic-less templating including partials.
-- Configuration is defined within the HTML source, like so:  
-```html
-<!-- 
-@template: master
-@partial: project
-@title: The Page Title
-@visible: TRUE // visible in menu
-@label: Menu Label (optional)
+- Configuration and templating cascade down through the heirarchy.
+- Configuration is defined within the HTML source, like so:
+
+```
+<!--  
+@template: master  
+@partial: project  
+@title: The Page Title  
+@visible: TRUE // visible in menu  
+@label: Menu Label (optional)  
 -->
 ```
-- Configuration and templating cascade down through the heirarchy.  
-![Content Example](https://raw.github.com/paste/paste-example/master/assets/images/content-example.png)   
+
+#### Demo Site
+**Live:** http://paste-demo.pastelabs.com  
+**Source:** https://github.com/paste/paste-example  
 
 
 #### Design Goals
@@ -25,7 +29,7 @@
 - simple routing with user-definable routes and closures
 - [Mustache](http://mustache.github.io/) for ultra dumb templating
 - flexible templates and cascading page partials
-- powerful configuration via simple syntax
+- configuration via simple inline syntax
 - takes some cues from [Stacey App](http://www.staceyapp.com/). 
 
 
@@ -33,11 +37,11 @@
 
 - PHP 5.3+
 - Apache mod_rewrite
-- [https://github.com/bobthecow/mustache.php](Mustache.php) (installed automatically by Composer)
+- [Mustache.php](https://github.com/bobthecow/mustache.php) (installed automatically by Composer)
 
 ## Quick Start
 
-Just clone the [example site repo](https://github.com/paste/paste-example) and modify the content and styling to taste!
+The easiest way is to just clone the [example site repo](https://github.com/paste/paste-example) and modify to taste!
 
 
 ## Installation
@@ -51,7 +55,7 @@ Just clone the [example site repo](https://github.com/paste/paste-example) and m
 }
 ```
 
-**Create an `index.php` file to act as the front router:**
+Create an `index.php` file to act as the front router:
 [(or copy from the example site)](https://github.com/paste/paste-example/blob/master/index.php)
 
 ```php
@@ -72,7 +76,48 @@ Paste::route('blog/post/([A-Za-z0-9-_]+)', function($slug) {
 // init routing and run
 Paste::run();
 ```
-**Create an `.htaccess` file to enable URL rewriting:**
+Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder must be writeable by Apache. Your web root should end up looking something like this:
+
+<img src="https://raw.github.com/paste/paste-example/master/assets/images/content-example.png" align="right">
+
+```
+/cache/
+/content/
+	index.html
+/templates/
+	template.stache
+/vendor/
+index.php
+composer.json
+.htaccess
+```
+
+Add the first content file, `content/index.html`:
+
+```html
+<!-- 
+@title: Hello World
+@template: template
+-->
+<h3>Hello, world!</h3>
+```
+
+Add the first template, `templates/template.stache`:
+
+```html
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>{{title}}</title>
+</head>
+<body>
+	{{{content}}}
+</body>
+</html>
+```
+
+Create an `.htaccess` file to enable URL rewriting:
 [(or copy from the example site)](https://github.com/paste/paste-example/blob/master/.htaccess) 
 
 ```apache
@@ -108,62 +153,30 @@ AddDefaultCharset utf-8
 AddCharset utf-8 .html .css .js .xml .json .rss
 ```
 
-**Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder should be writeable by Apache.** Your web root should end up looking something like this:
-```
-/cache/
-/content/
-	index.html
-/templates/
-	template.stache
-/vendor/
-index.php
-composer.json
-.htaccess
-```
 
-**Add the first content file, `content/index.html`:**
-
-```html
-<!-- 
-@title: Hello World
-@template: template
--->
-<h3>Hello, world!</h3>
-```
-
-**Add the first template, `templates/template.stache`:**
-
-```html
-<!doctype html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<title>{{title}}</title>
-</head>
-<body>
-	{{{content}}}
-</body>
-</html>
-```
-
-**Now visit your Paste project in a web browser and take in the magic!**
+Now visit your Paste project in a web browser and take in the magic!
 
 
 
 ## Content TK
-**Structure**  
-**Variables**  
+- Structure
+- Variables
+- Sorting
 
 ## Templates TK
-**Page Templates**  
-**Page Partials**  
-**Mustache Partials**  
+- Page Context
+- Page Templates
+- Page Partials
+- Mustache Partials
 
 
-
+  
+  
+  
+  
+  
+  
 ### REWRITE 2013 TODOs:
-
-
 
 - allow a rewrite base that is not root, i.e. allow running Paste from a subdirectory
 - ~~make example site more generic, add dummy text and illustrative CSS for menu heirarchy~~
