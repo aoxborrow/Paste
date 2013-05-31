@@ -1,7 +1,6 @@
 ## Paste
 
-- Paste is a super simple "CMS" that uses static files and folders instead of a database.
-- Paste aims to be light, fast and easy to maintain.
+- Paste is a lightweight "CMS" that uses static files and folders instead of a database.
 - Each HTML file represents a page in the menu, each folder represents a section, to infinite depth.
 - [Mustache](http://mustache.github.io/) is used for logic-less templating including partials.
 - Variables and templating cascade down through the site heirarchy.
@@ -18,19 +17,18 @@
 ```
 
 #### Demo Site
-&nbsp;&nbsp;&nbsp;**Live:** http://paste-demo.pastelabs.com  
-&nbsp;&nbsp;&nbsp;**Source:** https://github.com/paste/paste-demo  
+**Live Demo: http://paste-demo.pastelabs.com**  
+**Source:** https://github.com/paste/paste-demo  
 
 
 #### Design Goals
 
-- use latest PHP tech, e.g. Composer
 - simple routing with user-definable routes and closures
 - [Mustache](http://mustache.github.io/) for ultra dumb templating
 - flexible templates and cascading page partials
 - configuration via simple inline syntax
 - takes some cues from [Stacey App](http://www.staceyapp.com/). 
-
+- use latest PHP tech, e.g. Composer
 
 #### Requirements
 
@@ -54,7 +52,7 @@ The fastest way is to just clone the [demo site](https://github.com/paste/paste-
 }
 ```
 
-Create an `index.php` file to be the front router:
+Create an `index.php` file for the front router:
 [(or copy from the demo site)](https://github.com/paste/paste-demo/blob/master/index.php)
 
 ```php
@@ -91,7 +89,7 @@ composer.json
 .htaccess
 ```
 
-Add the first content file, `content/index.html`:
+Add the root content index file, `content/index.html`:
 
 ```html
 <!-- @title: Hello World -->
@@ -99,7 +97,7 @@ Add the first content file, `content/index.html`:
 <h3>Hello, world!</h3>
 ```
 
-Add the first template, `templates/template.stache`:
+Add the first template, e.g. `templates/template.stache`:
 
 ```html
 <!doctype html>
@@ -151,14 +149,13 @@ AddCharset utf-8 .html .css .js .xml .json .rss
 ```
 
 
-Now visit your Paste project in a web browser and take in the magic!
+Now visit your Paste site in a web browser and take in the _magic_!
 
 
 
 ## Content
-- Structure
+- Structure / Sorting
 - Variables
-- Sorting
 
 ## Templates
 - Page Context
