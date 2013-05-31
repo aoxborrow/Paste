@@ -2,19 +2,22 @@
 
 - Paste is a super simple "CMS" that uses static files and folders instead of a database. 
 - Paste aims to be light, fast and easy to maintain. 
-- Paste indexes the /content/ folder and builds the site tree and URL heirarchy. 
+- Paste indexes the `/content/` folder and builds a site tree and URL heirarchy. 
 - Each HTML file represents a page in the menu, each folder represents a section, to infinite depth.
-- Sections are represented by their `index.html` file:  
-![Content Example](https://raw.github.com/paste/paste-example/master/assets/images/finder-view.png)   
-
 - [Mustache](http://mustache.github.io/) is used for logic-less templating including partials.
 - Configuration is defined within the HTML source, like so:  
-	`<!-- @template: master -->`  
-	`<!-- @partial: project -->`  
-	`<!-- @title: The Page Title -->`  
-	`<!-- @visible: TRUE // visible in menu -->`  
-	`<!-- @label: Menu Label (optional) -->`  
+```html
+<!-- 
+@template: master
+@partial: project
+@title: The Page Title
+@visible: TRUE // visible in menu
+@label: Menu Label (optional)
+-->
+```
 - Configuration and templating cascade down through the heirarchy.  
+![Content Example](https://raw.github.com/paste/paste-example/master/assets/images/content-example.png)   
+
 
 #### Design Goals
 
@@ -104,7 +107,7 @@ AddDefaultCharset utf-8
 # force utf-8 for a number of file formats
 AddCharset utf-8 .html .css .js .xml .json .rss
 ```
-##### Step 4
+
 **Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder should be writeable by Apache.** Your web root should end up looking something like this:
 ```
 /cache/
@@ -125,13 +128,12 @@ composer.json
 @title: Hello World
 @template: template
 -->
-
 <h3>Hello, world!</h3>
 ```
 
 **Add the first template, `templates/template.stache`:**
 
-```mustache
+```html
 <!doctype html>
 <html>
 <head>
@@ -147,13 +149,12 @@ composer.json
 **Now visit your Paste project in a web browser and take in the magic!**
 
 
-### Content
-TK  
+
+## Content TK
 **Structure**  
 **Variables**  
 
-### Templates
-TK  
+## Templates TK
 **Page Templates**  
 **Page Partials**  
 **Mustache Partials**  
@@ -164,7 +165,7 @@ TK
 
 
 
-- allow a rewrite base that is not root, i.e. allow running Paste from a directory
+- allow a rewrite base that is not root, i.e. allow running Paste from a subdirectory
 - ~~make example site more generic, add dummy text and illustrative CSS for menu heirarchy~~
 - ~~write new description and a quick usage guide w/ screenshots~~
 - ~~single template(), rest is partials()~~
