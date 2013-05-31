@@ -201,6 +201,34 @@ class Page {
 
 	}
 	
+	// convert the title to a URL compatatible slug
+	public function slug() {
+		
+		// use name if no title
+		$slug = empty($this->title) ? $this->name : $this->title;
+		
+		// replace non letter or digits by -
+		$slug = preg_replace('~[^\\pL\d]+~u', '-', $slug);
+
+		// trim
+		$slug = trim($slug, '-');
+
+		// transliterate
+		$slug = iconv('utf-8', 'us-ascii//TRANSLIT', $slug);
+
+		// lowercase
+		$slug = strtolower($slug);
+
+		// remove unwanted characters
+		$slug = preg_replace('~[^-\w]+~', '', $slug);
+
+		if (empty($slug))
+			return NULL;
+
+		return $slug;
+
+	}
+	
 	// next sibling page, or cycle to first page in section
 	public function next_sibling() {
 

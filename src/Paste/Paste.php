@@ -264,7 +264,7 @@ class Paste {
 		$execution_time = number_format(microtime(TRUE) - self::$execution_start, 4);
 
 		// add benchmark time to end of HTML
-		$benchmark = '<br><b>execution:</b> '.$execution_time.' sec<br><b>memory:</b> '.number_format(round(memory_get_usage(TRUE)/1024, 2)).' KB<br/>';
+		$benchmark = '<b>execution:</b> '.$execution_time.' sec<br><b>memory:</b> '.number_format(round(memory_get_usage(TRUE)/1024, 2)).' KB<br/>';
 		
 		// swap in benchmark info
 		echo str_replace('<!-- benchmark -->', $benchmark, $output);
@@ -280,13 +280,16 @@ class Paste {
 			// traverse content directory and load all content
 			self::$content_db = self::content_load(self::$content_path);
 			
+			// post processing
+			self::content_sorting();
+			
 		}
 
 		// store pages here
 		$pages = array();
 
 		// iterage pages, return by reference
-		foreach (self::$content_db as &$page) {
+		foreach (self::$content_db as $index => &$page) {
 
 			// iterate over search terms
 			foreach ($terms as $property => $value)
@@ -304,8 +307,71 @@ class Paste {
 
 	}
 	
+	// post processing on content DB
+	public static function content_sorting() {
+		
+		// record all the pages' master index
+		foreach (self::$content_db as $index => &$page)
+			$page->_index = $index;
+		
+		// look at all parents for sorting requirements
+		$sorts = array();
+		foreach (self::$content_db as &$page)
+			// must be a parent to apply sorting
+			if ($page->is_parent AND ! empty($page->sorting))
+				// record sections that need to be sorted
+				$sorts[] = $page;
+		
+		// sort the children out
+		foreach ($sorts as $parent) {
+		
+			// get all child pages who call this one mommy
+			$children = self::content_query(array('parent' => $parent->name));
+
+			// common sort -- newest first
+			if ($parent->sorting == 'date_desc') {
+				
+				// sort the children by timestamp descending
+				usort($children, function($a, $b) {
+					if (empty($a->timestamp) AND empty($b->timestamp))
+						return TRUE;
+					if (! empty($a->timestamp) AND empty($b->timestamp))
+						return FALSE;
+					if (empty($a->timestamp) AND ! empty($b->timestamp))
+						return TRUE;
+					return $a->timestamp < $b->timestamp;
+				});
+				
+			} elseif ($parent->sorting == 'date_asc') {
+				
+				// sort the children by timestamp ascending
+				usort($children, function($a, $b) {
+					if (empty($a->timestamp) AND empty($b->timestamp))
+						return TRUE;
+					if (! empty($a->timestamp) AND empty($b->timestamp))
+						return TRUE;
+					if (empty($a->timestamp) AND ! empty($b->timestamp))
+						return FALSE;
+					return $a->timestamp > $b->timestamp;
+				});
+			}
+			
+			// unset from master DB index
+			foreach ($children as &$child)
+				unset(self::$content_db[$child->_index]);
+			
+			// append newly sorted pages to end
+			self::$content_db = array_merge(self::$content_db, $children);
+			
+			// update all the pages' master index
+			foreach (self::$content_db as $index => &$page)
+				$page->_index = $index;
+			
+		}
+	}
+	
 	// process content for embedded variables
-	public static function content_process($html) {
+	public static function content_variables($html) {
 
 		// match HTML comments that look like
 		// <!-- @key: value -->
@@ -345,6 +411,11 @@ class Paste {
 			// strip any comments from	variables, except redirect
 			} elseif ($key !== 'redirect' AND strpos($value, '//')) {
 				$value = substr($value, 0, strpos($value, '//'));
+			
+			// has a date variable, convert to timestamp for sorting
+			} elseif ($key == 'date') {
+				$vars['timestamp'] = strtotime($value);
+
 			}
 		}
 
@@ -374,10 +445,10 @@ class Paste {
 				if (FALSE !== $html = file_get_contents($path)) {
 
 					// load individual content page, process variables
-					$content = self::content_process($html);
+					$content = self::content_variables($html);
 					
 					// store file path, strip base content path off
-					$content['path'] = substr($path, strlen(Paste::$content_path));
+					$content['path'] = substr($path, strlen(self::$content_path));
 
 					// assign html property
 					$content['html'] = $html;
