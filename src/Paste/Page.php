@@ -29,13 +29,16 @@ class Page {
 	public $label;
 
 	// page content
-	public $content;
+	public $html;
 
 	// mustache template name
 	public $template;
 	
 	// mustache partial template
 	public $partial;
+	
+	// partial has been rendered
+	public $partial_rendered;
 
 	// redirect URL for creating aliases
 	public $redirect;
@@ -370,6 +373,14 @@ class Page {
 
 	}
 	
+	// child pages
+	public function children() {
+		
+		// get all visible child pages who call this one mommy
+		return Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
+
+	}
+	
 	// return closest template in parent tree
 	public function template() {
 		
@@ -390,161 +401,77 @@ class Page {
 		return NULL;
 		
 	}
-
-	// return array of cascading partials
-	public function partials() {
+	
+	// check if page or parents have a partial
+	public function partial() {
 		
-		// init array
-		$partials = array();
-		
-		// add page partial as first element
+		// if this page has a partial, just return that
 		if (! empty($this->partial))
-			$partials[] = $this->partial;
+			return $this->partial;
 		
-		// only look at parent partials if this page doesn't have a template
-		if (empty($this->template)) {
-		
-			// iterate over containing parents
-			foreach ($this->parents() as $parent) {
-				
-				// add parent partial if any
-				if (! empty($parent->partial))
-					$partials[] = $parent->partial;
+		// don't get partials beyond a template
+		// FALSE = don't get parent partials
+		if (! empty($this->template) OR $this->partial === FALSE)
+			return NULL;
+
+		// iterate over containing parents
+		foreach ($this->parents() as $parent) {
 			
-				// don't get any more partials beyond a template
-				if (! empty($parent->template))
-					break;
-			}
+			// clear partials
+			if ($parent->partial === FALSE)
+				return NULL; 
+
+			// return parent partial if any
+			if (! empty($parent->partial))
+				return $parent->partial;
+		
+			// don't get any more partials beyond a template
+			if (! empty($parent->template))
+				break;
+			
 		}
 
-		// remove any duplicates and return array
-		return array_unique($partials);
+		// no partial
+		return NULL;
+		
+	}
 
+	// prepare content for templates. renders partial template if necessary
+	public function content() {
+		
+		// get any partial defined going up tree
+		$partial = $this->partial();
+
+		// no partial, just return HTML
+		if (empty($partial) OR $this->partial_rendered) {
+			
+			// just return content HTML
+			return $this->html;
+			
+		// we have a partial that hasn't been rendered
+		} else {
+			
+			// partial has been rendered
+			$this->partial_rendered = TRUE;
+			
+			// load the partial and render it with Page context
+			return Paste::$mustache_engine->render($partial, $this);
+			
+		}
 	}
 	
-	// render the page with template and partials
-	// uses only one template, then cascading, compiled partials
+	// render the page with template and partial
+	// uses only one template and one partial
+	// templates and partials can be set anywhere in parent tree
+	// if partial === FALSE or page has a template set, doesn't go further than that
 	public function render() {
 		
 		// get the containing template, the closest defined in parent tree
 		$template = $this->template();
 		
-		// no template defined, use content placeholder
-		if (empty($template)) {
-			
-			// placeholder to swap partials or content into
-			$template = '{{{content}}}';
-			
-		// we have a template
-		} else {
-			
-			// templates_path - template name - file extension
-			$template_path = Paste::$template_path.$template.Paste::$template_ext;
-			
-			// load template file 
-			$template = file_get_contents(realpath($template_path));
-			
-		}
+		// load the template and render it with Page context
+		return Paste::$mustache_engine->render($template, $this);
 		
-		// get any partials going up tree
-		$partials = $this->partials();
-		
-		// we have partials, fold them into each other
-		if (! empty($partials)) {
-			
-			// iterate over partials and merge into template
-			foreach ($partials as $partial_template) {
-			
-				// templates_path - partial name - file extension
-				$partial_path = Paste::$template_path.$partial_template.Paste::$template_ext;
-				
-				// load partial file 
-				$partial_template = file_get_contents(realpath($partial_path));
-			
-				// merge one partial into another via the {{{content}}} string
-				$template = str_replace('{{{content}}}', $partial_template, $template);
-			
-			}
-		}
-
-		// now we should have a template string that includes any/all partials folded into it
-		// we still support additional mustache partials via partial_loader
-		$mustache = new \Mustache_Engine(array(
-			'loader' => new \Mustache_Loader_StringLoader,
-			'partials_loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => Paste::$template_ext)),
-			'cache' => Paste::$cache_path,
-		));
-
-		// load the compiled template via StringLoader
-		$template = $mustache->loadTemplate($template);
-
-		// render the template with this context
-		return $template->render($this);
-
-	}
-
-	
-	// render the page with templates
-	// --  uses the first two possible templates, everything else must be partials
-	public function render_dynamic() {
-		
-		$mustache = new \Mustache_Engine(array(
-			'loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => Paste::$template_ext)),
-			// 'cache' => Paste::$app_path.'cache',
-		));
-		
-		// this allows dynamic partials
-		// https://github.com/bobthecow/mustache.php/pull/101
-		$mustache->addHelper('partial_render', function($text, $mustache) {
-			return "{{>".$mustache->render($text).'}}';
-		});
-
-		// get all the templates
-		$templates = $this->templates();
-		
-		// load the main template
-		$template = $mustache->loadTemplate($templates[0]);
-
-		// set next template as partial
-		if (! empty($templates[1]))
-			$this->partial = $templates[1];
-		
-		// render template
-		return $template->render($this);
-
-	}
-	
-	// render the page with templates
-	// -- uses string manip to combine all possible templates before rendering
-	public function render_cascade() {
-		
-		// TODO: instantiate engine and cache in Paste?
-		$mustache = new \Mustache_Engine(array(
-			'loader' => new \Mustache_Loader_StringLoader,
-			'partials_loader' => new \Mustache_Loader_FilesystemLoader(Paste::$template_path, array('extension' => Paste::$template_ext)),
-			// 'cache' => Paste::$app_path.'cache',
-		));
-		
-		// placeholder
-		$template = '{{{content}}}';
-
-		// iterate over templates and merge together
-		foreach ($this->templates() as $parent_template) {
-			
-			// directory where template files are stored - template name - file extension
-			$template_path = Paste::$template_path.$parent_template.Paste::$template_ext;
-
-			// load template file 
-			$parent_template = file_get_contents(realpath($template_path));
-			
-			// merge one template into another via the {{{content}}} string
-			$template = str_replace('{{{content}}}', $parent_template, $template);
-
-		}
-
-		$template = $mustache->loadTemplate($template);
-		return $template->render($this);
-
 	}
 
 }

@@ -36,6 +36,9 @@ class Paste {
 
 	// template file extension
 	public static $template_ext = '.stache';
+	
+	// instance of Mustache engine
+	public static $mustache_engine;
 
 	// full path to cache for mustache
 	public static $cache_path;
@@ -46,14 +49,17 @@ class Paste {
 	// request uri
 	public static $request_uri;
 	
+	// benchmark start
+	public static $execution_start;
+	
 	// configured routes
 	public static $routes = array();
 
 	// init and execute
-	public function run() {
+	public static function run() {
 
 		// start benchmark
-		$execution_start = microtime(TRUE);
+		self::$execution_start = microtime(TRUE);
 
 		// full path to where index.php resides, with trailing slash
 		self::$app_path = rtrim(getcwd(), '/').'/';
@@ -66,6 +72,17 @@ class Paste {
 
 		// full path to cache for mustache
 		self::$cache_path = self::$app_path.self::$cache_dir.'/';
+		
+		// setup mustache engine
+		self::$mustache_engine = new \Mustache_Engine(array(
+			'loader' => new \Mustache_Loader_FilesystemLoader(self::$template_path, array('extension' => self::$template_ext)),
+			'cache' => is_dir(self::$cache_path) ? self::$cache_path : FALSE,
+		));
+		// this allows dynamic partials
+		// https://github.com/bobthecow/mustache.php/pull/101
+		/*'helpers' => array('partial_render' => function($text, $mustache) {
+			return "{{>".$mustache->render($text).'}}';
+		}),*/
 
 		// detect request URI
 		self::$request_uri = self::uri();
@@ -85,15 +102,6 @@ class Paste {
 			self::find_page('404');
 			
 		}
-		
-		// DEBUG INFOS
-		// stop benchmark, get execution time
-		$execution_time = number_format(microtime(TRUE) - $execution_start, 4);
-
-		// add benchmark time to end of HTML
-		echo PHP_EOL.'<div class="benchmark">Execution Time: '.$execution_time.', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB</div>';
-		
-
 	}
 
 	// simple router, takes uri and maps arguments
@@ -249,8 +257,18 @@ class Paste {
 		header('Content-Type: text/html; charset=UTF-8');
 		
 		// render the page
-		echo $page->render();
+		$output = $page->render();
+		
+		// DEBUG INFOS
+		// stop benchmark, get execution time
+		$execution_time = number_format(microtime(TRUE) - self::$execution_start, 4);
 
+		// add benchmark time to end of HTML
+		$benchmark = '<br><b>execution:</b> '.$execution_time.' sec<br><b>memory:</b> '.number_format(round(memory_get_usage(TRUE)/1024, 2)).' KB<br/>';
+		
+		// swap in benchmark info
+		echo str_replace('<!-- benchmark -->', $benchmark, $output);
+		
 	}
 
 	// filter and return pages by properties
@@ -361,8 +379,8 @@ class Paste {
 					// store file path, strip base content path off
 					$content['path'] = substr($path, strlen(Paste::$content_path));
 
-					// assign html to content property
-					$content['content'] = $html;
+					// assign html property
+					$content['html'] = $html;
 
 					// instantiate Page object and add to cache
 					$pages[] = Page::create($content);
