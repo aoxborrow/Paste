@@ -1,46 +1,44 @@
-### Paste
+## Paste
 
 - Paste is a super simple "CMS" that uses static files and folders instead of a database. 
 - Paste aims to be light, fast and easy to maintain. 
-- Paste takes some cues from [Stacey App](http://www.staceyapp.com/). 
-- Paste indexes the /content/ folder and builds the menu and URL heirarchy. 
+- Paste indexes the /content/ folder and builds the site tree and URL heirarchy. 
+- Each HTML file represents a page in the menu, each folder represents a section, to infinite depth.
+- Sections are represented by their `index.html` file:  
+![Content Example](https://raw.github.com/paste/paste-example/master/assets/images/finder-view.png)   
+
 - [Mustache](http://mustache.github.io/) is used for logic-less templating including partials.
-- Each HTML file represents a page in the menu (if visible), each folder represents a section, to infinite depth.
-- Configuration is defined within the HTML source, like so: 
-	`<!-- @template: master // the parent template -->` 
-	`<!-- @partial: nav // partial template -->` 
-	`<!-- @title: The Page Title // HTML Page Title-->` 
-	`<!-- @visible: TRUE // visible in menu -->` 
-	`<!-- @label: Menu Label // page name in menu -->` 
-- Configuration and templating cascade down through the heirarchy.
+- Configuration is defined within the HTML source, like so:  
+	`<!-- @template: master -->`  
+	`<!-- @partial: project -->`  
+	`<!-- @title: The Page Title -->`  
+	`<!-- @visible: TRUE // visible in menu -->`  
+	`<!-- @label: Menu Label (optional) -->`  
+- Configuration and templating cascade down through the heirarchy.  
 
-![Content Example](https://raw.github.com/paste/paste-example/master/assets/images/finder-view.png)  
+#### Design Goals
 
-Design Goals
-------------
+- use latest PHP tech like Composer
+- simple routing with user-definable routes and closures
+- [Mustache](http://mustache.github.io/) for ultra dumb templating
+- flexible templates and cascading page partials
+- powerful configuration via simple syntax
+- takes some cues from [Stacey App](http://www.staceyapp.com/). 
 
-* use latest PHP technologies like Composer
-* simple routing with user-definable routes and closures
-* mustache for ultra dumb templates and partials
-* cascading, flexible templates and configuration, easy syntax
-* fast, light, easy to maintain
 
-Requirements
-------------
+#### Requirements
 
 - PHP 5.3+
 - Apache mod_rewrite
 - [https://github.com/bobthecow/mustache.php](Mustache.php) (installed automatically by Composer)
 
-Quick Start
------------
-Clone the [example site repo](https://github.com/paste/paste-example) and modify the content and styling to taste!
+## Quick Start
+
+Just clone the [example site repo](https://github.com/paste/paste-example) and modify the content and styling to taste!
 
 
-Installation
-------------
+## Installation
 
-##### Step 1
 [Use Composer](http://getcomposer.org/). Add `paste/paste` to your project's `composer.json`:
 ```json
 {
@@ -50,9 +48,8 @@ Installation
 }
 ```
 
-##### Step 2
-Create an `index.php` file to act as the front router:
-[(Copy from the example site)](https://github.com/paste/paste-example/blob/master/index.php)
+**Create an `index.php` file to act as the front router:**
+[(or copy from the example site)](https://github.com/paste/paste-example/blob/master/index.php)
 
 ```php
 <?php
@@ -61,7 +58,7 @@ Create an `index.php` file to act as the front router:
 require 'vendor/autoload.php';
 use Paste\Paste;
 
-// optional, user defined routing
+// (optional) user defined routing
 // 'route regex' => any valid callback
 // matched tokens from the regex will be passed as parameters
 // e.g. 'blog/post/([A-Za-z0-9]+)' => 'Class::method',
@@ -72,11 +69,10 @@ Paste::route('blog/post/([A-Za-z0-9-_]+)', function($slug) {
 // init routing and run
 Paste::run();
 ```
-##### Step 3
-Create an `.htaccess` file to enable URL rewriting:
-[Copy from the example site](https://github.com/paste/paste-example/blob/master/.htaccess) 
+**Create an `.htaccess` file to enable URL rewriting:**
+[(or copy from the example site)](https://github.com/paste/paste-example/blob/master/.htaccess) 
 
-```htaccess
+```apache
 # don't list directories
 Options -Indexes
 
@@ -109,9 +105,20 @@ AddDefaultCharset utf-8
 AddCharset utf-8 .html .css .js .xml .json .rss
 ```
 ##### Step 4
-Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder should be writeable by Apache.
+**Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder should be writeable by Apache.** Your web root should end up looking something like this:
+```
+/cache/
+/content/
+	index.html
+/templates/
+	template.stache
+/vendor/
+index.php
+composer.json
+.htaccess
+```
 
-Add the first content file, `content/index.html`:
+**Add the first content file, `content/index.html`:**
 
 ```html
 <!-- 
@@ -122,9 +129,9 @@ Add the first content file, `content/index.html`:
 <h3>Hello, world!</h3>
 ```
 
-Add the master template, `templates/template.stache`:
+**Add the first template, `templates/template.stache`:**
 
-```html
+```mustache
 <!doctype html>
 <html>
 <head>
@@ -137,70 +144,54 @@ Add the master template, `templates/template.stache`:
 </html>
 ```
 
-##### Step 5
-Profit! Visit your Paste project in a web browser and take in the magic. Now build your content and templates out!
+**Now visit your Paste project in a web browser and take in the magic!**
 
 
 ### Content
-
-Structure
----------
-TK
-
-Variables
----------
-TK
+TK  
+**Structure**  
+**Variables**  
 
 ### Templates
-
-Page Templates
---------------
-TK
-
-Page Partials
--------------
-TK
-
-Mustache Partials
------------------
-TK
+TK  
+**Page Templates**  
+**Page Partials**  
+**Mustache Partials**  
 
 
 
 ### REWRITE 2013 TODOs:
 
-<del>
 
 
 - allow a rewrite base that is not root, i.e. allow running Paste from a directory
-- X make example site more generic, add dummy text and illustrative CSS for menu heirarchy
-- X write new description and a quick usage guide w/ screenshots
-- X single template(), rest is partials()
-- X move static content stuff into Paste
-- X refactor Page lib
-	- X Page Constructor -- change factory to Page::from_path()
-	- X update Page->is_current() and Page->is\_parent
-	- X consolidate nav stuff to next() and prev(), remove unused
-	- X change page->parents to something like parent_paths
-	- X simplify find and find_all, etc.
-	- X render menu() separately to remove invisible pages
-	- X remove section in favor of parent
-- X use Mustache filesystem loader for partials and cache
-- X make Menu mustache partial resursive for infinite depth -- fix CSS
-- X more unique syntax for page/section vars
-- X proper cascading templates
-- X redo the section control as suggested in Page->factory? no
-- X return Paste to all static class
-- X Combine Content into Page
-- X Combine Controller & Content
-- X Combine Page & Template classes
-- X change mustache templates to just .stache
-- X just link to tumblr instead of using Tumblr blog driver
-- X consider only loading structure on demand (e.g. menu()), and then only loading page vars
-- X does a file based site really need a file cache? -- use memcache if anything. benchmark cache vs. no cache
-- X use namespacing, make autoloader PSR-0 compatible and package it for composer
-- X Paste::route() syntax for user defined routes
-- X separate core and a sample site for this repo, move personal portfolio stuff to separate repo
-- X simplify as much as possible. too much code for what it's supposed to be
+- ~~make example site more generic, add dummy text and illustrative CSS for menu heirarchy~~
+- ~~write new description and a quick usage guide w/ screenshots~~
+- ~~single template(), rest is partials()~~
+- ~~move static content stuff into Paste~~
+- ~~refactor Page lib~~
+	- ~~Page Constructor -- change factory to Page::from_path()~~
+	- ~~update Page->is_current() and Page->is\_parent~~
+	- ~~consolidate nav stuff to next() and prev(), remove unused~~
+	- ~~change page->parents to something like parent_paths~~
+	- ~~simplify find and find_all, etc.~~
+	- ~~render menu() separately to remove invisible pages~~
+	- ~~remove section in favor of parent~~
+- ~~use Mustache filesystem loader for partials and cache~~
+- ~~make Menu mustache partial resursive for infinite depth -- fix CSS~~
+- ~~more unique syntax for page/section vars~~
+- ~~proper cascading templates~~
+- ~~redo the section control as suggested in Page->factory? no~~
+- ~~return Paste to all static class~~
+- ~~Combine Content into Page~~
+- ~~Combine Controller & Content~~
+- ~~Combine Page & Template classes~~
+- ~~change mustache templates to just .stache~~
+- ~~just link to tumblr instead of using Tumblr blog driver~~
+- ~~consider only loading structure on demand (e.g. menu()), and then only loading page vars~~
+- ~~does a file based site really need a file cache? -- use memcache if anything. benchmark cache vs. no cache~~
+- ~~use namespacing, make autoloader PSR-0 compatible and package it for composer~~
+- ~~Paste::route() syntax for user defined routes~~
+- ~~separate core and a sample site for this repo, move personal portfolio stuff to separate repo~~
+- ~~simplify as much as possible. too much code for what it's supposed to be~~
 
-</del>
