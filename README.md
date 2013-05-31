@@ -1,6 +1,6 @@
 ## Paste
 
-- Paste is a lightweight "CMS" that uses static files and folders instead of a database.
+- Paste is a lightweight "CMS" built around static files and folders instead of a database.
 - Each HTML file represents a page in the menu, each folder represents a section, to infinite depth.
 - [Mustache](http://mustache.github.io/) is used for logic-less templating including partials.
 - Variables and templating cascade down through the site heirarchy.
@@ -38,7 +38,9 @@
 
 ## Quick Start
 
-The fastest way is to just clone the [demo site](https://github.com/paste/paste-demo) and modify to taste!
+The fastest way is to clone the [demo site](https://github.com/paste/paste-demo) and modify to taste!  
+
+Be sure to run `composer update` to install dependencies.
 
 
 ## Installation

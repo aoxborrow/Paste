@@ -86,15 +86,12 @@ class Paste {
 			
 		}
 		
-		echo "<br><br>\n\n";
-		echo Pre::render();
-		
 		// DEBUG INFOS
 		// stop benchmark, get execution time
 		$execution_time = number_format(microtime(TRUE) - $execution_start, 4);
 
 		// add benchmark time to end of HTML
-		echo PHP_EOL.'<div class="benchmark">Execution Time: '.$execution_time.', Included Files: '.count(get_included_files()).', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB</div>';
+		echo PHP_EOL.'<div class="benchmark">Execution Time: '.$execution_time.', Memory Usage: '.number_format(round(memory_get_usage(TRUE)/1024, 2)).'KB</div>';
 		
 
 	}
@@ -257,7 +254,6 @@ class Paste {
 	}
 
 	// filter and return pages by properties
-	// when $first, only return first result, not in an array
 	public static function content_query($terms) {
 		
 		// ensure we have content "DB" loaded
