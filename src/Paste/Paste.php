@@ -500,19 +500,4 @@ class Paste {
 		return ($prefix = strpos($name, '.')) ? substr($name, $prefix + 1) : $name;
 
 	}
-
-	// debugging method to show content index
-	public static function debug() {
-		
-		// get index section
-		$index = Page::find(array('parent' => FALSE));
-		
-		// build full menu from index section
-		$menu = $index->menu();
-		
-		// output menu with Pre
-		echo Pre::render($menu);
-
-	}
-	
 }
