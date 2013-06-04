@@ -501,7 +501,7 @@ class Paste {
 
 	}
 
-	// debugging function
+	// debugging method to show content index
 	public static function debug() {
 		
 		// get index section

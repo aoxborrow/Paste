@@ -2,7 +2,9 @@
 	"name": "paste/paste",
 	"license": "MIT",
 	"description": "Paste is a super simple \"CMS\" built around static files and folders.",
-    "type": "library",
+	"keywords": ["cms", "flat", "static", "file-based", "portfolio"],
+	"type": "library",
+	"homepage": "https://github.com/paste/Paste",
 	"authors": [
 		{
 			"name": "Aaron Oxborrow",
