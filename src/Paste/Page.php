@@ -194,7 +194,7 @@ class Page {
 		if ($this->is_parent AND $this->redirect == 'first_child') {
 			
 			// get first child page URL
-			$first_child = $this->_relative('next', TRUE);
+			$first_child = $this->_relative('next');
 			
 			// has a visible child
 			return empty($first_child) ? FALSE : $first_child->url();
@@ -305,11 +305,13 @@ class Page {
 			// get all visible child pages who call this one mommy
 			$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
 			
-			// add children recursively to context
-			foreach ($children as $child)
-				$context = array_merge($context, (($siblings_only) ? $child : $child->_context()));
+			// we found chitlins
+			if (! empty($children)) {
 				
-
+				// add children recursively to context
+				foreach ($children as $child)
+					$context = array_merge($context, (($siblings_only) ? array($child) : $child->_context()));
+			}
 		} 
 
 		// return context
@@ -345,17 +347,19 @@ class Page {
 		$before = array();
 		$after = array();
 		$passed = FALSE;
-		foreach ($context as $page) {
-			// the current page, don't add to context, skip to next
-			if ($page === $this) {
-				// mark that we're past the current page now
-				$passed = TRUE;
-			} elseif ($passed) {
-				// add page to after
-				$after[] = $page;
-			} else {
-				// add page to before
-				$before[] = $page;
+		if (! empty($context)) {
+			foreach ($context as $page) {
+				// the current page, don't add to context, skip to next
+				if ($page === $this) {
+					// mark that we're past the current page now
+					$passed = TRUE;
+				} elseif ($passed) {
+					// add page to after
+					$after[] = $page;
+				} else {
+					// add page to before
+					$before[] = $page;
+				}
 			}
 		}
 		
