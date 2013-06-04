@@ -112,7 +112,7 @@ class Page {
 		
 		// set title to name if not set otherwise
 		if (empty($page->title))
-			$page->title = ucwords(str_replace('_', ' ', $page->name));
+			$page->title = ucwords(str_replace(array('_', '-'), ' ', $page->name));
 		
 		// use title for menu label if not specified
 		if (empty($page->label))
