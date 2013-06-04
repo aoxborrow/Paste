@@ -71,12 +71,12 @@ class Paste {
 		self::$template_path = self::$app_path.self::$template_dir.'/';
 
 		// full path to cache for mustache
-		self::$cache_path = self::$app_path.self::$cache_dir.'/';
+		self::$cache_path = self::$app_path.self::$cache_dir;
 		
 		// setup mustache engine
 		self::$mustache_engine = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_FilesystemLoader(self::$template_path, array('extension' => self::$template_ext)),
-			'cache' => is_dir(self::$cache_path) ? self::$cache_path : FALSE,
+			'cache' => is_writable(self::$cache_path) ? self::$cache_path : FALSE,
 		));
 		// this allows dynamic partials (this is accomplished with Page->content()
 		// https://github.com/bobthecow/mustache.php/pull/101
