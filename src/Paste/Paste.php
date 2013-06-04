@@ -78,7 +78,7 @@ class Paste {
 			'loader' => new \Mustache_Loader_FilesystemLoader(self::$template_path, array('extension' => self::$template_ext)),
 			'cache' => is_dir(self::$cache_path) ? self::$cache_path : FALSE,
 		));
-		// this allows dynamic partials
+		// this allows dynamic partials (this is accomplished with Page->content()
 		// https://github.com/bobthecow/mustache.php/pull/101
 		/*'helpers' => array('partial_render' => function($text, $mustache) {
 			return "{{>".$mustache->render($text).'}}';
@@ -114,7 +114,7 @@ class Paste {
 		// match URI against routes and execute glorious vision
 		foreach (self::$routes as $route => $callback) {
 			
-			// e.g. 'blog/post/([A-Za-z0-9]+)' => 'blog/post/$1'
+			// e.g. 'blog/post/([A-Za-z0-9-]+)' => 'blog/post/$1'
 			// match URI against keys of defined $routes
 			if (preg_match('#^'.$route.'$#u', self::$request_uri, $params)) {
 				
@@ -252,10 +252,10 @@ class Paste {
 		// if not a parent, set parent section to current too
 		if (! $page->is_parent)
 			$page->parent()->is_current_parent = TRUE;
-
+		
 		// send text/html UTF-8 header
 		header('Content-Type: text/html; charset=UTF-8');
-		
+
 		// render the page
 		$output = $page->render();
 		
@@ -328,7 +328,7 @@ class Paste {
 			// get all child pages who call this one mommy
 			$children = self::content_query(array('parent' => $parent->name));
 
-			// common sort -- newest first
+			// most common sort -- newest first
 			if ($parent->sorting == 'date_desc') {
 				
 				// sort the children by timestamp descending
@@ -341,7 +341,8 @@ class Paste {
 						return TRUE;
 					return $a->timestamp < $b->timestamp;
 				});
-				
+			
+			// oldest first
 			} elseif ($parent->sorting == 'date_asc') {
 				
 				// sort the children by timestamp ascending
@@ -412,10 +413,6 @@ class Paste {
 			} elseif ($key !== 'redirect' AND strpos($value, '//')) {
 				$value = substr($value, 0, strpos($value, '//'));
 			
-			// has a date variable, convert to timestamp for sorting
-			} elseif ($key == 'date') {
-				$vars['timestamp'] = strtotime($value);
-
 			}
 		}
 
@@ -446,6 +443,9 @@ class Paste {
 
 					// load individual content page, process variables
 					$content = self::content_variables($html);
+					
+					// if page has a date variable, convert to timestamp for sorting, otherwise use file modification time
+					$content['timestamp'] = empty($content['date']) ? filemtime($path) : strtotime($content['date']);
 					
 					// store file path, strip base content path off
 					$content['path'] = substr($path, strlen(self::$content_path));
@@ -501,7 +501,7 @@ class Paste {
 
 	}
 
-	
+	// debugging function
 	public static function debug() {
 		
 		// get index section

@@ -50,7 +50,7 @@ class Page {
 	public $path;
 	
 	// url to page
-	public $url = '/';
+	public $url;
 	
 	// page is a section index
 	public $is_parent = FALSE;
@@ -60,6 +60,9 @@ class Page {
 
 	// the parent of the selected page
 	public $is_current_parent = FALSE;
+	
+	// hide children from menu, but still navigable through prev/next
+	public $hide_children = FALSE;
 
 	// takes content details and builds Page object
 	public static function create($content = NULL) {
@@ -85,13 +88,19 @@ class Page {
 				$parts = array_slice($parts, 0, -1);
 			
 		} 
-		
-		// URL is all the parts put back together
-		$page->url .= implode('/', $parts);
 
 		// page name is last part
-		$page->name = array_pop($parts);
-	
+		$name = array_pop($parts);
+
+		// use file base name, unless overidden by variable
+		if (empty($page->name))
+			$page->name = $name;
+		
+		// build URL, unless already set by variable
+		if (empty($page->url))
+			// URL is all the parts put back together + name
+			$page->url = str_replace('//', '/', '/'.implode('/', $parts).'/'.$page->name);
+		
 		// parent is the next remaining part, or for root content it's "index"
 		$page->parent = empty($parts) ? 'index' : end($parts);
 		
@@ -146,7 +155,7 @@ class Page {
 		);
 		
 		// add child menu items
-		if ($this->is_parent) {
+		if ($this->is_parent AND ! $this->hide_children) {
 
 			// get all visible child pages who call this one mommy
 			$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
@@ -201,31 +210,40 @@ class Page {
 
 	}
 	
-	// convert the title to a URL compatatible slug
-	public function slug() {
+	// get year (YYYY) from timestamp
+	public function year() {
 		
-		// use name if no title
-		$slug = empty($this->title) ? $this->name : $this->title;
+		return date('Y', $this->timestamp);
+
+	}
+	
+	// get month (MM) from timestamp
+	public function month() {
 		
-		// replace non letter or digits by -
-		$slug = preg_replace('~[^\\pL\d]+~u', '-', $slug);
+		return date('m', $this->timestamp);
 
-		// trim
-		$slug = trim($slug, '-');
+	}
+	
+	// get dat (DD) from timestamp
+	public function day() {
+		
+		return date('d', $this->timestamp);
 
-		// transliterate
-		$slug = iconv('utf-8', 'us-ascii//TRANSLIT', $slug);
-
-		// lowercase
-		$slug = strtolower($slug);
-
-		// remove unwanted characters
-		$slug = preg_replace('~[^-\w]+~', '', $slug);
-
-		if (empty($slug))
-			return NULL;
-
-		return $slug;
+	}
+	
+	// returns the first paragraph <p> ... </p> of the page
+	public function excerpt() {
+		
+		// location of first opening and closing tags
+		$opening = stripos($this->html, "<p>");
+		$closing = stripos($this->html, "</p>");
+		
+		// only proceed if we have both an opening and closing tag
+		if ($opening === FALSE OR $closing === FALSE)
+			return FALSE;
+			
+		// return the contents within, tags stripped
+		return substr($this->html, $opening, $closing-$opening);
 
 	}
 	
@@ -233,7 +251,7 @@ class Page {
 	public function next_sibling() {
 
 		// get next page in section, will cycle to first page if needed
-		$next = $this->_relative('next');
+		$next = $this->_relative('next', TRUE);
 
 		// return FALSE if we couldn't get the next sibling
 		return ($next === FALSE) ? FALSE : $next->url();
@@ -244,7 +262,7 @@ class Page {
 	public function prev_sibling() {
 
 		// get previous page in section, will cycle to last page if needed
-		$prev = $this->_relative('prev');
+		$prev = $this->_relative('prev', TRUE);
 
 		// return FALSE if we couldn't get the previous sibling
 		return ($prev === FALSE) ? FALSE : $prev->url();
@@ -253,8 +271,8 @@ class Page {
 	// next page in global context
 	public function next() {
 
-		// get next page in context, will cycle to first page if needed
-		$next = $this->_relative('next', TRUE);
+		// get next page in global context, will cycle to first page if needed
+		$next = $this->_relative('next');
 
 		// return FALSE if we couldn't get the next page
 		return ($next === FALSE) ? FALSE : $next->url();
@@ -264,15 +282,15 @@ class Page {
 	// previous page in global context
 	public function prev() {
 
-		// get previous page in context, will cycle to last page if needed
-		$prev = $this->_relative('prev', TRUE);
+		// get previous page in global context, will cycle to last page if needed
+		$prev = $this->_relative('prev');
 
 		// return FALSE if we couldn't get the previous page
 		return ($prev === FALSE) ? FALSE : $prev->url();
 	}
 	
 	// recursively build a flat array of pages for context when navigating
-	public function _context() {
+	public function _context($siblings_only = FALSE) {
 		
 		// always array format
 		$context = array();
@@ -289,7 +307,8 @@ class Page {
 			
 			// add children recursively to context
 			foreach ($children as $child)
-				$context = array_merge($context, $child->_context());
+				$context = array_merge($context, (($siblings_only) ? $child : $child->_context()));
+				
 
 		} 
 
@@ -301,26 +320,25 @@ class Page {
 	// returns relative page, based on supplied context.
 	// default context is siblings within the current section 
 	// global context includes all pages
-	public function _relative($offset, $global_context = FALSE) {
+	public function _relative($offset, $siblings_only = FALSE) {
 		
 		// context is a flat array of all the other page objects without the current page
 		// the pages before the current page are added to the end of the context array
 		
-		// global context is all content pages flattened
-		if ($global_context) {
-			
-			// get root index
-			$index = self::find(array('parent' => FALSE));
-			
-			// build context recursively
-			$context = $index->_context();
-			
-		// not global context -- only the siblings with the current section
-		} else {
+		// only the siblings with the current section
+		if ($siblings_only) {
 		
 			// create context from current parent
-			$context = Paste::content_query(array('parent' => $this->parent, 'visible' => TRUE));
+			$context = $this->parent()->_context(TRUE);
 			
+		// global context is all content pages flattened
+		} else {
+
+			// get root index
+			$index = self::find(array('parent' => FALSE));
+		
+			// build context recursively
+			$context = $index->_context();
 		}
 		
 		// store all the pages before and after the current one
