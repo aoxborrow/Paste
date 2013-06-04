@@ -16,11 +16,6 @@
 -->
 ```
 
-#### Demo Site
-**Live Demo: http://paste-demo.pastelabs.com**  
-**Source:** https://github.com/paste/paste-demo  
-
-
 #### Design Goals
 
 - simple routing with user-definable routes and closures
@@ -36,11 +31,13 @@
 - Apache mod_rewrite
 - [Mustache.php](https://github.com/bobthecow/mustache.php) (installed automatically by Composer)
 
-## Quick Start
+## Quick Start / Demo
 
-The fastest way is to clone the [demo site](https://github.com/paste/paste-demo) and modify to taste!  
+The fastest way is to clone the [demo site](https://github.com/paste/paste-demo) and modify to taste!  Be sure to run `composer update` to install dependencies.
 
-Be sure to run `composer update` to install dependencies.
+**Live Demo: http://paste-demo.pastelabs.com**  
+**Demo Source:** https://github.com/paste/paste-demo  
+![Screenshot](http://paste-demo.pastelabs.com/assets/images/demo-site.png)
 
 
 ## Installation
@@ -77,7 +74,7 @@ Paste::run();
 ```
 Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder must be writeable by Apache. Your web root should end up looking something like this:
 
-<img src="https://raw.github.com/paste/paste-demo/master/assets/images/content-example.png" align="right" style="margin: 15px;">
+<img src="http://paste-demo.pastelabs.com/assets/images/content-example.png" align="right" style="margin: 15px;">
 
 ```
 /cache/
