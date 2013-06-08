@@ -77,6 +77,10 @@ class Paste {
 		self::$mustache_engine = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_FilesystemLoader(self::$template_path, array('extension' => self::$template_ext)),
 			'cache' => is_writable(self::$cache_path) ? self::$cache_path : FALSE,
+			'helpers' => array(
+				'strtolower' => function($str) { return strtolower((string) $str); },
+				'strtoupper' => function($str) { return strtoupper((string) $str); },
+			),
 		));
 		// this allows dynamic partials (this is accomplished with Page->content()
 		// https://github.com/bobthecow/mustache.php/pull/101

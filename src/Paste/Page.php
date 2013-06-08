@@ -92,7 +92,7 @@ class Page {
 		// page name is last part
 		$name = array_pop($parts);
 
-		// use file base name, unless overidden by variable
+		// use file base name, unless overridden by variable
 		if (empty($page->name))
 			$page->name = $name;
 		
@@ -213,6 +213,11 @@ class Page {
 	// get year (YYYY) from timestamp
 	public function year() {
 		
+		// allow overriding via content variable
+		if (! empty($this->year))
+			return $this->year;
+		
+		// otherwise get from timestamp
 		return date('Y', $this->timestamp);
 
 	}
@@ -220,6 +225,11 @@ class Page {
 	// get month (MM) from timestamp
 	public function month() {
 		
+		// allow overriding via content variable
+		if (! empty($this->month))
+			return $this->month;
+		
+		// otherwise get from timestamp
 		return date('m', $this->timestamp);
 
 	}
@@ -227,6 +237,11 @@ class Page {
 	// get dat (DD) from timestamp
 	public function day() {
 		
+		// allow overriding via content variable
+		if (! empty($this->day))
+			return $this->day;
+		
+		// otherwise get from timestamp
 		return date('d', $this->timestamp);
 
 	}
@@ -245,6 +260,21 @@ class Page {
 		// return the contents within, tags stripped
 		return substr($this->html, $opening, $closing-$opening);
 
+	}
+	
+	// splits the variable "tags" into an array to be iterated
+	public function tags() {
+		
+		// nothing to work with
+		if (empty($this->tags))
+			return array();
+		
+		// split by comma
+		$tags = explode(',', $this->tags);
+		
+		// trim and return
+		return array_map('trim', $tags);
+		
 	}
 	
 	// next sibling page, or cycle to first page in section
