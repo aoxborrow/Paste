@@ -37,6 +37,9 @@ class Page {
 	// mustache partial template
 	public $partial;
 	
+	// mustache partial only for child pages
+	public $child_partial;
+	
 	// partial has been rendered
 	public $partial_rendered;
 
@@ -479,6 +482,10 @@ class Page {
 		// iterate over containing parents
 		foreach ($this->parents() as $parent) {
 			
+			// allow setting a partial only for children
+			if ($parent->child_partial)
+				return $parent->child_partial;
+			
 			// clear partials
 			if ($parent->partial === FALSE)
 				return NULL; 
@@ -504,11 +511,11 @@ class Page {
 		// get any partial defined going up tree
 		$partial = $this->partial();
 
-		// no partial, just return HTML
+		// no partial, just render content
 		if (empty($partial) OR $this->partial_rendered) {
 			
-			// just return content HTML
-			return $this->html;
+			// render content with Mustache string loader
+			return Paste::$content_engine->render($this->html, $this);
 			
 		// we have a partial that hasn't been rendered
 		} else {
@@ -517,7 +524,7 @@ class Page {
 			$this->partial_rendered = TRUE;
 			
 			// load the partial and render it with Page context
-			return Paste::$mustache_engine->render($partial, $this);
+			return Paste::$template_engine->render($partial, $this);
 			
 		}
 	}
@@ -532,7 +539,7 @@ class Page {
 		$template = $this->template();
 		
 		// load the template and render it with Page context
-		$rendered = Paste::$mustache_engine->render($template, $this);
+		$rendered = Paste::$template_engine->render($template, $this);
 		
 		// output to browser
 		if ($output) {

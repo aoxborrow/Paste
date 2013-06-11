@@ -25,6 +25,9 @@ class Paste {
 	// content file extension
 	public static $content_ext = '.html';
 	
+	// instance of Mustache engine with string loading for content pages
+	public static $content_engine;
+
 	// content "database"
 	public static $content_db;
 
@@ -37,8 +40,8 @@ class Paste {
 	// template file extension
 	public static $template_ext = '.stache';
 	
-	// instance of Mustache engine
-	public static $mustache_engine;
+	// main instance of Mustache engine
+	public static $template_engine;
 
 	// full path to cache for mustache
 	public static $cache_path;
@@ -73,21 +76,18 @@ class Paste {
 		// full path to cache for mustache
 		self::$cache_path = self::$app_path.self::$cache_dir;
 		
-		// setup mustache engine
-		self::$mustache_engine = new \Mustache_Engine(array(
+		// setup main mustache engine for templates
+		self::$template_engine = new \Mustache_Engine(array(
 			'loader' => new \Mustache_Loader_FilesystemLoader(self::$template_path, array('extension' => self::$template_ext)),
 			'cache' => is_writable(self::$cache_path) ? self::$cache_path : FALSE,
-			'helpers' => array(
-				'strtolower' => function($str) { return strtolower((string) $str); },
-				'strtoupper' => function($str) { return strtoupper((string) $str); },
-			),
 		));
-		// this allows dynamic partials (this is accomplished with Page->content()
-		// https://github.com/bobthecow/mustache.php/pull/101
-		/*'helpers' => array('partial_render' => function($text, $mustache) {
-			return "{{>".$mustache->render($text).'}}';
-		}),*/
-
+		
+		// string loader mustache engine for content pages
+		self::$content_engine = new \Mustache_Engine(array(
+			'partials_loader' => new \Mustache_Loader_FilesystemLoader(self::$template_path, array('extension' => self::$template_ext)),
+			'cache' => is_writable(self::$cache_path) ? self::$cache_path : FALSE,
+		));
+		
 		// detect request URI
 		self::$request_uri = self::uri();
 

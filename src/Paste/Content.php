@@ -151,7 +151,6 @@ class Content {
 
 		// match HTML comments that look like
 		// <!-- @key: value -->
-		// http://stackoverflow.com/questions/441404/regular-expression-to-find-and-replace-the-content-of-html-comment-tags/441462#441462
 		$regexp = '/<!--((?:[^-]+|-(?!->))*)-->/Ui';
 		preg_match_all($regexp, $html, $comments, PREG_OFFSET_CAPTURE);
 
