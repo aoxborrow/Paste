@@ -62,6 +62,7 @@ class Page {
 	public $is_current_parent = FALSE;
 	
 	// hide children from menu, but still navigable through prev/next
+	// for example having a single blog section in the menu, with navigable children
 	public $hide_children = FALSE;
 
 	// takes content details and builds Page object
@@ -432,6 +433,10 @@ class Page {
 	
 	// child pages
 	public function children() {
+		
+		// allow overriding
+		if (! empty($this->children))
+			return $this->children;
 		
 		// get all visible child pages who call this one mommy
 		return Content::query(array('parent' => $this->name, 'visible' => TRUE));

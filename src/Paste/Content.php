@@ -117,9 +117,24 @@ class Content {
 
 			// iterate over search terms
 			foreach ($terms as $property => $value)
+
+				// pass array('in:array' => 'value' to search arrays
+				if (substr($property, 0, 3) == 'in:') {
+
+					// array to search
+					$array = substr($property, 3);
+					
+					// search array, skip page if value not in array
+					if (! isset($page->$array) OR ! in_array($value, $page->$array))
+						continue 2;
+				
 				// skip to next page if property doesn't match
-				if (! isset($page->$property) OR $page->$property !== $value)
+				} elseif (! isset($page->$property) OR $page->$property !== $value) {
+					
+					// next page
 					continue 2;
+					
+				}
 
 			// add to pages
 			$pages[] = $page;
