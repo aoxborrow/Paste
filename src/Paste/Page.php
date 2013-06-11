@@ -75,7 +75,7 @@ class Page {
 			$page->$key = $value;
 		
 		// parts array is content path after stripping prefix and extensions from each part
-		$parts = array_map('Paste\Paste::content_name', explode('/', $page->path));
+		$parts = array_map('Paste\Content::base_name', explode('/', $page->path));
 		
 		// sections are represented by their index file
 		if (end($parts) === 'index') {
@@ -118,6 +118,9 @@ class Page {
 		if (empty($page->label))
 			$page->label = $page->title;
 		
+		// split tags by comma and trim spaces
+		$page->tags = empty($page->tags) ? array() : array_map('trim', explode(',', strtolower($page->tags)));
+		
 		// page is loaded
 		$page->loaded = TRUE;
 
@@ -126,17 +129,6 @@ class Page {
 
 	}
 	
-	// find a single page by properties
-	public static function find($terms) {
-		
-		// get all pages that match
-		$pages = Paste::content_query($terms);
-		
-		// only return single result
-		return empty($pages) ? FALSE : array_shift($pages);
-
-	}
-
 	// recursive menu items relative to current page
 	// returns simple menu heirarchy with:
 	// url, title, current, parent, children
@@ -158,7 +150,7 @@ class Page {
 		if ($this->is_parent AND ! $this->hide_children) {
 
 			// get all visible child pages who call this one mommy
-			$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
+			$children = Content::query(array('parent' => $this->name, 'visible' => TRUE));
 			
 			// add to children key
 			$menu_item['children'] = array();
@@ -177,7 +169,7 @@ class Page {
 	public static function index() {
 
 		// get index section
-		$index = self::find(array('parent' => FALSE));
+		$index = Content::find(array('parent' => FALSE));
 		
 		// build full menu from index section
 		$menu = $index->menu();
@@ -262,21 +254,6 @@ class Page {
 
 	}
 	
-	// splits the variable "tags" into an array to be iterated
-	public function tags() {
-		
-		// nothing to work with
-		if (empty($this->tags))
-			return array();
-		
-		// split by comma
-		$tags = explode(',', $this->tags);
-		
-		// trim and return
-		return array_map('trim', $tags);
-		
-	}
-	
 	// next sibling page, or cycle to first page in section
 	public function next_sibling() {
 
@@ -333,7 +310,7 @@ class Page {
 		if ($this->is_parent) {
 			
 			// get all visible child pages who call this one mommy
-			$children = Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
+			$children = Content::query(array('parent' => $this->name, 'visible' => TRUE));
 			
 			// we found chitlins
 			if (! empty($children)) {
@@ -367,7 +344,7 @@ class Page {
 		} else {
 
 			// get root index
-			$index = self::find(array('parent' => FALSE));
+			$index = Content::find(array('parent' => FALSE));
 		
 			// build context recursively
 			$context = $index->_context();
@@ -441,7 +418,7 @@ class Page {
 		while ($parent) {
 			
 			// get parent page
-			$parent = self::find(array('name' => $parent->parent, 'is_parent' => TRUE));
+			$parent = Content::find(array('name' => $parent->parent, 'is_parent' => TRUE));
 
 			// add to list
 			$parents[] = $parent;
@@ -457,7 +434,7 @@ class Page {
 	public function children() {
 		
 		// get all visible child pages who call this one mommy
-		return Paste::content_query(array('parent' => $this->name, 'visible' => TRUE));
+		return Content::query(array('parent' => $this->name, 'visible' => TRUE));
 
 	}
 	
@@ -544,14 +521,40 @@ class Page {
 	// uses only one template and one partial
 	// templates and partials can be set anywhere in parent tree
 	// if partial === FALSE or page has a template set, doesn't go further than that
-	public function render() {
+	public function render($output = FALSE) {
 		
 		// get the containing template, the closest defined in parent tree
 		$template = $this->template();
 		
 		// load the template and render it with Page context
-		return Paste::$mustache_engine->render($template, $this);
+		$rendered = Paste::$mustache_engine->render($template, $this);
+		
+		// output to browser
+		if ($output) {
+			
+			// send text/html UTF-8 header
+			header('Content-Type: text/html; charset=UTF-8');
+			
+			// DEBUG INFOS
+			// stop benchmark, get execution time
+			$execution_time = number_format(microtime(TRUE) - Paste::$execution_start, 4);
+
+			// add execution time to HTML
+			$benchmark = '<b>execution:</b> '.$execution_time.' sec<br>';
+
+			// add memory usage
+			$benchmark .= '<b>memory:</b> '.number_format(round(memory_get_usage(TRUE)/1024, 2)).' KB<br/>';
+		
+			// swap in benchmark info and output
+			echo str_replace('<!-- benchmark -->', $benchmark, $rendered);
+			
+		} else {
+			
+			// jut return rendered content
+			return $rendered;
+		}
 		
 	}
+
 
 }
