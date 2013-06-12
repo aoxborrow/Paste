@@ -79,22 +79,36 @@ class Page {
 			$page->$key = $value;
 		
 		// parts array is content path after stripping prefix and extensions from each part
-		$parts = array_map('Paste\Content::base_name', explode('/', $page->path));
+		// $parts = array_map('Paste\Content::base_name', explode('/', $page->path));
+		$parts = array_map(function($file) {
+		
+			// get file name without content extension
+			$name = basename($file, Paste::$content_ext);
+
+			// base name is everything after intial period if one exists
+			return ($prefix = strpos($name, '.')) ? substr($name, $prefix + 1) : $name;
+		
+		}, explode('/', $page->path));
+		
+		// page name is last part
+		$name = array_pop($parts);
+		
+		// if name is prefixed by an underscore, remove it and make page invisible
+		if ($name[0] === '_') {
+			$name = substr($name, 1);
+			$page->visible = FALSE;
+		}
 		
 		// sections are represented by their index file
-		if (end($parts) === 'index') {
+		if ($name === 'index') {
 			
 			// parent section
 			$page->is_parent = TRUE;
 			
 			// remove 'index' from parts if deeper than root
-			if (count($parts) > 1)
-				$parts = array_slice($parts, 0, -1);
-			
+			if (count($parts) > 0)
+				$name = array_pop($parts);
 		} 
-
-		// page name is last part
-		$name = array_pop($parts);
 
 		// use file base name, unless overridden by variable
 		if (empty($page->name))
@@ -103,23 +117,24 @@ class Page {
 		// build URL, unless already set by variable
 		if (empty($page->url))
 			// URL is all the parts put back together + name
+			// TODO: use base URL
 			$page->url = str_replace('//', '/', '/'.implode('/', $parts).'/'.$page->name);
 		
-		// parent is the next remaining part, or for root content it's "index"
+		// parent is the next remaining part, or for root content pages it's "index"
 		$page->parent = empty($parts) ? 'index' : end($parts);
 		
 		// the root section has no parents! like Batman...
 		if ($page->name == 'index') {
 			$page->parent = FALSE;
-			$page->url = '/';
+			$page->url = '/'; // TODO: use base URL
 		}
 		
 		// set title to name if not set otherwise
-		if (empty($page->title))
+		if (empty($page->title) AND $page->title !== FALSE)
 			$page->title = ucwords(str_replace(array('_', '-'), ' ', $page->name));
 		
 		// use title for menu label if not specified
-		if (empty($page->label))
+		if (empty($page->label) AND $page->label !== FALSE)
 			$page->label = $page->title;
 		
 		// split tags by comma and trim spaces

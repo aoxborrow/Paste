@@ -171,9 +171,10 @@ Now visit your Paste site in a web browser and take in the _magic_!
   
 ### REWRITE 2013 TODOs:
 
-- render content with Mustache string loader to allow referencing partials and context
+
 - allow a rewrite base that is not root, i.e. allow running Paste from a subdirectory
-- add a shortcut to hide pages like _ underscore prefix in the filename
+- ~~render content with Mustache string loader to allow referencing partials and context~~
+- ~~add a shortcut to hide pages like _ underscore prefix in the filename~~
 - ~~make example site more generic, add dummy text and illustrative CSS for menu heirarchy~~
 - ~~write new description and a quick usage guide w/ screenshots~~
 - ~~single template(), rest is partials()~~

@@ -18,7 +18,7 @@ class Content {
 
 	// decipher request and render content page
 	public static function request($url = NULL) {
-		
+
 		// trim slashes
 		$url = trim($url, '/');
 
@@ -78,7 +78,7 @@ class Content {
 		// if not a parent, set parent section to current too
 		if (! $page->is_parent)
 			$page->parent()->is_current_parent = TRUE;
-		
+
 		// render and output the page
 		$page->render(TRUE);
 		
@@ -250,7 +250,7 @@ class Content {
 		// iterate content path
 		while (($file = readdir($handle)) !== FALSE)
 			// ignore dot dirs and paths prefixed with an underscore or period
-			if ($file != '.' AND $file != '..' AND $file[0] !== '_' AND $file[0] !== '.')
+			if ($file != '.' AND $file != '..' AND $file[0] !== '.')
 				$files[] = $file;
 		
 		// close handle
@@ -326,16 +326,5 @@ class Content {
 				$page->_index = $index;
 			
 		}
-	}
-
-	// get base filename without sorting prefix or extension
-	public static function base_name($file) {
-
-		// get file name without content extension
-		$name = basename($file, Paste::$content_ext);
-
-		// base name is everything after intial period if one exists
-		return ($prefix = strpos($name, '.')) ? substr($name, $prefix + 1) : $name;
-
 	}
 }
