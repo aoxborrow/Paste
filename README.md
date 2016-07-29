@@ -8,11 +8,11 @@
 
 ```
 <!--  
-@template: master  
-@partial: project  
-@title: The Page Title  
-@visible: TRUE // visible in menu  
-@label: Menu Label (optional)  
+@template: master
+@partial: project
+@title: The Page Title
+@visible: TRUE // visible in menu
+@label: Menu Label (optional)
 -->
 ```
 
@@ -22,7 +22,7 @@
 - [Mustache](http://mustache.github.io/) for ultra dumb templating
 - flexible templates and cascading page partials
 - configuration via simple inline syntax
-- takes some cues from [Stacey App](http://www.staceyapp.com/). 
+- takes some cues from [Stacey App](http://www.staceyapp.com/).
 - use latest PHP tech, e.g. Composer
 
 #### Requirements
@@ -35,9 +35,9 @@
 
 The fastest way is to clone the [demo site](https://github.com/paste/paste-demo) and modify to taste!  Be sure to run `composer update` to install dependencies.
 
-**Live Demo: http://paste-demo.pastelabs.com**  
-**Demo Source:** https://github.com/paste/paste-demo  
-![Screenshot](http://paste-demo.pastelabs.com/assets/images/demo-site.png)
+**Demo Site:** https://github.com/paste/paste-demo  
+
+![Screenshot](https://github.com/paste/paste-demo/raw/master/assets/images/demo-site.png)
 
 
 ## Installation
@@ -61,20 +61,35 @@ Create an `index.php` file for the front router:
 require 'vendor/autoload.php';
 use Paste\Paste;
 
+// configuration
+$config = array(
+	// optionally specify a 'base_url' if serving Paste from a subdirectory, i.e. RewriteBase
+	// 'base_url' => '/paste-demo',
+	// relative path to content directory
+	// 'content_dir' => 'content',
+	// relative path to template directory
+	// 'template_dir' => 'templates',
+	// relative path to cache directory
+	// 'cache_dir' => 'cache',
+);
+
+// load config and parse content directory
+$paste = new Paste($config);
+
 // (optional) user defined routing
 // 'route regex' => any valid callback
-// matched tokens from the regex will be passed as parameters
-// e.g. 'blog/post/([A-Za-z0-9]+)' => 'Class::method',
-Paste::route('blog/post/([A-Za-z0-9-_]+)', function($slug) { 
-	echo "Example callback route, slug: <b>$slug</b><br/>";
+// matched tokens from the regex will be passed as parameters, with $paste instance first
+$paste->add_route('blog/([0-9]{4})/([0-9]{2})/([0-9]{2})/([A-Za-z0-9-_]+)', function($paste, $year, $month, $day, $name) {
+	// ignore date and run normal content request
+	return $paste->render_url("blog/$name");
 });
 
 // init routing and run
-Paste::run();
+$paste->run();
 ```
 Create the `content`, `templates`, `cache` directories in your web root. The `cache` folder must be writeable by Apache. Your web root should end up looking something like this:
 
-<img src="http://paste-demo.pastelabs.com/assets/images/content-example.png" align="right" style="margin: 15px;">
+<img src="https://github.com/paste/paste-demo/raw/master/assets/images/content-example.png" align="right" style="margin: 15px;">
 
 ```
 /cache/
@@ -112,7 +127,7 @@ Add the first template, e.g. `templates/template.stache`:
 ```
 
 Create an `.htaccess` file to enable URL rewriting:
-[(or copy from the demo site)](https://github.com/paste/paste-demo/blob/master/.htaccess) 
+[(or copy from the demo site)](https://github.com/paste/paste-demo/blob/master/.htaccess)
 
 ```apache
 # don't list directories
@@ -121,7 +136,7 @@ Options -Indexes
 # Turn on URL rewriting
 RewriteEngine On
 
-# Installation directory
+# Installation directory -- same as your 'base_url'
 RewriteBase /
 
 # Protect dot files from being viewed
@@ -151,28 +166,13 @@ AddCharset utf-8 .html .css .js .xml .json .rss
 Now visit your Paste site in a web browser and take in the _magic_!
 
 
-
-## Content
-- Structure / Sorting
-- Variables
-
-## Templates
-- Page Context
-- Page Templates
-- Page Partials
-- Mustache Partials
+### REFACTOR 2016 TODOs:
+- ~~allow a rewrite base that is not root, i.e. allow running Paste from a subdirectory~~
+- ~~classes seem arbitrary, combine Paste & Content?~~
+- ~~make it completely OO, not sure why so much static~~
 
 
-  
-  
-  
-  
-  
-  
 ### REWRITE 2013 TODOs:
-
-
-- allow a rewrite base that is not root, i.e. allow running Paste from a subdirectory
 - ~~render content with Mustache string loader to allow referencing partials and context~~
 - ~~add a shortcut to hide pages like _ underscore prefix in the filename~~
 - ~~make example site more generic, add dummy text and illustrative CSS for menu heirarchy~~
@@ -204,4 +204,3 @@ Now visit your Paste site in a web browser and take in the _magic_!
 - ~~Paste::route() syntax for user defined routes~~
 - ~~separate core and a sample site for this repo, move personal portfolio stuff to separate repo~~
 - ~~simplify as much as possible. too much code for what it's supposed to be~~
-
