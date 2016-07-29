@@ -82,11 +82,10 @@ class Page {
 			$this->$key = $value;
 
 		// parts array is content path after stripping prefix and extensions from each part
-		// $parts = array_map('Paste\Content::base_name', explode('/', $page->path));
-		$parts = array_map(function($file) {
+		$parts = array_map(function($file) use ($paste) {
 
 			// get file name without content extension
-			$name = basename($file, $this->paste->content_ext);
+			$name = basename($file, $paste->content_ext);
 
 			// base name is everything after intial period if one exists
 			return ($prefix = strpos($name, '.')) ? substr($name, $prefix + 1) : $name;
